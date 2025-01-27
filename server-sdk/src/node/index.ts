@@ -35,7 +35,6 @@ import {
   INTMAXClient,
   IntMaxEnvironment,
   IntMaxTxBroadcast,
-  jsTransferToTransfer,
   LiquidityAbi,
   MAINNET_ENV,
   networkMessage,

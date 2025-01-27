@@ -6,7 +6,6 @@ import {
   custom,
   erc20Abi,
   erc721Abi,
-  formatEther,
   Hex,
   http,
   isAddress,
@@ -17,7 +16,6 @@ import {
   toHex,
   WalletClient,
   WriteContractParameters,
-  zeroAddress,
 } from 'viem';
 import { mainnet, sepolia } from 'viem/chains';
 
@@ -37,7 +35,6 @@ import {
   INTMAXClient,
   IntMaxEnvironment,
   IntMaxTxBroadcast,
-  jsTransferToTransfer,
   LiquidityAbi,
   localStorageManager,
   MAINNET_ENV,

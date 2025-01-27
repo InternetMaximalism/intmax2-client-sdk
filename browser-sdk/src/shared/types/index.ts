@@ -100,8 +100,6 @@ export interface BroadcastTransactionResponse extends TransactionResult {}
 
 export interface TransactionResult {
   txTreeRoot: string;
-  transferData: TransferData[];
-  withdrawalData: TransferData[];
   transferUUIDs: string[];
   withdrawalUUIDs: string[];
 }
@@ -285,4 +283,5 @@ export interface IntMaxTxBroadcast {
   tokenIndex: number;
   token_type?: TokenType;
   token_address?: `0x${string}`;
+  depositor?: `0x${string}`;
 }

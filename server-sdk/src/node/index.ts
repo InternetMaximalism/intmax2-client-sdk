@@ -336,8 +336,6 @@ export class IntMaxNodeClient implements INTMAXClient {
       txTreeRoot: tx.tx_tree_root,
       transferUUIDs: tx.transfer_uuids,
       withdrawalUUIDs: tx.withdrawal_uuids,
-      transferData: tx.transfer_data_vec.length > 0 ? tx.transfer_data_vec.map(jsTransferToTransfer) : [],
-      withdrawalData: tx.withdrawal_data_vec.length > 0 ? tx.withdrawal_data_vec.map(jsTransferToTransfer) : [],
     };
   }
 
@@ -743,6 +741,7 @@ export class IntMaxNodeClient implements INTMAXClient {
     const salt = isGasEstimation
       ? randomBytesHex(16)
       : await this.#depositToAccount({
+          depositor: this.#ethAccount.address,
           pubkey: address,
           amountInDecimals:
             token.tokenType === TokenType.NATIVE
@@ -822,14 +821,19 @@ export class IntMaxNodeClient implements INTMAXClient {
     pubkey,
     token_type,
     token_address,
+    depositor,
   }: Required<IntMaxTxBroadcast>) {
     const depositResult = await prepare_deposit(
       this.#config,
+      depositor,
       pubkey,
       amountInDecimals.toString(),
       token_type,
       token_address,
       tokenIndex.toString(),
+      token_type === TokenType.NATIVE
+        ? [0.1, 0.5, 1.0].includes(Number(parseEther(amountInDecimals.toString())))
+        : false,
     );
     if (!depositResult) {
       throw new Error('Failed to prepare deposit');

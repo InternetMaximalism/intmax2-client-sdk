@@ -198,6 +198,12 @@ function debugString(val) {
     return className;
 }
 
+function takeFromExternrefTable0(idx) {
+    const value = wasm.__wbindgen_export_2.get(idx);
+    wasm.__externref_table_dealloc(idx);
+    return value;
+}
+
 function _assertClass(instance, klass) {
     if (!(instance instanceof klass)) {
         throw new Error(`expected instance of ${klass.name}`);
@@ -238,27 +244,30 @@ export function generate_intmax_account_from_eth_key(eth_private_key) {
 
 /**
  * Function to take a backup before calling the deposit function of the liquidity contract.
- *
  * You can also get the pubkey_salt_hash from the return value.
  * @param {Config} config
+ * @param {string} depositor
  * @param {string} recipient
  * @param {string} amount
  * @param {number} token_type
  * @param {string} token_address
  * @param {string} token_id
+ * @param {boolean} is_mining
  * @returns {Promise<JsDepositResult>}
  */
-export function prepare_deposit(config, recipient, amount, token_type, token_address, token_id) {
+export function prepare_deposit(config, depositor, recipient, amount, token_type, token_address, token_id, is_mining) {
     _assertClass(config, Config);
-    const ptr0 = passStringToWasm0(recipient, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const ptr0 = passStringToWasm0(depositor, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len0 = WASM_VECTOR_LEN;
-    const ptr1 = passStringToWasm0(amount, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const ptr1 = passStringToWasm0(recipient, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len1 = WASM_VECTOR_LEN;
-    const ptr2 = passStringToWasm0(token_address, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const ptr2 = passStringToWasm0(amount, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len2 = WASM_VECTOR_LEN;
-    const ptr3 = passStringToWasm0(token_id, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const ptr3 = passStringToWasm0(token_address, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len3 = WASM_VECTOR_LEN;
-    const ret = wasm.prepare_deposit(config.__wbg_ptr, ptr0, len0, ptr1, len1, token_type, ptr2, len2, ptr3, len3);
+    const ptr4 = passStringToWasm0(token_id, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len4 = WASM_VECTOR_LEN;
+    const ret = wasm.prepare_deposit(config.__wbg_ptr, ptr0, len0, ptr1, len1, ptr2, len2, token_type, ptr3, len3, ptr4, len4, is_mining);
     return ret;
 }
 
@@ -283,53 +292,8 @@ export function send_tx_request(config, block_builder_url, private_key, transfer
 }
 
 /**
- * Function to query the block proposal from the block builder.
- * The return value is the block proposal or null if the proposal is not found.
- * If got an invalid proposal, it will return an error.
- * @param {Config} config
- * @param {string} block_builder_url
- * @param {string} private_key
- * @param {boolean} is_registration_block
- * @param {JsTx} tx
- * @returns {Promise<JsBlockProposal | undefined>}
- */
-export function query_proposal(config, block_builder_url, private_key, is_registration_block, tx) {
-    _assertClass(config, Config);
-    const ptr0 = passStringToWasm0(block_builder_url, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len0 = WASM_VECTOR_LEN;
-    const ptr1 = passStringToWasm0(private_key, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len1 = WASM_VECTOR_LEN;
-    _assertClass(tx, JsTx);
-    const ret = wasm.query_proposal(config.__wbg_ptr, ptr0, len0, ptr1, len1, is_registration_block, tx.__wbg_ptr);
-    return ret;
-}
-
-/**
- * Send the signed tx tree root to the block builder during taking a backup of the tx.
- *
- * You need to call send_tx_request before calling this function.
- * The return value is the tx result, which contains the tx tree root and transfer data.
- * @param {Config} config
- * @param {string} block_builder_url
- * @param {string} private_key
- * @param {JsTxRequestMemo} tx_request_memo
- * @param {JsBlockProposal} proposal
- * @returns {Promise<JsTxResult>}
- */
-export function finalize_tx(config, block_builder_url, private_key, tx_request_memo, proposal) {
-    _assertClass(config, Config);
-    const ptr0 = passStringToWasm0(block_builder_url, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len0 = WASM_VECTOR_LEN;
-    const ptr1 = passStringToWasm0(private_key, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len1 = WASM_VECTOR_LEN;
-    _assertClass(tx_request_memo, JsTxRequestMemo);
-    _assertClass(proposal, JsBlockProposal);
-    const ret = wasm.finalize_tx(config.__wbg_ptr, ptr0, len0, ptr1, len1, tx_request_memo.__wbg_ptr, proposal.__wbg_ptr);
-    return ret;
-}
-
-/**
- * Batch function of query_proposal and finalize_tx.
+ * Function to query the block proposal from the block builder, and
+ * send the signed tx tree root to the block builder during taking a backup of the tx.
  * @param {Config} config
  * @param {string} block_builder_url
  * @param {string} private_key
@@ -377,6 +341,24 @@ export function sync_withdrawals(config, private_key) {
 }
 
 /**
+ * Synchronize the user's claim of staking mining, and send request to the withdrawal aggregator.
+ * It may take a long time to generate ZKP.
+ * @param {Config} config
+ * @param {string} private_key
+ * @param {string} recipient
+ * @returns {Promise<void>}
+ */
+export function sync_claim(config, private_key, recipient) {
+    _assertClass(config, Config);
+    const ptr0 = passStringToWasm0(private_key, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passStringToWasm0(recipient, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ret = wasm.sync_claim(config.__wbg_ptr, ptr0, len0, ptr1, len1);
+    return ret;
+}
+
+/**
  * Get the user's data. It is recommended to sync before calling this function.
  * @param {Config} config
  * @param {string} private_key
@@ -387,6 +369,45 @@ export function get_user_data(config, private_key) {
     const ptr0 = passStringToWasm0(private_key, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len0 = WASM_VECTOR_LEN;
     const ret = wasm.get_user_data(config.__wbg_ptr, ptr0, len0);
+    return ret;
+}
+
+/**
+ * @param {Config} config
+ * @param {string} private_key
+ * @returns {Promise<(JsWithdrawalInfo)[]>}
+ */
+export function get_withdrawal_info(config, private_key) {
+    _assertClass(config, Config);
+    const ptr0 = passStringToWasm0(private_key, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.get_withdrawal_info(config.__wbg_ptr, ptr0, len0);
+    return ret;
+}
+
+/**
+ * @param {Config} config
+ * @param {string} private_key
+ * @returns {Promise<(JsClaimInfo)[]>}
+ */
+export function get_claim_info(config, private_key) {
+    _assertClass(config, Config);
+    const ptr0 = passStringToWasm0(private_key, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.get_claim_info(config.__wbg_ptr, ptr0, len0);
+    return ret;
+}
+
+/**
+ * @param {Config} config
+ * @param {string} private_key
+ * @returns {Promise<(JsHistoryEntry)[]>}
+ */
+export function fetch_history(config, private_key) {
+    _assertClass(config, Config);
+    const ptr0 = passStringToWasm0(private_key, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.fetch_history(config.__wbg_ptr, ptr0, len0);
     return ret;
 }
 
@@ -441,22 +462,27 @@ export function decrypt_tx_data(private_key, data) {
     return ret;
 }
 
-function takeFromExternrefTable0(idx) {
-    const value = wasm.__wbindgen_export_2.get(idx);
-    wasm.__externref_table_dealloc(idx);
-    return value;
-}
-function __wbg_adapter_30(arg0, arg1) {
-    wasm._dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h6ae869d73bf0119d(arg0, arg1);
+function __wbg_adapter_34(arg0, arg1) {
+    wasm._dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h14f4dbbe7ce8d72f(arg0, arg1);
 }
 
-function __wbg_adapter_33(arg0, arg1, arg2) {
-    wasm.closure632_externref_shim(arg0, arg1, arg2);
+function __wbg_adapter_37(arg0, arg1, arg2) {
+    wasm.closure648_externref_shim(arg0, arg1, arg2);
 }
 
-function __wbg_adapter_305(arg0, arg1, arg2, arg3) {
-    wasm.closure962_externref_shim(arg0, arg1, arg2, arg3);
+function __wbg_adapter_357(arg0, arg1, arg2, arg3) {
+    wasm.closure1355_externref_shim(arg0, arg1, arg2, arg3);
 }
+
+/**
+ * @enum {0 | 1 | 2 | 3}
+ */
+export const JsEntryStatus = Object.freeze({
+    Settled: 0, "0": "Settled",
+    Processed: 1, "1": "Processed",
+    Pending: 2, "2": "Pending",
+    Timeout: 3, "3": "Timeout",
+});
 
 const __wbindgen_enum_RequestCredentials = ["omit", "same-origin", "include"];
 
@@ -956,14 +982,6 @@ const JsBlockProposalFinalization = (typeof FinalizationRegistry === 'undefined'
 
 export class JsBlockProposal {
 
-    static __wrap(ptr) {
-        ptr = ptr >>> 0;
-        const obj = Object.create(JsBlockProposal.prototype);
-        obj.__wbg_ptr = ptr;
-        JsBlockProposalFinalization.register(obj, obj.__wbg_ptr, obj);
-        return obj;
-    }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
@@ -995,6 +1013,203 @@ export class JsBlockProposal {
         } finally {
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
+    }
+}
+
+const JsClaimFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_jsclaim_free(ptr >>> 0, 1));
+
+export class JsClaim {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(JsClaim.prototype);
+        obj.__wbg_ptr = ptr;
+        JsClaimFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        JsClaimFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_jsclaim_free(ptr, 0);
+    }
+    /**
+     * @returns {string}
+     */
+    get recipient() {
+        let deferred1_0;
+        let deferred1_1;
+        try {
+            const ret = wasm.__wbg_get_jsclaim_recipient(this.__wbg_ptr);
+            deferred1_0 = ret[0];
+            deferred1_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+        }
+    }
+    /**
+     * @param {string} arg0
+     */
+    set recipient(arg0) {
+        const ptr0 = passStringToWasm0(arg0, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.__wbg_set_jsclaim_recipient(this.__wbg_ptr, ptr0, len0);
+    }
+    /**
+     * @returns {string}
+     */
+    get amount() {
+        let deferred1_0;
+        let deferred1_1;
+        try {
+            const ret = wasm.__wbg_get_jsclaim_amount(this.__wbg_ptr);
+            deferred1_0 = ret[0];
+            deferred1_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+        }
+    }
+    /**
+     * @param {string} arg0
+     */
+    set amount(arg0) {
+        const ptr0 = passStringToWasm0(arg0, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.__wbg_set_jsclaim_amount(this.__wbg_ptr, ptr0, len0);
+    }
+    /**
+     * @returns {string}
+     */
+    get nullifier() {
+        let deferred1_0;
+        let deferred1_1;
+        try {
+            const ret = wasm.__wbg_get_jsclaim_nullifier(this.__wbg_ptr);
+            deferred1_0 = ret[0];
+            deferred1_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+        }
+    }
+    /**
+     * @param {string} arg0
+     */
+    set nullifier(arg0) {
+        const ptr0 = passStringToWasm0(arg0, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.__wbg_set_jsclaim_nullifier(this.__wbg_ptr, ptr0, len0);
+    }
+    /**
+     * @returns {string}
+     */
+    get block_hash() {
+        let deferred1_0;
+        let deferred1_1;
+        try {
+            const ret = wasm.__wbg_get_jsclaim_block_hash(this.__wbg_ptr);
+            deferred1_0 = ret[0];
+            deferred1_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+        }
+    }
+    /**
+     * @param {string} arg0
+     */
+    set block_hash(arg0) {
+        const ptr0 = passStringToWasm0(arg0, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.__wbg_set_jsclaim_block_hash(this.__wbg_ptr, ptr0, len0);
+    }
+    /**
+     * @returns {number}
+     */
+    get block_number() {
+        const ret = wasm.__wbg_get_jsclaim_block_number(this.__wbg_ptr);
+        return ret >>> 0;
+    }
+    /**
+     * @param {number} arg0
+     */
+    set block_number(arg0) {
+        wasm.__wbg_set_jsclaim_block_number(this.__wbg_ptr, arg0);
+    }
+}
+
+const JsClaimInfoFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_jsclaiminfo_free(ptr >>> 0, 1));
+
+export class JsClaimInfo {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(JsClaimInfo.prototype);
+        obj.__wbg_ptr = ptr;
+        JsClaimInfoFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        JsClaimInfoFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_jsclaiminfo_free(ptr, 0);
+    }
+    /**
+     * @returns {string}
+     */
+    get status() {
+        let deferred1_0;
+        let deferred1_1;
+        try {
+            const ret = wasm.__wbg_get_jsclaiminfo_status(this.__wbg_ptr);
+            deferred1_0 = ret[0];
+            deferred1_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+        }
+    }
+    /**
+     * @param {string} arg0
+     */
+    set status(arg0) {
+        const ptr0 = passStringToWasm0(arg0, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.__wbg_set_jsclaim_recipient(this.__wbg_ptr, ptr0, len0);
+    }
+    /**
+     * @returns {JsClaim}
+     */
+    get claim() {
+        const ret = wasm.__wbg_get_jsclaiminfo_claim(this.__wbg_ptr);
+        return JsClaim.__wrap(ret);
+    }
+    /**
+     * @param {JsClaim} arg0
+     */
+    set claim(arg0) {
+        _assertClass(arg0, JsClaim);
+        var ptr0 = arg0.__destroy_into_raw();
+        wasm.__wbg_set_jsclaiminfo_claim(this.__wbg_ptr, ptr0);
     }
 }
 
@@ -1044,7 +1259,7 @@ export class JsContractWithdrawal {
     set recipient(arg0) {
         const ptr0 = passStringToWasm0(arg0, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
-        wasm.__wbg_set_jscontractwithdrawal_recipient(this.__wbg_ptr, ptr0, len0);
+        wasm.__wbg_set_jsclaim_recipient(this.__wbg_ptr, ptr0, len0);
     }
     /**
      * @returns {number}
@@ -1080,7 +1295,7 @@ export class JsContractWithdrawal {
     set amount(arg0) {
         const ptr0 = passStringToWasm0(arg0, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
-        wasm.__wbg_set_jscontractwithdrawal_amount(this.__wbg_ptr, ptr0, len0);
+        wasm.__wbg_set_jsclaim_amount(this.__wbg_ptr, ptr0, len0);
     }
     /**
      * @returns {string}
@@ -1103,7 +1318,7 @@ export class JsContractWithdrawal {
     set nullifier(arg0) {
         const ptr0 = passStringToWasm0(arg0, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
-        wasm.__wbg_set_jscontractwithdrawal_nullifier(this.__wbg_ptr, ptr0, len0);
+        wasm.__wbg_set_jsclaim_nullifier(this.__wbg_ptr, ptr0, len0);
     }
     /**
      * @param {string} recipient
@@ -1301,6 +1516,78 @@ export class JsDepositData {
     }
 }
 
+const JsDepositEntryFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_jsdepositentry_free(ptr >>> 0, 1));
+
+export class JsDepositEntry {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(JsDepositEntry.prototype);
+        obj.__wbg_ptr = ptr;
+        JsDepositEntryFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        JsDepositEntryFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_jsdepositentry_free(ptr, 0);
+    }
+    /**
+     * @returns {JsDepositData}
+     */
+    get deposit() {
+        const ret = wasm.__wbg_get_jsdepositentry_deposit(this.__wbg_ptr);
+        return JsDepositData.__wrap(ret);
+    }
+    /**
+     * @param {JsDepositData} arg0
+     */
+    set deposit(arg0) {
+        _assertClass(arg0, JsDepositData);
+        var ptr0 = arg0.__destroy_into_raw();
+        wasm.__wbg_set_jsdepositentry_deposit(this.__wbg_ptr, ptr0);
+    }
+    /**
+     * @returns {JsEntryStatusWithBlockNumber}
+     */
+    get status() {
+        const ret = wasm.__wbg_get_jsdepositentry_status(this.__wbg_ptr);
+        return JsEntryStatusWithBlockNumber.__wrap(ret);
+    }
+    /**
+     * @param {JsEntryStatusWithBlockNumber} arg0
+     */
+    set status(arg0) {
+        _assertClass(arg0, JsEntryStatusWithBlockNumber);
+        var ptr0 = arg0.__destroy_into_raw();
+        wasm.__wbg_set_jsdepositentry_status(this.__wbg_ptr, ptr0);
+    }
+    /**
+     * @returns {JsMetaData}
+     */
+    get meta() {
+        const ret = wasm.__wbg_get_jsdepositentry_meta(this.__wbg_ptr);
+        return JsMetaData.__wrap(ret);
+    }
+    /**
+     * @param {JsMetaData} arg0
+     */
+    set meta(arg0) {
+        _assertClass(arg0, JsMetaData);
+        var ptr0 = arg0.__destroy_into_raw();
+        wasm.__wbg_set_jsdepositentry_meta(this.__wbg_ptr, ptr0);
+    }
+}
+
 const JsDepositResultFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
     : new FinalizationRegistry(ptr => wasm.__wbg_jsdepositresult_free(ptr >>> 0, 1));
@@ -1363,6 +1650,59 @@ export class JsDepositResult {
         const ptr0 = passStringToWasm0(arg0, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
         wasm.__wbg_set_jsdepositresult_deposit_uuid(this.__wbg_ptr, ptr0, len0);
+    }
+}
+
+const JsEntryStatusWithBlockNumberFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_jsentrystatuswithblocknumber_free(ptr >>> 0, 1));
+
+export class JsEntryStatusWithBlockNumber {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(JsEntryStatusWithBlockNumber.prototype);
+        obj.__wbg_ptr = ptr;
+        JsEntryStatusWithBlockNumberFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        JsEntryStatusWithBlockNumberFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_jsentrystatuswithblocknumber_free(ptr, 0);
+    }
+    /**
+     * @returns {JsEntryStatus}
+     */
+    get status() {
+        const ret = wasm.__wbg_get_jsentrystatuswithblocknumber_status(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @param {JsEntryStatus} arg0
+     */
+    set status(arg0) {
+        wasm.__wbg_set_jsentrystatuswithblocknumber_status(this.__wbg_ptr, arg0);
+    }
+    /**
+     * @returns {number | undefined}
+     */
+    get block_number() {
+        const ret = wasm.__wbg_get_jsentrystatuswithblocknumber_block_number(this.__wbg_ptr);
+        return ret === 0x100000001 ? undefined : ret;
+    }
+    /**
+     * @param {number | undefined} [arg0]
+     */
+    set block_number(arg0) {
+        wasm.__wbg_set_jsentrystatuswithblocknumber_block_number(this.__wbg_ptr, isLikeNone(arg0) ? 0x100000001 : (arg0) >>> 0);
     }
 }
 
@@ -1429,7 +1769,7 @@ export class JsGenericAddress {
     set data(arg0) {
         const ptr0 = passStringToWasm0(arg0, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
-        wasm.__wbg_set_jscontractwithdrawal_recipient(this.__wbg_ptr, ptr0, len0);
+        wasm.__wbg_set_jsclaim_recipient(this.__wbg_ptr, ptr0, len0);
     }
     /**
      * @param {boolean} is_pubkey
@@ -1445,6 +1785,294 @@ export class JsGenericAddress {
         this.__wbg_ptr = ret[0] >>> 0;
         JsGenericAddressFinalization.register(this, this.__wbg_ptr, this);
         return this;
+    }
+}
+
+const JsHistoryEntryFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_jshistoryentry_free(ptr >>> 0, 1));
+
+export class JsHistoryEntry {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(JsHistoryEntry.prototype);
+        obj.__wbg_ptr = ptr;
+        JsHistoryEntryFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        JsHistoryEntryFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_jshistoryentry_free(ptr, 0);
+    }
+    /**
+     * @returns {JsDepositEntry | undefined}
+     */
+    get deposit() {
+        const ret = wasm.__wbg_get_jshistoryentry_deposit(this.__wbg_ptr);
+        return ret === 0 ? undefined : JsDepositEntry.__wrap(ret);
+    }
+    /**
+     * @param {JsDepositEntry | undefined} [arg0]
+     */
+    set deposit(arg0) {
+        let ptr0 = 0;
+        if (!isLikeNone(arg0)) {
+            _assertClass(arg0, JsDepositEntry);
+            ptr0 = arg0.__destroy_into_raw();
+        }
+        wasm.__wbg_set_jshistoryentry_deposit(this.__wbg_ptr, ptr0);
+    }
+    /**
+     * @returns {JsReceiveEntry | undefined}
+     */
+    get receive() {
+        const ret = wasm.__wbg_get_jshistoryentry_receive(this.__wbg_ptr);
+        return ret === 0 ? undefined : JsReceiveEntry.__wrap(ret);
+    }
+    /**
+     * @param {JsReceiveEntry | undefined} [arg0]
+     */
+    set receive(arg0) {
+        let ptr0 = 0;
+        if (!isLikeNone(arg0)) {
+            _assertClass(arg0, JsReceiveEntry);
+            ptr0 = arg0.__destroy_into_raw();
+        }
+        wasm.__wbg_set_jshistoryentry_receive(this.__wbg_ptr, ptr0);
+    }
+    /**
+     * @returns {JsSendEntry | undefined}
+     */
+    get send() {
+        const ret = wasm.__wbg_get_jshistoryentry_send(this.__wbg_ptr);
+        return ret === 0 ? undefined : JsSendEntry.__wrap(ret);
+    }
+    /**
+     * @param {JsSendEntry | undefined} [arg0]
+     */
+    set send(arg0) {
+        let ptr0 = 0;
+        if (!isLikeNone(arg0)) {
+            _assertClass(arg0, JsSendEntry);
+            ptr0 = arg0.__destroy_into_raw();
+        }
+        wasm.__wbg_set_jshistoryentry_send(this.__wbg_ptr, ptr0);
+    }
+}
+
+const JsMetaDataFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_jsmetadata_free(ptr >>> 0, 1));
+
+export class JsMetaData {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(JsMetaData.prototype);
+        obj.__wbg_ptr = ptr;
+        JsMetaDataFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        JsMetaDataFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_jsmetadata_free(ptr, 0);
+    }
+    /**
+     * @returns {bigint}
+     */
+    get timestamp() {
+        const ret = wasm.__wbg_get_jsmetadata_timestamp(this.__wbg_ptr);
+        return BigInt.asUintN(64, ret);
+    }
+    /**
+     * @param {bigint} arg0
+     */
+    set timestamp(arg0) {
+        wasm.__wbg_set_jsmetadata_timestamp(this.__wbg_ptr, arg0);
+    }
+    /**
+     * @returns {string}
+     */
+    get uuid() {
+        let deferred1_0;
+        let deferred1_1;
+        try {
+            const ret = wasm.__wbg_get_jsmetadata_uuid(this.__wbg_ptr);
+            deferred1_0 = ret[0];
+            deferred1_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+        }
+    }
+    /**
+     * @param {string} arg0
+     */
+    set uuid(arg0) {
+        const ptr0 = passStringToWasm0(arg0, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.__wbg_set_jsmetadata_uuid(this.__wbg_ptr, ptr0, len0);
+    }
+}
+
+const JsReceiveEntryFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_jsreceiveentry_free(ptr >>> 0, 1));
+
+export class JsReceiveEntry {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(JsReceiveEntry.prototype);
+        obj.__wbg_ptr = ptr;
+        JsReceiveEntryFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        JsReceiveEntryFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_jsreceiveentry_free(ptr, 0);
+    }
+    /**
+     * @returns {JsTransferData}
+     */
+    get transfer() {
+        const ret = wasm.__wbg_get_jsreceiveentry_transfer(this.__wbg_ptr);
+        return JsTransferData.__wrap(ret);
+    }
+    /**
+     * @param {JsTransferData} arg0
+     */
+    set transfer(arg0) {
+        _assertClass(arg0, JsTransferData);
+        var ptr0 = arg0.__destroy_into_raw();
+        wasm.__wbg_set_jsreceiveentry_transfer(this.__wbg_ptr, ptr0);
+    }
+    /**
+     * @returns {JsEntryStatusWithBlockNumber}
+     */
+    get status() {
+        const ret = wasm.__wbg_get_jsreceiveentry_status(this.__wbg_ptr);
+        return JsEntryStatusWithBlockNumber.__wrap(ret);
+    }
+    /**
+     * @param {JsEntryStatusWithBlockNumber} arg0
+     */
+    set status(arg0) {
+        _assertClass(arg0, JsEntryStatusWithBlockNumber);
+        var ptr0 = arg0.__destroy_into_raw();
+        wasm.__wbg_set_jsreceiveentry_status(this.__wbg_ptr, ptr0);
+    }
+    /**
+     * @returns {JsMetaData}
+     */
+    get meta() {
+        const ret = wasm.__wbg_get_jsreceiveentry_meta(this.__wbg_ptr);
+        return JsMetaData.__wrap(ret);
+    }
+    /**
+     * @param {JsMetaData} arg0
+     */
+    set meta(arg0) {
+        _assertClass(arg0, JsMetaData);
+        var ptr0 = arg0.__destroy_into_raw();
+        wasm.__wbg_set_jsreceiveentry_meta(this.__wbg_ptr, ptr0);
+    }
+}
+
+const JsSendEntryFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_jssendentry_free(ptr >>> 0, 1));
+
+export class JsSendEntry {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(JsSendEntry.prototype);
+        obj.__wbg_ptr = ptr;
+        JsSendEntryFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        JsSendEntryFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_jssendentry_free(ptr, 0);
+    }
+    /**
+     * @returns {JsTxData}
+     */
+    get tx() {
+        const ret = wasm.__wbg_get_jssendentry_tx(this.__wbg_ptr);
+        return JsTxData.__wrap(ret);
+    }
+    /**
+     * @param {JsTxData} arg0
+     */
+    set tx(arg0) {
+        _assertClass(arg0, JsTxData);
+        var ptr0 = arg0.__destroy_into_raw();
+        wasm.__wbg_set_jssendentry_tx(this.__wbg_ptr, ptr0);
+    }
+    /**
+     * @returns {JsEntryStatusWithBlockNumber}
+     */
+    get status() {
+        const ret = wasm.__wbg_get_jssendentry_status(this.__wbg_ptr);
+        return JsEntryStatusWithBlockNumber.__wrap(ret);
+    }
+    /**
+     * @param {JsEntryStatusWithBlockNumber} arg0
+     */
+    set status(arg0) {
+        _assertClass(arg0, JsEntryStatusWithBlockNumber);
+        var ptr0 = arg0.__destroy_into_raw();
+        wasm.__wbg_set_jssendentry_status(this.__wbg_ptr, ptr0);
+    }
+    /**
+     * @returns {JsMetaData}
+     */
+    get meta() {
+        const ret = wasm.__wbg_get_jssendentry_meta(this.__wbg_ptr);
+        return JsMetaData.__wrap(ret);
+    }
+    /**
+     * @param {JsMetaData} arg0
+     */
+    set meta(arg0) {
+        _assertClass(arg0, JsMetaData);
+        var ptr0 = arg0.__destroy_into_raw();
+        wasm.__wbg_set_jssendentry_meta(this.__wbg_ptr, ptr0);
     }
 }
 
@@ -1598,13 +2226,6 @@ export class JsTransferData {
         return obj;
     }
 
-    static __unwrap(jsValue) {
-        if (!(jsValue instanceof JsTransferData)) {
-            return 0;
-        }
-        return jsValue.__destroy_into_raw();
-    }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
@@ -1702,7 +2323,7 @@ export class JsTx {
     set transfer_tree_root(arg0) {
         const ptr0 = passStringToWasm0(arg0, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
-        wasm.__wbg_set_jscontractwithdrawal_recipient(this.__wbg_ptr, ptr0, len0);
+        wasm.__wbg_set_jsclaim_recipient(this.__wbg_ptr, ptr0, len0);
     }
     /**
      * @returns {number}
@@ -1874,40 +2495,6 @@ export class JsTxResult {
         wasm.__wbg_set_jsdepositdata_deposit_salt(this.__wbg_ptr, ptr0, len0);
     }
     /**
-     * @returns {(JsTransferData)[]}
-     */
-    get transfer_data_vec() {
-        const ret = wasm.__wbg_get_jstxresult_transfer_data_vec(this.__wbg_ptr);
-        var v1 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
-        wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
-        return v1;
-    }
-    /**
-     * @param {(JsTransferData)[]} arg0
-     */
-    set transfer_data_vec(arg0) {
-        const ptr0 = passArrayJsValueToWasm0(arg0, wasm.__wbindgen_malloc);
-        const len0 = WASM_VECTOR_LEN;
-        wasm.__wbg_set_jstxresult_transfer_data_vec(this.__wbg_ptr, ptr0, len0);
-    }
-    /**
-     * @returns {(JsTransferData)[]}
-     */
-    get withdrawal_data_vec() {
-        const ret = wasm.__wbg_get_jstxresult_withdrawal_data_vec(this.__wbg_ptr);
-        var v1 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
-        wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
-        return v1;
-    }
-    /**
-     * @param {(JsTransferData)[]} arg0
-     */
-    set withdrawal_data_vec(arg0) {
-        const ptr0 = passArrayJsValueToWasm0(arg0, wasm.__wbindgen_malloc);
-        const len0 = WASM_VECTOR_LEN;
-        wasm.__wbg_set_jstxresult_withdrawal_data_vec(this.__wbg_ptr, ptr0, len0);
-    }
-    /**
      * @returns {(string)[]}
      */
     get transfer_uuids() {
@@ -1994,21 +2581,6 @@ export class JsUserData {
         wasm.__wbg_set_jsuserdata_pubkey(this.__wbg_ptr, ptr0, len0);
     }
     /**
-     * The block number of the user data
-     * @returns {number}
-     */
-    get block_number() {
-        const ret = wasm.__wbg_get_jsuserdata_block_number(this.__wbg_ptr);
-        return ret >>> 0;
-    }
-    /**
-     * The block number of the user data
-     * @param {number} arg0
-     */
-    set block_number(arg0) {
-        wasm.__wbg_set_jsuserdata_block_number(this.__wbg_ptr, arg0);
-    }
-    /**
      * The token balances of the user
      * @returns {(TokenBalance)[]}
      */
@@ -2050,7 +2622,7 @@ export class JsUserData {
     set private_commitment(arg0) {
         const ptr0 = passStringToWasm0(arg0, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
-        wasm.__wbg_set_jsdepositresult_deposit_uuid(this.__wbg_ptr, ptr0, len0);
+        wasm.__wbg_set_jsuserdata_private_commitment(this.__wbg_ptr, ptr0, len0);
     }
     /**
      * The last unix timestamp of processed deposits
@@ -2187,6 +2759,71 @@ export class JsUserData {
         const ptr0 = passArrayJsValueToWasm0(arg0, wasm.__wbindgen_malloc);
         const len0 = WASM_VECTOR_LEN;
         wasm.__wbg_set_jsuserdata_processed_withdrawal_uuids(this.__wbg_ptr, ptr0, len0);
+    }
+}
+
+const JsWithdrawalInfoFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_jswithdrawalinfo_free(ptr >>> 0, 1));
+
+export class JsWithdrawalInfo {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(JsWithdrawalInfo.prototype);
+        obj.__wbg_ptr = ptr;
+        JsWithdrawalInfoFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        JsWithdrawalInfoFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_jswithdrawalinfo_free(ptr, 0);
+    }
+    /**
+     * @returns {string}
+     */
+    get status() {
+        let deferred1_0;
+        let deferred1_1;
+        try {
+            const ret = wasm.__wbg_get_jswithdrawalinfo_status(this.__wbg_ptr);
+            deferred1_0 = ret[0];
+            deferred1_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+        }
+    }
+    /**
+     * @param {string} arg0
+     */
+    set status(arg0) {
+        const ptr0 = passStringToWasm0(arg0, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.__wbg_set_jsclaim_recipient(this.__wbg_ptr, ptr0, len0);
+    }
+    /**
+     * @returns {JsContractWithdrawal}
+     */
+    get contract_withdrawal() {
+        const ret = wasm.__wbg_get_jswithdrawalinfo_contract_withdrawal(this.__wbg_ptr);
+        return JsContractWithdrawal.__wrap(ret);
+    }
+    /**
+     * @param {JsContractWithdrawal} arg0
+     */
+    set contract_withdrawal(arg0) {
+        _assertClass(arg0, JsContractWithdrawal);
+        var ptr0 = arg0.__destroy_into_raw();
+        wasm.__wbg_set_jswithdrawalinfo_contract_withdrawal(this.__wbg_ptr, ptr0);
     }
 }
 
@@ -2409,8 +3046,8 @@ function __wbg_get_imports() {
         const ret = Symbol.iterator;
         return ret;
     };
-    imports.wbg.__wbg_jsblockproposal_new = function(arg0) {
-        const ret = JsBlockProposal.__wrap(arg0);
+    imports.wbg.__wbg_jsclaiminfo_new = function(arg0) {
+        const ret = JsClaimInfo.__wrap(arg0);
         return ret;
     };
     imports.wbg.__wbg_jsdepositdata_new = function(arg0) {
@@ -2419,6 +3056,10 @@ function __wbg_get_imports() {
     };
     imports.wbg.__wbg_jsdepositresult_new = function(arg0) {
         const ret = JsDepositResult.__wrap(arg0);
+        return ret;
+    };
+    imports.wbg.__wbg_jshistoryentry_new = function(arg0) {
+        const ret = JsHistoryEntry.__wrap(arg0);
         return ret;
     };
     imports.wbg.__wbg_jstransfer_new = function(arg0) {
@@ -2431,10 +3072,6 @@ function __wbg_get_imports() {
     };
     imports.wbg.__wbg_jstransferdata_new = function(arg0) {
         const ret = JsTransferData.__wrap(arg0);
-        return ret;
-    };
-    imports.wbg.__wbg_jstransferdata_unwrap = function(arg0) {
-        const ret = JsTransferData.__unwrap(arg0);
         return ret;
     };
     imports.wbg.__wbg_jstxdata_new = function(arg0) {
@@ -2451,6 +3088,10 @@ function __wbg_get_imports() {
     };
     imports.wbg.__wbg_jsuserdata_new = function(arg0) {
         const ret = JsUserData.__wrap(arg0);
+        return ret;
+    };
+    imports.wbg.__wbg_jswithdrawalinfo_new = function(arg0) {
+        const ret = JsWithdrawalInfo.__wrap(arg0);
         return ret;
     };
     imports.wbg.__wbg_length_65d1cd11729ced11 = function(arg0) {
@@ -2476,7 +3117,7 @@ function __wbg_get_imports() {
                 const a = state0.a;
                 state0.a = 0;
                 try {
-                    return __wbg_adapter_305(a, state0.b, arg0, arg1);
+                    return __wbg_adapter_357(a, state0.b, arg0, arg1);
                 } finally {
                     state0.a = a;
                 }
@@ -2652,6 +3293,13 @@ function __wbg_get_imports() {
         const ret = arg0.versions;
         return ret;
     };
+    imports.wbg.__wbindgen_array_new = function() {
+        const ret = [];
+        return ret;
+    };
+    imports.wbg.__wbindgen_array_push = function(arg0, arg1) {
+        arg0.push(arg1);
+    };
     imports.wbg.__wbindgen_cb_drop = function(arg0) {
         const obj = arg0.original;
         if (obj.cnt-- == 1) {
@@ -2661,12 +3309,12 @@ function __wbg_get_imports() {
         const ret = false;
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper1856 = function(arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 495, __wbg_adapter_30);
+    imports.wbg.__wbindgen_closure_wrapper2126 = function(arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 511, __wbg_adapter_34);
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper2085 = function(arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 633, __wbg_adapter_33);
+    imports.wbg.__wbindgen_closure_wrapper2354 = function(arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 649, __wbg_adapter_37);
         return ret;
     };
     imports.wbg.__wbindgen_debug_string = function(arg0, arg1) {

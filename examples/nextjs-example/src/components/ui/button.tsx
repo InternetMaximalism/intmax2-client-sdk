@@ -13,7 +13,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   const baseStyles =
-    "text-white px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed";
+    "text-white px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed relative";
   const variantStyles = {
     default:
       "bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700",
@@ -30,14 +30,11 @@ export function Button({
       disabled={isLoading || disabled}
       {...props}
     >
-      {isLoading ? (
-        <div className="flex items-center justify-center gap-2">
+      <span className={isLoading ? "invisible" : "visible"}>{children}</span>
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center">
           <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          <span className="opacity-0">{children}</span>
-          <span className="absolute">{children}</span>
         </div>
-      ) : (
-        children
       )}
     </button>
   );

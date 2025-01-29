@@ -17,7 +17,7 @@ export const MAINNET_ENV = {
     tokens_url: 'https://dev.token.intmax.xyz/v1',
 };
 export const TESTNET_ENV = {
-    balance_prover_url: 'https://stage.prover.intmax.io/v1/balance-prover"',
+    balance_prover_url: 'https://stage.prover.intmax.io/v1/balance-prover',
     block_builder_url: 'https://stage.builder.node.intmax.io',
     block_validity_prover_url: 'https://stage.prover.intmax.io/v1/validity-prover',
     store_vault_server_url: 'https://stage.storevault.node.intmax.io',

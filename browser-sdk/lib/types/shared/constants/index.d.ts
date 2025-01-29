@@ -1,0 +1,21 @@
+import { SDKUrls } from '../types';
+export * from './abis';
+export declare const networkMessage: (address: string) => string;
+export declare const MAINNET_ENV: {
+    balance_prover_url: string;
+    block_builder_url: string;
+    block_validity_prover_url: string;
+    store_vault_server_url: string;
+    withdrawal_aggregator_url: string;
+    chain_id_l1: number;
+    chain_id_l2: number;
+    liquidity_contract: string;
+    rollup_contract: string;
+    rollup_contract_deployed_block_number: number;
+    rpc_url_l1: string;
+    rpc_url_l2: string;
+    key_vault_url: string;
+    tokens_url: string;
+};
+export declare const TESTNET_ENV: SDKUrls;
+export declare const DEVNET_ENV: SDKUrls;

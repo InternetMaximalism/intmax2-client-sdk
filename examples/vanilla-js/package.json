@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "intmax2-client-sdk": "file:../../browser-sdk/dist"
+    "intmax2-client-sdk": "file:../../browser-sdk"
   },
   "devDependencies": {
     "prettier": "^3.4.2",

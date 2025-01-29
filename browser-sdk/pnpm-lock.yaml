@@ -27,6 +27,9 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^8.21.0
         version: 8.21.0(eslint@8.57.1)(typescript@5.7.3)
+      binaryen:
+        specifier: ^116.0.0
+        version: 116.0.0
       eslint:
         specifier: ^8.57.1
         version: 8.57.1
@@ -281,6 +284,10 @@ packages:
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
+
+  binaryen@116.0.0:
+    resolution: {integrity: sha512-Hp0dXC6Cb/rTwWEoUS2BRghObE7g/S9umKtxuTDt3f61G6fNTE/YVew/ezyy3IdHcLx3f17qfh6LwETgCfvWkQ==}
+    hasBin: true
 
   brace-expansion@1.1.11:
     resolution: {integrity: sha512-iCuPHDFgrHX7H2vEI/5xpz07zSHB00TpugqhmYtVmMO6518mCuRMoOYFldEBl0g187ufozdaHgWKcYFb61qGiA==}
@@ -1540,6 +1547,8 @@ snapshots:
       - debug
 
   balanced-match@1.0.2: {}
+
+  binaryen@116.0.0: {}
 
   brace-expansion@1.1.11:
     dependencies:

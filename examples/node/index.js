@@ -1,4 +1,4 @@
-const { IntMaxNodeClient } = require('intmax2-client-sdk');
+const { IntMaxNodeClient } = require('intmax2-server-sdk');
 const dotenv = require('dotenv');
 dotenv.config();
 

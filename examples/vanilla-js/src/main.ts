@@ -127,14 +127,14 @@ const claimWithdrawalsButton = async () => {
   wrapper.appendChild(button);
 
   const withdrawals = await client.fetchPendingWithdrawals();
-  const withdrawalsToClaim = withdrawals.needClaim;
+  const withdrawalsToClaim = withdrawals.need_claim;
   button.innerHTML = `Claim Withdrawals (${withdrawalsToClaim.length})`;
 
   button.onclick = async () => {
     button.innerHTML = 'Claiming...';
     try {
       const withdrawals = await client.fetchPendingWithdrawals();
-      const result = await client.claimWithdrawal(withdrawals.needClaim);
+      const result = await client.claimWithdrawal(withdrawals.need_claim);
       const resultDiv = document.createElement('pre');
       resultDiv.style.marginTop = '10px';
       resultDiv.innerHTML = JSON.stringify(result, null, 2);
@@ -155,10 +155,10 @@ const createLoginButton = () => {
     showPrivateKeyButton();
     fetchBalancesButton();
     createDepositForm();
+    fetchHistoryButton();
     fetchPendingsWithdrawalsButton();
     await claimWithdrawalsButton();
     await createWithdrawForm();
-    fetchHistoryButton();
   };
   appDiv.appendChild(button);
 };
@@ -372,6 +372,7 @@ const fetchHistoryButton = () => {
     const historyDiv = document.createElement('pre');
     historyDiv.style.marginTop = '10px';
     historyDiv.style.maxHeight = '500px';
+    historyDiv.style.overflowY = 'auto';
     historyDiv.innerHTML = JSON.stringify(history, null, 2);
     wrapper.appendChild(historyDiv);
     button.innerHTML = 'Fetch History';

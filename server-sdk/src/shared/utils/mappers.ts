@@ -1,85 +1,21 @@
 import { formatEther, zeroAddress } from 'viem';
 
-import { JsDepositData, JsTransferData, JsTxData, JsUserData } from '../../wasm/node/intmax2_wasm_lib';
 import {
-  ContractWithdrawal,
-  EncryptedDataItem,
-  RawTransaction,
-  Token,
-  TokenType,
-  Transaction,
-  TransactionStatus,
-  TransactionType,
-  Transfer,
-  TransferData,
-  WithdrawalsStatus,
-} from '../types';
+  JsDepositData,
+  JsDepositEntry,
+  JsMetaData,
+  JsTransferData,
+  JsTransferEntry,
+  JsTxData,
+  JsTxEntry,
+} from '../../wasm/node/intmax2_wasm_lib';
+import { Token, Transaction, TransactionStatus, TransactionType, Transfer } from '../types';
 
-export const jsTransferToTransfer = (td: JsTransferData): TransferData => {
-  return {
-    transfer: {
-      amount: td.transfer.amount,
-      recipient: td.transfer.recipient.data,
-      salt: td.transfer.salt,
-      tokenIndex: td.transfer.token_index,
-    },
-    sender: td.sender,
-  };
-};
-
-export const transactionMapper = (data: EncryptedDataItem, txType: TransactionType): RawTransaction => {
-  return {
-    data: data[1],
-    uuid: data[0].uuid,
-    txType,
-    timestamp: Number(data[0].timestamp),
-  };
-};
-export const decryptedToWASMTx = (
-  rawTx: JsTxData | JsTransferData | JsDepositData,
-  uuid: string,
-  txType: TransactionType,
-  timestamp: number,
-): (JsTxData | JsTransferData | JsDepositData) & {
-  uuid: string;
-  txType: TransactionType;
-  timestamp: number;
-} => {
-  {
-    let tx = rawTx as JsTxData | JsTransferData | JsDepositData;
-
-    if (tx instanceof JsTxData) {
-      tx = {
-        transfers: tx.transfers,
-        tx: tx.tx,
-      } as JsTxData;
-    } else if (tx instanceof JsTransferData) {
-      tx = {
-        sender: tx.sender,
-        transfer: tx.transfer,
-      } as JsTransferData;
-    } else {
-      tx = {
-        token_address: tx.token_address,
-        token_type: tx.token_type,
-        amount: tx.amount,
-        token_id: tx.token_id,
-        deposit_salt: tx.deposit_salt,
-        pubkey_salt_hash: tx.pubkey_salt_hash,
-      } as JsDepositData;
-    }
-
-    return {
-      ...tx,
-      uuid,
-      txType,
-      timestamp,
-    } as (JsTxData | JsTransferData | JsDepositData) & {
-      uuid: string;
-      txType: TransactionType;
-      timestamp: number;
-    };
-  }
+const wasmStatuses = {
+  settled: TransactionStatus.Processing,
+  processed: TransactionStatus.Completed,
+  pending: TransactionStatus.Processing,
+  timeout: TransactionStatus.Rejected,
 };
 
 const filterWithdrawals = (transfers: Transfer[]) => {
@@ -87,116 +23,45 @@ const filterWithdrawals = (transfers: Transfer[]) => {
 };
 
 export const wasmTxToTx = (
-  rawTx: (JsTxData | JsTransferData | JsDepositData) & {
-    uuid: string;
-    txType: TransactionType;
-    timestamp: number;
-  },
-  userData: JsUserData,
+  rawTx: (JsTxEntry | JsTransferEntry | JsDepositEntry) & { txType: TransactionType },
   tokens: Token[],
-  pendingWithdrawals?: Record<WithdrawalsStatus, ContractWithdrawal[]>,
 ): Transaction | null => {
   if (rawTx.txType === TransactionType.Receive) {
-    const tx = rawTx as JsTransferData & {
-      uuid: string;
-      txType: TransactionType;
-      timestamp: number;
-    };
-    const processedUuids = userData.processed_transfer_uuids;
-    let transaction: Transaction = {
-      amount: '',
+    const tx = rawTx.data as JsTransferData;
+    const { timestamp, uuid } = rawTx.meta as JsMetaData;
+    const token = tokens.find((t) => t.tokenIndex === tx.transfer.token_index);
+
+    return {
+      amount: tx.transfer.amount,
       from: tx.sender,
-      status: TransactionStatus.Processing,
-      timestamp: tx.timestamp,
+      status: wasmStatuses[rawTx.status.status as keyof typeof wasmStatuses],
+      timestamp: Number(timestamp),
       to: tx.transfer.recipient.data,
-      tokenType: TokenType.ERC20,
+      tokenType: token?.tokenType,
       tokenIndex: tx.transfer.token_index,
       transfers: [],
-      txType: tx.txType,
-      uuid: tx.uuid,
+      txType: rawTx.txType,
+      uuid: uuid,
     };
-
-    if (BigInt(tx.timestamp) <= userData.transfer_lpt) {
-      if (!processedUuids.includes(tx.uuid)) {
-        transaction = {
-          ...transaction,
-          amount: tx.transfer.amount,
-          tokenIndex: tx.transfer.token_index,
-          from: tx.sender,
-          to: tx.transfer.recipient.data,
-          timestamp: tx.timestamp,
-          status: TransactionStatus.Rejected,
-        };
-      } else {
-        transaction = {
-          ...transaction,
-          amount: tx.transfer.amount,
-          tokenIndex: tx.transfer.token_index,
-          from: tx.sender,
-          to: tx.transfer.recipient.data,
-          timestamp: tx.timestamp,
-          status: TransactionStatus.Completed,
-        };
-      }
-    } else {
-      transaction = {
-        ...transaction,
-        amount: tx.transfer.amount,
-        tokenIndex: tx.transfer.token_index,
-        from: tx.sender,
-        to: tx.transfer.recipient.data,
-        status: TransactionStatus.Processing,
-        timestamp: tx.timestamp,
-      };
-    }
-    return transaction;
   } else if (rawTx.txType === TransactionType.Deposit) {
-    const tx = rawTx as JsDepositData & {
-      uuid: string;
-      txType: TransactionType;
-      timestamp: number;
-    };
-
+    const tx = rawTx.data as JsDepositData;
+    const { timestamp, uuid } = rawTx.meta as JsMetaData;
     const token = tokens.find((t) => t.contractAddress.toLowerCase() === tx.token_address.toLowerCase());
 
-    const processedUuids = userData.processed_deposit_uuids;
-    let transaction: Transaction = {
-      amount: '',
+    const transaction: Transaction = {
+      amount: tx.amount,
       from: '',
-      status: TransactionStatus.Processing,
-      timestamp: tx.timestamp,
+      status: wasmStatuses[rawTx.status.status as keyof typeof wasmStatuses],
+      timestamp: Number(timestamp),
       to: '',
       tokenType: tx.token_type,
       tokenIndex: token?.tokenIndex ?? 0,
       transfers: [],
-      txType: tx.txType,
-      uuid: tx.uuid,
+      txType: rawTx.txType,
+      uuid: uuid,
       tokenAddress: tx.token_address,
     };
 
-    if (BigInt(tx.timestamp) <= userData.deposit_lpt) {
-      if (!processedUuids.includes(tx.uuid)) {
-        transaction = {
-          ...transaction,
-          amount: tx.amount,
-          status: TransactionStatus.Rejected,
-          timestamp: tx.timestamp,
-        };
-      } else {
-        transaction = {
-          ...transaction,
-          amount: tx.amount,
-          timestamp: tx.timestamp,
-          status: TransactionStatus.Completed,
-        };
-      }
-    } else {
-      transaction = {
-        ...transaction,
-        amount: tx.amount,
-        timestamp: tx.timestamp,
-      };
-    }
     const isNativeToken = transaction.tokenAddress === zeroAddress && transaction.tokenIndex === 0;
 
     if (isNativeToken && [0.1, 0.5, 1.0].includes(Number(formatEther(BigInt(tx.amount))))) {
@@ -204,32 +69,20 @@ export const wasmTxToTx = (
     }
 
     return transaction;
-  } else if (
-    (rawTx.txType === TransactionType.Send || rawTx.txType === TransactionType.Withdraw) &&
-    pendingWithdrawals
-  ) {
-    const failedNullifiers = pendingWithdrawals[WithdrawalsStatus.Failed].map((w) => w.nullifier);
-    const successStatuses = pendingWithdrawals[WithdrawalsStatus.Success].map((w) => w.nullifier);
-    const needClaimStatuses = pendingWithdrawals[WithdrawalsStatus.NeedClaim].map((w) => w.nullifier);
-
-    const tx = rawTx as JsTxData & {
-      uuid: string;
-      txType: TransactionType;
-      timestamp: number;
-    };
-    const processedUuids = userData.processed_tx_uuids;
+  } else if (rawTx.txType === TransactionType.Send || rawTx.txType === TransactionType.Withdraw) {
+    const tx = rawTx.data as JsTxData;
+    const { timestamp, uuid } = rawTx.meta as JsMetaData;
 
     let transaction: Transaction = {
       amount: '',
       from: '',
-      status: TransactionStatus.Processing,
-      timestamp: tx.timestamp,
+      status: wasmStatuses[rawTx.status.status as keyof typeof wasmStatuses],
+      timestamp: Number(timestamp),
       to: '',
-      // tokenType: tx.token_type,
       tokenIndex: 0,
       transfers: [],
-      txType: tx.txType,
-      uuid: tx.uuid,
+      txType: rawTx.txType,
+      uuid: uuid,
     };
 
     const transfers = tx.transfers
@@ -257,41 +110,12 @@ export const wasmTxToTx = (
 
     transaction.txType = filterWithdrawals(transfers);
 
-    if (BigInt(tx.timestamp) <= userData.tx_lpt) {
-      if (!processedUuids.includes(tx.uuid) && transaction.txType === TransactionType.Send) {
-        transaction = {
-          ...transaction,
-          transfers,
-          timestamp: tx.timestamp,
-          status: TransactionStatus.Rejected,
-        };
-      } else {
-        transaction = {
-          ...transaction,
-          transfers,
-          status: TransactionStatus.Completed,
-          timestamp: tx.timestamp,
-        };
-        if (transaction.txType !== TransactionType.Send) {
-          let status = TransactionStatus.Processing;
+    transaction = {
+      ...transaction,
+      transfers,
+      timestamp: Number(timestamp),
+    };
 
-          if (failedNullifiers.includes(transfers[0].nullifier as `0x${string}`)) {
-            status = TransactionStatus.Rejected;
-          } else if (successStatuses.includes(transfers[0].nullifier as `0x${string}`)) {
-            status = TransactionStatus.Completed;
-          } else if (needClaimStatuses.includes(transfers[0].nullifier as `0x${string}`)) {
-            status = TransactionStatus.ReadyToClaim;
-          }
-          transaction.status = status;
-        }
-      }
-    } else {
-      transaction = {
-        ...transaction,
-        transfers,
-        timestamp: tx.timestamp,
-      };
-    }
     return transaction;
   }
 

@@ -92,24 +92,24 @@ const main = async () => {
     // }
 
     // Fetch transaction history
-    console.log('\nFetching transaction history...');
-    const [deposits, receiveTxs, sendTxs] = await Promise.all([
-      client.fetchDeposits({}),
-      client.fetchTransfers({}),
-      client.fetchTransactions({}),
-    ]);
-    console.log('\nTransaction History:');
-    console.log('Deposits:', JSON.stringify(deposits, null, 2));
-    console.log('Received Transfers:', JSON.stringify(receiveTxs, null, 2));
-    console.log('Sent Transfers:', JSON.stringify(sendTxs, null, 2));
+    // console.log('\nFetching transaction history...');
+    // const [deposits, receiveTxs, sendTxs] = await Promise.all([
+    //   client.fetchDeposits({}),
+    //   client.fetchTransfers({}),
+    //   client.fetchTransactions({}),
+    // ]);
+    // console.log('\nTransaction History:');
+    // console.log('Deposits:', JSON.stringify(deposits, null, 2));
+    // console.log('Received Transfers:', JSON.stringify(receiveTxs, null, 2));
+    // console.log('Sent Transfers:', JSON.stringify(sendTxs, null, 2));
 
 
     console.log('\nFetching pending withdrawals...');
     const pendingWithdrawals = await client.fetchPendingWithdrawals();
     console.log('Pending withdrawals:', JSON.stringify(pendingWithdrawals, null, 2));
 
-    const claimWithdraw = await client.claimWithdrawal(pendingWithdrawals.needClaim);
-    console.log('Claim Withdrawal:', JSON.stringify(claimWithdraw, null, 2));
+    // const claimWithdraw = await client.claimWithdrawal(pendingWithdrawals.need_claim);
+    // console.log('Claim Withdrawal:', JSON.stringify(claimWithdraw, null, 2));
 
     // Logout
     console.log('\nLogging out...');

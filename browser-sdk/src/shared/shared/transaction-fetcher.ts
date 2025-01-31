@@ -1,25 +1,12 @@
-import { AxiosInstance } from 'axios';
-import { Abi, createPublicClient, hexToBigInt, http, PublicClient } from 'viem';
+import { Abi, createPublicClient, http, PublicClient } from 'viem';
 import { mainnet, sepolia } from 'viem/chains';
 
+import { Config, get_withdrawal_info } from '../../wasm/browser/intmax2_wasm_lib';
 import { DEVNET_ENV, LiquidityAbi, MAINNET_ENV, TESTNET_ENV } from '../constants';
-import {
-  ContractWithdrawal,
-  EncryptedDataItem,
-  IntMaxEnvironment,
-  WithdrawalsInfoResponse,
-  WithdrawalsStatus,
-} from '../types';
-import { axiosClientInit, getWithdrawHash } from '../utils';
-
-interface GetTxParams {
-  address: string;
-  timestamp?: number;
-}
+import { ContractWithdrawal, IntMaxEnvironment, WithdrawalsStatus } from '../types';
+import { getWithdrawHash } from '../utils';
 
 export class TransactionFetcher {
-  readonly #storeVaultHttpClient: AxiosInstance;
-  readonly #withdrawalHttpClient: AxiosInstance;
   readonly #publicClient: PublicClient;
   readonly #liquidityContractAddress: string;
 
@@ -31,68 +18,16 @@ export class TransactionFetcher {
           ? TESTNET_ENV.liquidity_contract
           : DEVNET_ENV.liquidity_contract;
 
-    this.#storeVaultHttpClient = axiosClientInit({
-      baseURL:
-        environment === 'mainnet'
-          ? MAINNET_ENV.store_vault_server_url
-          : environment === 'testnet'
-            ? TESTNET_ENV.store_vault_server_url
-            : DEVNET_ENV.store_vault_server_url,
-    });
-
-    this.#withdrawalHttpClient = axiosClientInit({
-      baseURL: `${
-        environment === 'mainnet'
-          ? MAINNET_ENV.withdrawal_aggregator_url
-          : environment === 'testnet'
-            ? TESTNET_ENV.withdrawal_aggregator_url
-            : DEVNET_ENV.withdrawal_aggregator_url
-      }/withdrawal-server`,
-    });
-
     this.#publicClient = createPublicClient({
       chain: environment === 'mainnet' ? mainnet : sepolia,
       transport: http(),
     });
   }
 
-  async fetchTx({ address, timestamp = 0 }: GetTxParams): Promise<EncryptedDataItem[]> {
-    return this.#storeVaultHttpClient.get<EncryptedDataItem[], EncryptedDataItem[]>(
-      '/store-vault-server/tx/get-all-after',
-      {
-        params: {
-          timestamp,
-          pubkey: hexToBigInt(address as `0x${string}`),
-        },
-      },
-    );
-  }
-
-  async fetchTransfers({ address, timestamp = 0 }: GetTxParams): Promise<EncryptedDataItem[]> {
-    return await this.#storeVaultHttpClient.get<EncryptedDataItem[], EncryptedDataItem[]>(
-      '/store-vault-server/transfer/get-all-after',
-      {
-        params: {
-          timestamp,
-          pubkey: hexToBigInt(address as `0x${string}`),
-        },
-      },
-    );
-  }
-
-  async fetchDeposits({ address, timestamp = 0 }: GetTxParams): Promise<EncryptedDataItem[]> {
-    return await this.#storeVaultHttpClient.get<EncryptedDataItem[], EncryptedDataItem[]>(
-      '/store-vault-server/deposit/get-all-after',
-      {
-        params: {
-          timestamp,
-          pubkey: hexToBigInt(address as `0x${string}`),
-        },
-      },
-    );
-  }
-
-  async fetchPendingWithdrawals(address: string): Promise<Record<WithdrawalsStatus, ContractWithdrawal[]>> {
+  async fetchPendingWithdrawals(
+    config: Config,
+    privateKey: string,
+  ): Promise<Record<WithdrawalsStatus, ContractWithdrawal[]>> {
     const pendingWithdrawals = {
       [WithdrawalsStatus.Failed]: [] as ContractWithdrawal[],
       [WithdrawalsStatus.NeedClaim]: [] as ContractWithdrawal[],
@@ -101,23 +36,15 @@ export class TransactionFetcher {
       [WithdrawalsStatus.Success]: [] as ContractWithdrawal[],
     };
 
-    const rawWithdrawals = await this.#withdrawalHttpClient.get<WithdrawalsInfoResponse, WithdrawalsInfoResponse>(
-      '/get-withdrawal-info',
-      {
-        params: {
-          pubkey: hexToBigInt(address as `0x${string}`),
-          signature: [
-            '0x0000000000000000000000000000000000000000000000000000000000000000',
-            '0x0000000000000000000000000000000000000000000000000000000000000000',
-            '0x0000000000000000000000000000000000000000000000000000000000000000',
-            '0x0000000000000000000000000000000000000000000000000000000000000000',
-          ],
-        },
-      },
-    );
+    const withdrawalInfo = await get_withdrawal_info(config, privateKey);
 
-    rawWithdrawals.withdrawalInfo.forEach((withdrawal) => {
-      pendingWithdrawals[withdrawal.status as WithdrawalsStatus].push(withdrawal.contractWithdrawal);
+    withdrawalInfo.forEach(({ contract_withdrawal, status }) => {
+      pendingWithdrawals[status as WithdrawalsStatus].push({
+        recipient: contract_withdrawal.recipient as `0x${string}`,
+        nullifier: contract_withdrawal.nullifier as `0x${string}`,
+        amount: contract_withdrawal.amount,
+        tokenIndex: contract_withdrawal.token_index,
+      });
     });
 
     pendingWithdrawals[WithdrawalsStatus.NeedClaim] = Array.from(

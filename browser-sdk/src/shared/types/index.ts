@@ -32,7 +32,7 @@ export enum WithdrawalsStatus {
   Requested = 'requested',
   Relayed = 'relayed',
   Success = 'success',
-  NeedClaim = 'needClaim',
+  NeedClaim = 'need_claim',
   Failed = 'failed',
 }
 

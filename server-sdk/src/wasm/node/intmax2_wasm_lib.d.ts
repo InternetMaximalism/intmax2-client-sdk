@@ -37,8 +37,12 @@ export function sync_claim(config: Config, private_key: string, recipient: strin
  */
 export function get_user_data(config: Config, private_key: string): Promise<JsUserData>;
 export function get_withdrawal_info(config: Config, private_key: string): Promise<(JsWithdrawalInfo)[]>;
+export function get_withdrawal_info_by_recipient(config: Config, recipient: string): Promise<(JsWithdrawalInfo)[]>;
+export function get_mining_list(config: Config, private_key: string): Promise<(JsMining)[]>;
 export function get_claim_info(config: Config, private_key: string): Promise<(JsClaimInfo)[]>;
-export function fetch_history(config: Config, private_key: string): Promise<(JsHistoryEntry)[]>;
+export function fetch_deposit_history(config: Config, private_key: string): Promise<(JsDepositEntry)[]>;
+export function fetch_transfer_history(config: Config, private_key: string): Promise<(JsTransferEntry)[]>;
+export function fetch_tx_history(config: Config, private_key: string): Promise<(JsTxEntry)[]>;
 /**
  * Decrypt the deposit data.
  */
@@ -51,12 +55,8 @@ export function decrypt_transfer_data(private_key: string, data: Uint8Array): Pr
  * Decrypt the tx data.
  */
 export function decrypt_tx_data(private_key: string, data: Uint8Array): Promise<JsTxData>;
-export enum JsEntryStatus {
-  Settled = 0,
-  Processed = 1,
-  Pending = 2,
-  Timeout = 3,
-}
+export function generate_auth_for_store_vault(private_key: string): Promise<JsAuth>;
+export function fetch_encrypted_data(config: Config, auth: JsAuth, timestamp: bigint | undefined, uuid: string | undefined, limit: number | undefined, order: string): Promise<(JsEncryptedData)[]>;
 export class Config {
   free(): void;
   constructor(store_vault_server_url: string, balance_prover_url: string, validity_prover_url: string, withdrawal_server_url: string, deposit_timeout: bigint, tx_timeout: bigint, block_builder_request_interval: bigint, block_builder_request_limit: bigint, block_builder_query_wait_time: bigint, block_builder_query_interval: bigint, block_builder_query_limit: bigint, l1_rpc_url: string, l1_chain_id: bigint, liquidity_contract_address: string, l2_rpc_url: string, l2_chain_id: bigint, rollup_contract_address: string, rollup_contract_deployed_block_number: bigint);
@@ -141,6 +141,22 @@ export class IntmaxAccount {
   privkey: string;
   pubkey: string;
 }
+export class JsAuth {
+  private constructor();
+  free(): void;
+  pubkey: string;
+  expiry: bigint;
+  signature: JsFlatG2;
+}
+export class JsBlock {
+  private constructor();
+  free(): void;
+  prev_block_hash: string;
+  deposit_tree_root: string;
+  signature_hash: string;
+  timestamp: bigint;
+  block_number: number;
+}
 export class JsBlockProposal {
   private constructor();
   free(): void;
@@ -174,16 +190,20 @@ export class JsDepositData {
   private constructor();
   free(): void;
   deposit_salt: string;
+  depositor: string;
   pubkey_salt_hash: string;
   amount: string;
+  is_eligible: boolean;
   token_type: number;
   token_address: string;
   token_id: string;
+  is_mining: boolean;
+  token_index?: number;
 }
 export class JsDepositEntry {
   private constructor();
   free(): void;
-  deposit: JsDepositData;
+  data: JsDepositData;
   status: JsEntryStatusWithBlockNumber;
   meta: JsMetaData;
 }
@@ -193,11 +213,34 @@ export class JsDepositResult {
   deposit_data: JsDepositData;
   deposit_uuid: string;
 }
+export class JsEncryptedData {
+  private constructor();
+  free(): void;
+  data: Uint8Array;
+  uuid: string;
+  timestamp: bigint;
+  /**
+   * Deposit, Transfer(Receive), Tx(Send)
+   */
+  data_type: string;
+}
 export class JsEntryStatusWithBlockNumber {
   private constructor();
   free(): void;
-  status: JsEntryStatus;
+  /**
+   * The status of the entry
+   * - "settled": The entry has been on-chain but not yet incorporated into the proof
+   * - "processed": The entry has been incorporated into the proof
+   * - "pending": The entry is not yet on-chain
+   * - "timeout": The entry is not yet on-chain and has timed out
+   */
+  status: string;
   block_number?: number;
+}
+export class JsFlatG2 {
+  private constructor();
+  free(): void;
+  elements: (string)[];
 }
 export class JsGenericAddress {
   free(): void;
@@ -211,32 +254,20 @@ export class JsGenericAddress {
    */
   data: string;
 }
-export class JsHistoryEntry {
-  private constructor();
-  free(): void;
-  deposit?: JsDepositEntry;
-  receive?: JsReceiveEntry;
-  send?: JsSendEntry;
-}
 export class JsMetaData {
   private constructor();
   free(): void;
   timestamp: bigint;
   uuid: string;
 }
-export class JsReceiveEntry {
+export class JsMining {
   private constructor();
   free(): void;
-  transfer: JsTransferData;
-  status: JsEntryStatusWithBlockNumber;
   meta: JsMetaData;
-}
-export class JsSendEntry {
-  private constructor();
-  free(): void;
-  tx: JsTxData;
-  status: JsEntryStatusWithBlockNumber;
-  meta: JsMetaData;
+  deposit_data: JsDepositData;
+  block: JsBlock;
+  maturity: bigint;
+  status: string;
 }
 export class JsTransfer {
   free(): void;
@@ -253,6 +284,13 @@ export class JsTransferData {
   sender: string;
   transfer: JsTransfer;
 }
+export class JsTransferEntry {
+  private constructor();
+  free(): void;
+  data: JsTransferData;
+  status: JsEntryStatusWithBlockNumber;
+  meta: JsMetaData;
+}
 export class JsTx {
   private constructor();
   free(): void;
@@ -264,6 +302,13 @@ export class JsTxData {
   free(): void;
   tx: JsTx;
   transfers: (JsTransfer)[];
+}
+export class JsTxEntry {
+  private constructor();
+  free(): void;
+  data: JsTxData;
+  status: JsEntryStatusWithBlockNumber;
+  meta: JsMetaData;
 }
 export class JsTxRequestMemo {
   private constructor();

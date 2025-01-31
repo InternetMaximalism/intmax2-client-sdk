@@ -1,6 +1,6 @@
 {
   "name": "intmax2-client-sdk",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Client SDK for Intmax2",
   "type": "commonjs",
   "main": "dist/index.js",
@@ -15,7 +15,6 @@
   },
   "files": [
     "dist",
-    "src/wasm",
     "README.md"
   ],
   "scripts": {

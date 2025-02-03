@@ -57,6 +57,8 @@ export function decrypt_transfer_data(private_key: string, data: Uint8Array): Pr
 export function decrypt_tx_data(private_key: string, data: Uint8Array): Promise<JsTxData>;
 export function generate_auth_for_store_vault(private_key: string): Promise<JsAuth>;
 export function fetch_encrypted_data(config: Config, auth: JsAuth, timestamp: bigint | undefined, uuid: string | undefined, limit: number | undefined, order: string): Promise<(JsEncryptedData)[]>;
+export function sign_message(private_key: string, message: Uint8Array): Promise<JsFlatG2>;
+export function verify_signature(signature: JsFlatG2, public_key: string, message: Uint8Array): Promise<boolean>;
 export class Config {
   free(): void;
   constructor(store_vault_server_url: string, balance_prover_url: string, validity_prover_url: string, withdrawal_server_url: string, deposit_timeout: bigint, tx_timeout: bigint, block_builder_request_interval: bigint, block_builder_request_limit: bigint, block_builder_query_wait_time: bigint, block_builder_query_interval: bigint, block_builder_query_limit: bigint, l1_rpc_url: string, l1_chain_id: bigint, liquidity_contract_address: string, l2_rpc_url: string, l2_chain_id: bigint, rollup_contract_address: string, rollup_contract_deployed_block_number: bigint);
@@ -238,8 +240,8 @@ export class JsEntryStatusWithBlockNumber {
   block_number?: number;
 }
 export class JsFlatG2 {
-  private constructor();
   free(): void;
+  constructor(elements: (string)[]);
   elements: (string)[];
 }
 export class JsGenericAddress {

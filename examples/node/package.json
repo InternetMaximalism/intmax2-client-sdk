@@ -5,7 +5,8 @@
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
-    "dev": "node index.js"
+    "dev": "node index.js",
+    "pretty": "prettier --write ./index.js"
   },
   "repository": {
     "type": "git",

@@ -554,16 +554,46 @@ module.exports.fetch_encrypted_data = function(config, auth, timestamp, uuid, li
     return ret;
 };
 
+/**
+ * @param {string} private_key
+ * @param {Uint8Array} message
+ * @returns {Promise<JsFlatG2>}
+ */
+module.exports.sign_message = function(private_key, message) {
+    const ptr0 = passStringToWasm0(private_key, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passArray8ToWasm0(message, wasm.__wbindgen_malloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ret = wasm.sign_message(ptr0, len0, ptr1, len1);
+    return ret;
+};
+
+/**
+ * @param {JsFlatG2} signature
+ * @param {string} public_key
+ * @param {Uint8Array} message
+ * @returns {Promise<boolean>}
+ */
+module.exports.verify_signature = function(signature, public_key, message) {
+    _assertClass(signature, JsFlatG2);
+    const ptr0 = passStringToWasm0(public_key, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passArray8ToWasm0(message, wasm.__wbindgen_malloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ret = wasm.verify_signature(signature.__wbg_ptr, ptr0, len0, ptr1, len1);
+    return ret;
+};
+
 function __wbg_adapter_34(arg0, arg1) {
     wasm._dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h14f4dbbe7ce8d72f(arg0, arg1);
 }
 
 function __wbg_adapter_37(arg0, arg1, arg2) {
-    wasm.closure683_externref_shim(arg0, arg1, arg2);
+    wasm.closure689_externref_shim(arg0, arg1, arg2);
 }
 
-function __wbg_adapter_411(arg0, arg1, arg2, arg3) {
-    wasm.closure1392_externref_shim(arg0, arg1, arg2, arg3);
+function __wbg_adapter_416(arg0, arg1, arg2, arg3) {
+    wasm.closure1397_externref_shim(arg0, arg1, arg2, arg3);
 }
 
 const __wbindgen_enum_RequestCredentials = ["omit", "same-origin", "include"];
@@ -2230,6 +2260,17 @@ class JsFlatG2 {
         const len0 = WASM_VECTOR_LEN;
         wasm.__wbg_set_jsflatg2_elements(this.__wbg_ptr, ptr0, len0);
     }
+    /**
+     * @param {(string)[]} elements
+     */
+    constructor(elements) {
+        const ptr0 = passArrayJsValueToWasm0(elements, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.jsflatg2_new(ptr0, len0);
+        this.__wbg_ptr = ret >>> 0;
+        JsFlatG2Finalization.register(this, this.__wbg_ptr, this);
+        return this;
+    }
 }
 module.exports.JsFlatG2 = JsFlatG2;
 
@@ -3631,6 +3672,11 @@ module.exports.__wbg_jsencrypteddata_new = function(arg0) {
     return ret;
 };
 
+module.exports.__wbg_jsflatg2_new = function(arg0) {
+    const ret = JsFlatG2.__wrap(arg0);
+    return ret;
+};
+
 module.exports.__wbg_jsmining_new = function(arg0) {
     const ret = JsMining.__wrap(arg0);
     return ret;
@@ -3713,7 +3759,7 @@ module.exports.__wbg_new_3d446df9155128ef = function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_411(a, state0.b, arg0, arg1);
+                return __wbg_adapter_416(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -3952,12 +3998,12 @@ module.exports.__wbindgen_cb_drop = function(arg0) {
 };
 
 module.exports.__wbindgen_closure_wrapper2328 = function(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 546, __wbg_adapter_34);
+    const ret = makeMutClosure(arg0, arg1, 552, __wbg_adapter_34);
     return ret;
 };
 
 module.exports.__wbindgen_closure_wrapper2556 = function(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 684, __wbg_adapter_37);
+    const ret = makeMutClosure(arg0, arg1, 690, __wbg_adapter_37);
     return ret;
 };
 

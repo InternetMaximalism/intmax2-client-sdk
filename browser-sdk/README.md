@@ -1,23 +1,23 @@
-# INTMAX-CLIENT-SDK
+# intmax2-CLIENT-SDK
 
 This SDK is a client library for the INTMAX API. It is designed to help you integrate INTMAX services into your applications.
 
 ## Installation for browser
 
 ```bash
-  npm install intmax-client-sdk
+  npm install intmax2-client-sdk
 ```
 
 or
 
 ```bash
-  pnpm install intmax-client-sdk
+  pnpm install intmax2-client-sdk
 ```
 
 or
 
 ```bash
-  yarn add intmax-client-sdk
+  yarn add intmax2-client-sdk
 ```
 
 ## Interface
@@ -65,7 +65,7 @@ export interface INTMAXClient {
 ### Initialization
 
 ```javascript
-import { IntmaxClient } from 'intmax-client-sdk';
+import { IntmaxClient } from 'intmax2-client-sdk';
 
 const intmaxClient = IntmaxClient.init({
   environment: 'testnet', //  'mainnet' | 'devnet' | 'testnet'
@@ -83,6 +83,29 @@ Here you should sign two message, they will be appeared in the popup window auto
 await intmaxClient.login();
 const address = this.intmaxClient.address; // Public key of the wallet
 const privateKey = this.intmaxClient.getPrivateKey(); // Private key of the wallet. Here you should sign message.
+```
+
+### Sign message
+
+```javascript
+const message = 'Hello, World!';
+const signature = await intmaxClient.signMessage(message);
+```
+
+### Verify signature
+
+```javascript
+const message = 'Hello, World!';
+const signature = await intmaxClient.signMessage(message);
+
+const isVerified = await intmaxClient.verifySignature(signature, message);
+console.log(isVerified); // true
+
+const isFakeMessageVerify = await intmaxClient.verifySignature(signature, 'Another message');
+console.log(isFakeMessageVerify); // false
+
+const isFakeSignatureVerify = await intmaxClient.verifySignature('Another signature', message);
+console.log(isFakeSignatureVerify); // false
 ```
 
 ### Get tokens list

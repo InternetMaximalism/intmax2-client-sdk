@@ -57,6 +57,8 @@ export function decrypt_transfer_data(private_key: string, data: Uint8Array): Pr
 export function decrypt_tx_data(private_key: string, data: Uint8Array): Promise<JsTxData>;
 export function generate_auth_for_store_vault(private_key: string): Promise<JsAuth>;
 export function fetch_encrypted_data(config: Config, auth: JsAuth, timestamp: bigint | undefined, uuid: string | undefined, limit: number | undefined, order: string): Promise<(JsEncryptedData)[]>;
+export function sign_message(private_key: string, message: Uint8Array): Promise<JsFlatG2>;
+export function verify_signature(signature: JsFlatG2, public_key: string, message: Uint8Array): Promise<boolean>;
 export class Config {
   free(): void;
   constructor(store_vault_server_url: string, balance_prover_url: string, validity_prover_url: string, withdrawal_server_url: string, deposit_timeout: bigint, tx_timeout: bigint, block_builder_request_interval: bigint, block_builder_request_limit: bigint, block_builder_query_wait_time: bigint, block_builder_query_interval: bigint, block_builder_query_limit: bigint, l1_rpc_url: string, l1_chain_id: bigint, liquidity_contract_address: string, l2_rpc_url: string, l2_chain_id: bigint, rollup_contract_address: string, rollup_contract_deployed_block_number: bigint);
@@ -238,8 +240,8 @@ export class JsEntryStatusWithBlockNumber {
   block_number?: number;
 }
 export class JsFlatG2 {
-  private constructor();
   free(): void;
+  constructor(elements: (string)[]);
   elements: (string)[];
 }
 export class JsGenericAddress {
@@ -628,6 +630,7 @@ export interface InitOutput {
   readonly __wbg_jsflatg2_free: (a: number, b: number) => void;
   readonly __wbg_get_jsflatg2_elements: (a: number) => [number, number];
   readonly __wbg_set_jsflatg2_elements: (a: number, b: number, c: number) => void;
+  readonly jsflatg2_new: (a: number, b: number) => number;
   readonly __wbg_jsauth_free: (a: number, b: number) => void;
   readonly __wbg_get_jsauth_pubkey: (a: number) => [number, number];
   readonly __wbg_set_jsauth_pubkey: (a: number, b: number, c: number) => void;
@@ -635,6 +638,13 @@ export interface InitOutput {
   readonly __wbg_set_jsauth_signature: (a: number, b: number) => void;
   readonly __wbg_get_jsauth_expiry: (a: number) => bigint;
   readonly __wbg_set_jsauth_expiry: (a: number, b: bigint) => void;
+  readonly decrypt_deposit_data: (a: number, b: number, c: number, d: number) => any;
+  readonly decrypt_transfer_data: (a: number, b: number, c: number, d: number) => any;
+  readonly decrypt_tx_data: (a: number, b: number, c: number, d: number) => any;
+  readonly generate_auth_for_store_vault: (a: number, b: number) => any;
+  readonly fetch_encrypted_data: (a: number, b: number, c: number, d: bigint, e: number, f: number, g: number, h: number, i: number) => any;
+  readonly sign_message: (a: number, b: number, c: number, d: number) => any;
+  readonly verify_signature: (a: number, b: number, c: number, d: number, e: number) => any;
   readonly __wbg_jsentrystatuswithblocknumber_free: (a: number, b: number) => void;
   readonly __wbg_get_jsentrystatuswithblocknumber_status: (a: number) => [number, number];
   readonly __wbg_set_jsentrystatuswithblocknumber_status: (a: number, b: number, c: number) => void;
@@ -661,11 +671,6 @@ export interface InitOutput {
   readonly __wbg_set_jstxentry_status: (a: number, b: number) => void;
   readonly __wbg_get_jstxentry_meta: (a: number) => number;
   readonly __wbg_set_jstxentry_meta: (a: number, b: number) => void;
-  readonly decrypt_deposit_data: (a: number, b: number, c: number, d: number) => any;
-  readonly decrypt_transfer_data: (a: number, b: number, c: number, d: number) => any;
-  readonly decrypt_tx_data: (a: number, b: number, c: number, d: number) => any;
-  readonly generate_auth_for_store_vault: (a: number, b: number) => any;
-  readonly fetch_encrypted_data: (a: number, b: number, c: number, d: bigint, e: number, f: number, g: number, h: number, i: number) => any;
   readonly __wbindgen_exn_store: (a: number) => void;
   readonly __externref_table_alloc: () => number;
   readonly __wbindgen_export_2: WebAssembly.Table;
@@ -676,8 +681,8 @@ export interface InitOutput {
   readonly __externref_drop_slice: (a: number, b: number) => void;
   readonly __externref_table_dealloc: (a: number) => void;
   readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h14f4dbbe7ce8d72f: (a: number, b: number) => void;
-  readonly closure683_externref_shim: (a: number, b: number, c: any) => void;
-  readonly closure1392_externref_shim: (a: number, b: number, c: any, d: any) => void;
+  readonly closure689_externref_shim: (a: number, b: number, c: any) => void;
+  readonly closure1397_externref_shim: (a: number, b: number, c: any, d: any) => void;
   readonly __wbindgen_start: () => void;
 }
 

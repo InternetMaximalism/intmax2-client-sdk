@@ -69,6 +69,7 @@ import {
   generate_intmax_account_from_eth_key,
   get_user_data,
   initSync,
+  JsFlatG2,
   JsGenericAddress,
   JsTransfer,
   JsTxRequestMemo,
@@ -77,8 +78,10 @@ import {
   prepare_deposit,
   query_and_finalize,
   send_tx_request,
+  sign_message,
   sync,
   sync_withdrawals,
+  verify_signature,
 } from '../wasm/browser/intmax2_wasm_lib';
 import wasmBytes from '../wasm/browser/intmax2_wasm_lib_bg.wasm?url';
 
@@ -572,8 +575,22 @@ export class IntMaxClient implements INTMAXClient {
     throw Error('Not implemented!');
   }
 
-  signMessage(_data: string): Promise<SignMessageResponse> {
-    throw Error('Not implemented!');
+  async signMessage(message: string): Promise<SignMessageResponse> {
+    const data = Buffer.from(message);
+    const signature = await sign_message(this.#privateKey, data);
+    return signature.elements as SignMessageResponse;
+  }
+
+  async verifySignature(signature: SignMessageResponse, message: string | Uint8Array): Promise<boolean> {
+    let data: Uint8Array;
+    if (typeof message === 'string') {
+      data = Buffer.from(message);
+    } else {
+      data = message;
+    }
+
+    const newSignature = new JsFlatG2(signature);
+    return await verify_signature(newSignature, this.address, data);
   }
 
   async getTokensList(): Promise<Token[]> {

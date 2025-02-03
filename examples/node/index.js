@@ -2,7 +2,6 @@ const { IntMaxNodeClient } = require('intmax2-server-sdk');
 const dotenv = require('dotenv');
 dotenv.config();
 
-
 const main = async () => {
   try {
     // Initialize client
@@ -26,6 +25,14 @@ const main = async () => {
     balances.forEach((balance) => {
       console.log(JSON.stringify(balance, (_, v) => (typeof v === 'bigint' ? v.toString() : v), 2));
     });
+
+    // Verify message signature
+    // const message = 'Hello, World!';
+    // const signature = await client.signMessage(message);
+    // console.log('Signature: ', signature);
+
+    // const isVerified = await client.verifySignature(signature, "Fake message");
+    // console.log('Message verified:', isVerified);
 
     // Example deposit
     // console.log('\nPreparing deposit...');
@@ -53,7 +60,6 @@ const main = async () => {
     //   tokenIndex: 1, // Token id in contractAddress if this NFT, if not NFT set to 0
     //   tokenType: TokenType.ERC721, // TokenType.ERC20, TokenType.ERC721, TokenType.ERC1155
     // }
-
 
     // Estimate deposit gas
     // const gas = await client.estimateDepositGas({
@@ -102,7 +108,6 @@ const main = async () => {
     // console.log('Deposits:', JSON.stringify(deposits, null, 2));
     // console.log('Received Transfers:', JSON.stringify(receiveTxs, null, 2));
     // console.log('Sent Transfers:', JSON.stringify(sendTxs, null, 2));
-
 
     console.log('\nFetching pending withdrawals...');
     const pendingWithdrawals = await client.fetchPendingWithdrawals();

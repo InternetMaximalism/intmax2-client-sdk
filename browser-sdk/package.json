@@ -2,15 +2,16 @@
   "name": "intmax2-client-sdk",
   "version": "1.0.8",
   "description": "Client SDK for Intmax2",
-  "type": "commonjs",
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "type": "module",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
   "exports": {
     ".": {
-      "require": "./dist/index.js",
-      "import": "./dist/index.mjs",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "default": "./dist/cjs/index.js"
     }
   },
   "files": [
@@ -18,9 +19,12 @@
     "README.md"
   ],
   "scripts": {
-    "build:esm": "tsc -p tsconfig.esm.json && pnpm run copy-wasm",
-    "copy-wasm": "mkdir -p dist/wasm && cp -r src/wasm/* dist/wasm/",
-    "prepare": "rimraf dist && pnpm build:esm",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:types": "tsc -p tsconfig.types.json",
+    "build": "rimraf dist && pnpm build:cjs && pnpm build:esm && pnpm build:types && pnpm run copy-wasm",
+    "copy-wasm": "mkdir -p dist/esm/wasm dist/cjs/wasm && cp -r src/wasm/* dist/esm/wasm/ && cp -r src/wasm/* dist/cjs/wasm/",
+    "prepare": "pnpm build",
     "format": "prettier --write \"src/**/*.ts\"",
     "lint": "eslint src --max-warnings=0 --fix"
   },

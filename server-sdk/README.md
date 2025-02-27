@@ -48,6 +48,7 @@ export interface INTMAXClient {
   // deposit
   deposit: (params: PrepareDepositTransactionRequest) => Promise<PrepareDepositTransactionResponse>;
   fetchDeposits: (params: FetchTransactionsRequest) => Promise<(Transaction | null)[]>;
+  getDerivationPathList: () => Promise<DerivePath[]>;
 
   // withdrawal
   fetchPendingWithdrawals: (params: FetchWithdrawalsRequest) => Promise<FetchWithdrawalsResponse>;
@@ -83,30 +84,32 @@ Here you should sign two message, they will be appeared in the popup window auto
 2. Sign the message with challenge string.
 
 ```javascript
-    await intmaxClient.login();
-    const address = this.intmaxClient.address; // Public key of the wallet
-    const privateKey = this.intmaxClient.getPrivateKey(); // Private key of the wallet. Here you should sign message.
+await intmaxClient.login();
+const address = this.intmaxClient.address; // Public key of the wallet
+const privateKey = this.intmaxClient.getPrivateKey(); // Private key of the wallet. Here you should sign message.
 ```
 
 ### Sign message
+
 ```javascript
-    const message = 'Hello, World!';
-    const signature = await intmaxClient.signMessage(message);
+const message = 'Hello, World!';
+const signature = await intmaxClient.signMessage(message);
 ```
 
 ### Verify signature
+
 ```javascript
-    const message = 'Hello, World!';
-    const signature = await intmaxClient.signMessage(message);
-    
-    const isVerified = await intmaxClient.verifySignature(signature, message);
-    console.log(isVerified); // true
+const message = 'Hello, World!';
+const signature = await intmaxClient.signMessage(message);
 
-    const isFakeMessageVerify = await intmaxClient.verifySignature(signature, 'Another message');
-    console.log(isFakeMessageVerify); // false
+const isVerified = await intmaxClient.verifySignature(signature, message);
+console.log(isVerified); // true
 
-    const isFakeSignatureVerify = await intmaxClient.verifySignature('Another signature', message);
-    console.log(isFakeSignatureVerify); // false
+const isFakeMessageVerify = await intmaxClient.verifySignature(signature, 'Another message');
+console.log(isFakeMessageVerify); // false
+
+const isFakeSignatureVerify = await intmaxClient.verifySignature('Another signature', message);
+console.log(isFakeSignatureVerify); // false
 ```
 
 ### Get tokens list
@@ -131,6 +134,70 @@ const { balances } = await intmaxClient.fetchTokenBalances();
 // balances: {
 //    token: Token; // Check get tokens list response
 //    amount: bigint;
+// }
+```
+
+### Get Derivation Path List
+
+```javascript
+const derivations = await intmaxClient.getDerivationPathList();
+
+// Derivations
+// [
+//     {
+//       derive_path: number;
+//       redeposit_path: number;
+//     }
+// ]
+```
+
+### Privacy Mining accept Native Token (ETH) ONLY!!
+
+Derivation path automatically has been saved after success deposit.
+
+```javascript
+const amount = 0.1; // Amount of the token Possible values [0.1, 1, 10, 100]
+const tokens = await intmaxClient.getTokensList(); // Get list of the tokens
+let token = tokens.find((token) => token.tokenIndex === 0); // Find token by symbol
+
+if (token) {
+  token = {
+    ...token,
+    tokenType: TokenType.NATIVE,
+  };
+}
+
+const derivations = await intmaxClient.getDerivationPathList();
+
+const derivation = derivations?.reduce(
+  (max, current) => (current.derive_path > max.derive_path ? current : max),
+  derivations[0],
+) ?? {
+  derive_path: 1,
+  redeposit_path: 0,
+}; // latest possible derive path
+
+// Estimate gas
+const gas = await intmaxClient.estimateDepositGas({
+  amount,
+  token,
+  address, // Your public key of the IntMax wallet or any other IntMax wallet public key
+  isGasEstimation: true,
+  derivation,
+});
+
+// Deposit
+const deposit = await intmaxClient.deposit({
+  amount,
+  token,
+  address,
+  derivation,
+}); // Derivation path automatically has been saved after success deposit.
+
+// Deposit response
+// {
+//  txHash: `0x${string}`;
+//  status: TransactionStatus;
 // }
 ```
 

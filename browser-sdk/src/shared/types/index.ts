@@ -1,4 +1,6 @@
 // General
+import { JsDerive } from '../../wasm/browser/intmax2_wasm_lib';
+
 export interface FetchItemsRequest<T> {
   page?: number;
   pageSize?: number;
@@ -74,6 +76,11 @@ export interface TokenBalance {
 
 export type SignMessageResponse = [string, string, string, string];
 
+export interface DerivePath {
+  derive_path: number;
+  redeposit_path: number;
+}
+
 // Transaction
 export interface Transaction {
   uuid: string;
@@ -95,6 +102,7 @@ export interface BroadcastTransactionRequest {
   address: string;
   amount: number;
   token: Token;
+  claim_beneficiary?: `0x${string}`;
 }
 export interface BroadcastTransactionResponse extends TransactionResult {}
 
@@ -148,6 +156,9 @@ export interface PrepareDepositTransactionRequest {
   token: Token;
   amount: number;
   address: string;
+  isMining: boolean;
+  derivationPath?: number;
+  redepositPath?: number;
 }
 
 export interface PrepareEstimateDepositTransactionRequest extends PrepareDepositTransactionRequest {
@@ -177,6 +188,8 @@ export interface WithdrawRequest {
   address: `0x${string}`;
   token: Token;
   amount: number;
+  claim_beneficiary?: `0x${string}`;
+  derivations?: JsDerive;
 }
 export interface LoginResponse {
   address: string;
@@ -205,6 +218,7 @@ export interface INTMAXClient {
   fetchTokenBalances: () => Promise<TokenBalancesResponse>;
   getPrivateKey: () => Promise<string | undefined>;
   signMessage: (data: string) => Promise<SignMessageResponse>;
+  getDerivationPathList: () => Promise<DerivePath[]>;
 
   // transaction
   fetchTransactions: (params: FetchTransactionsRequest) => Promise<Transaction[]>;
@@ -241,17 +255,18 @@ export interface SDKUrls {
   balance_prover_url: string;
   block_builder_url: string;
   block_validity_prover_url: string;
-  store_vault_server_url: string;
-  withdrawal_aggregator_url: string;
-  key_vault_url: string;
-  rpc_url_l1: string;
   chain_id_l1: number;
-  liquidity_contract: string;
-  rpc_url_l2: string;
   chain_id_l2: number;
+  key_vault_url: string;
+  liquidity_contract: string;
   rollup_contract: string;
   rollup_contract_deployed_block_number: number;
+  rpc_url_l1: string;
+  rpc_url_l2: string;
+  store_vault_server_url: string;
   tokens_url: string;
+  withdrawal_aggregator_url: string;
+  withdrawal_contract_address: string;
 }
 
 export interface MetadataItem {
@@ -284,4 +299,5 @@ export interface IntMaxTxBroadcast {
   token_type?: TokenType;
   token_address?: `0x${string}`;
   depositor?: `0x${string}`;
+  isMining?: boolean;
 }

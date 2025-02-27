@@ -52,22 +52,30 @@ export function hexToUint8Array(input: string): Uint8Array {
   return bytes;
 }
 
-export function getHdKeyFromEntropy(entropy: string) {
+export function getHdKeyFromEntropy(entropy: string, derive_path: number = 0, redeposit_derive_path: number = 0) {
   const mnemonic = entropyToMnemonic(hexToUint8Array(entropy), wordlist);
   const account = mnemonicToAccount(mnemonic);
   if (!account) {
     throw new Error('No account found');
   }
-  const hdKey = account.getHdKey().derive("m/44'/60'/0'/0/0");
+
+  const derive = derive_path ? `m/44'/60'/${redeposit_derive_path}'/0/${derive_path}` : "m/44'/60'/0'/0/0";
+
+  const hdKey = account.getHdKey().derive(derive);
   if (!hdKey || !hdKey?.privateKey) {
     throw new Error('Derivation failed');
   }
 
   return hdKey;
 }
-
-export function getPkFromMnemonic(mnemonic: string): Uint8Array | null {
-  return getHdKeyFromEntropy(mnemonic).privateKey;
+export function getPkFromMnemonic(
+  mnemonic: string,
+  derivativePath?: {
+    derive_path: number;
+    redeposit_derive_path: number;
+  },
+): Uint8Array | null {
+  return getHdKeyFromEntropy(mnemonic, derivativePath?.derive_path, derivativePath?.redeposit_derive_path).privateKey;
 }
 
 export function getWithdrawHash(w: ContractWithdrawal): string {

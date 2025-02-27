@@ -5,6 +5,7 @@ import {
   encodeFunctionData,
   erc20Abi,
   erc721Abi,
+  formatEther,
   Hex,
   http,
   isAddress,
@@ -26,6 +27,7 @@ import {
   ClaimWithdrawalTransactionResponse,
   ConstructorNodeParams,
   ContractWithdrawal,
+  DerivePath,
   DEVNET_ENV,
   FetchTransactionsRequest,
   FetchWithdrawalsResponse,
@@ -65,19 +67,31 @@ import {
   fetch_deposit_history,
   fetch_transfer_history,
   fetch_tx_history,
+  generate_fee_payment_memo,
   generate_intmax_account_from_eth_key,
+  generate_withdrawal_transfers,
+  get_derive_path_list,
   get_user_data,
+  JsDerive,
+  JsFeeQuote,
   JsFlatG2,
   JsGenericAddress,
+  JsMetaDataCursor,
   JsTransfer,
   JsTxRequestMemo,
   JsTxResult,
   JsUserData,
+  JsWithdrawalTransfers,
   prepare_deposit,
   query_and_finalize,
+  quote_claim_fee,
+  quote_transfer_fee,
+  quote_withdrawal_fee,
+  save_derive_path,
   send_tx_request,
   sign_message,
   sync,
+  sync_claims,
   sync_withdrawals,
   verify_signature,
 } from '../wasm/node';
@@ -92,6 +106,7 @@ export class IntMaxNodeClient implements INTMAXClient {
   readonly #cacheMap: Map<string, any> = new Map();
   readonly #ethAccount: PrivateKeyAccount;
   #privateKey: string = '';
+  #entropyKey: string = '';
   #userData: JsUserData | undefined;
   #urls: SDKUrls;
 
@@ -252,6 +267,7 @@ export class IntMaxNodeClient implements INTMAXClient {
   async broadcastTransaction(
     rawTransfers: BroadcastTransactionRequest[],
     isWithdrawal: boolean = false,
+    derivations?: JsDerive,
   ): Promise<BroadcastTransactionResponse> {
     if (!this.isLoggedIn) {
       throw Error('Not logged in');
@@ -290,8 +306,22 @@ export class IntMaxNodeClient implements INTMAXClient {
     });
 
     let privateKey = '';
+    let pubKey = this.address;
+
     try {
-      privateKey = await this.getPrivateKey();
+      await this.getPrivateKey();
+      privateKey = derivations
+        ? await this.#getDeriveKey({
+            derive_path: derivations.derive_path,
+            redeposit_derive_path: derivations.redeposit_path,
+          }).then((k) => k?.privkey as string)
+        : this.#privateKey;
+      pubKey = derivations
+        ? await this.#getDeriveKey({
+            derive_path: derivations.derive_path,
+            redeposit_derive_path: derivations.redeposit_path,
+          }).then((k) => k?.pubkey as string)
+        : this.address;
     } catch (e) {
       console.error(e);
       throw Error('No private key found');
@@ -299,12 +329,28 @@ export class IntMaxNodeClient implements INTMAXClient {
 
     let memo: JsTxRequestMemo;
     try {
+      const fee = (await quote_transfer_fee(this.#config, this.#urls.block_builder_url, pubKey, 0)) as JsFeeQuote;
+
+      let withdrawalTransfers: JsWithdrawalTransfers | undefined;
+
+      if (isWithdrawal) {
+        withdrawalTransfers = await generate_withdrawal_transfers(this.#config, transfers[0], 0, true);
+      }
+
       // send the tx request
       memo = (await send_tx_request(
         this.#config,
         this.#urls.block_builder_url,
         privateKey,
-        transfers,
+        withdrawalTransfers ? withdrawalTransfers.transfers : transfers,
+        generate_fee_payment_memo(
+          withdrawalTransfers?.transfers ?? [],
+          withdrawalTransfers?.withdrawal_fee_transfer_index,
+          withdrawalTransfers?.claim_fee_transfer_index,
+        ),
+        fee.beneficiary,
+        fee.fee,
+        fee.collateral_fee,
       )) as JsTxRequestMemo;
 
       if (!memo) {
@@ -327,7 +373,16 @@ export class IntMaxNodeClient implements INTMAXClient {
 
     if (isWithdrawal) {
       await sleep(40000);
-      await sync_withdrawals(this.#config, privateKey);
+      if (rawTransfers[0].claim_beneficiary) {
+        try {
+          await sync_claims(this.#config, privateKey, rawTransfers[0].claim_beneficiary, 0);
+        } catch (e) {
+          console.error(e);
+          throw e;
+        }
+      }
+      await sleep(40000);
+      await sync_withdrawals(this.#config, privateKey, 0);
     }
 
     return {
@@ -341,9 +396,9 @@ export class IntMaxNodeClient implements INTMAXClient {
   async fetchTransactions(_params: FetchTransactionsRequest): Promise<Transaction[]> {
     this.#checkAllowanceToExecuteMethod();
 
-    const data = await fetch_tx_history(this.#config, this.#privateKey);
+    const data = await fetch_tx_history(this.#config, this.#privateKey, new JsMetaDataCursor(null, 'desc'));
 
-    return data
+    return data.history
       .map((tx) => {
         return wasmTxToTx(
           {
@@ -363,9 +418,9 @@ export class IntMaxNodeClient implements INTMAXClient {
   async fetchTransfers(_params: FetchTransactionsRequest): Promise<Transaction[]> {
     this.#checkAllowanceToExecuteMethod();
 
-    const data = await fetch_transfer_history(this.#config, this.#privateKey);
+    const data = await fetch_transfer_history(this.#config, this.#privateKey, new JsMetaDataCursor(null, 'desc'));
 
-    return data
+    return data.history
       .map((tx) => {
         return wasmTxToTx(
           {
@@ -385,9 +440,9 @@ export class IntMaxNodeClient implements INTMAXClient {
   async fetchDeposits(_params: FetchTransactionsRequest): Promise<Transaction[]> {
     this.#checkAllowanceToExecuteMethod();
 
-    const data = await fetch_deposit_history(this.#config, this.#privateKey);
+    const data = await fetch_deposit_history(this.#config, this.#privateKey, new JsMetaDataCursor(null, 'desc'));
 
-    return data
+    return data.history
       .map((tx) => {
         return wasmTxToTx(
           {
@@ -403,16 +458,133 @@ export class IntMaxNodeClient implements INTMAXClient {
       .filter(Boolean) as Transaction[];
   }
 
-  async withdraw({ amount, address, token }: WithdrawRequest): Promise<WithdrawalResponse> {
+  async withdraw({
+    amount,
+    address,
+    token,
+    claim_beneficiary,
+    derivations,
+  }: WithdrawRequest): Promise<WithdrawalResponse> {
+    if (derivations) {
+      const key = await this.#getDeriveKey({
+        derive_path: derivations.derive_path,
+        redeposit_derive_path: derivations.redeposit_path,
+      });
+
+      const withdrawalFee = (await quote_withdrawal_fee(this.#config, token.tokenIndex, 0)) as JsFeeQuote;
+      const transferFee = (await quote_transfer_fee(
+        this.#config,
+        this.#urls.block_builder_url,
+        key?.pubkey as string,
+        0,
+      )) as JsFeeQuote;
+      const claim_fee = await quote_claim_fee(this.#config, 0);
+
+      try {
+        // sync the account's balance proof
+        await retryWithAttempts(
+          () => {
+            return sync(this.#config, key?.privkey as string);
+          },
+          10000,
+          5,
+        );
+        console.info('Synced account balance proof');
+
+        // sync withdrawals
+        await retryWithAttempts(
+          () => {
+            return sync_withdrawals(this.#config, key?.privkey as string, 0);
+          },
+          10000,
+          5,
+        );
+        console.info('Synced withdrawals');
+      } catch (e) {
+        console.info('Failed to sync account balance proof', e);
+      }
+
+      const userData = await get_user_data(this.#config, key?.privkey as string);
+      const amountInDecimals = parseEther(amount.toString());
+
+      const balanceToSpend =
+        BigInt(userData?.balances.find((b) => b.token_index === 0)?.amount ?? 0) - amountInDecimals;
+
+      if (balanceToSpend < 0) {
+        throw new Error('Insufficient balance, you withdraw this mining already');
+      }
+
+      const topUpAmount =
+        BigInt(withdrawalFee.fee?.amount as string) +
+        BigInt(transferFee?.fee?.amount as string) +
+        BigInt(claim_fee?.fee?.amount as string);
+
+      try {
+        if (balanceToSpend <= 0) {
+          await this.broadcastTransaction(
+            [
+              {
+                address: key?.pubkey as `0x${string}`,
+                amount: Number(formatEther(topUpAmount)),
+                token,
+              },
+            ],
+            false,
+            undefined,
+          );
+          await sleep(80000);
+        }
+      } catch (e) {
+        console.error(e);
+        throw e;
+      }
+
+      if (topUpAmount <= 0) {
+        try {
+          // sync the account's balance proof
+          await retryWithAttempts(
+            () => {
+              return sync(this.#config, key?.privkey as string);
+            },
+            10000,
+            5,
+          );
+          console.info('Synced account balance proof');
+
+          // sync withdrawals
+          await retryWithAttempts(
+            () => {
+              return sync_withdrawals(this.#config, key?.privkey as string, 0);
+            },
+            10000,
+            5,
+          );
+          console.info('Synced withdrawals');
+        } catch (e) {
+          console.info('Failed to sync account balance proof', e);
+        }
+
+        const updatedUserData = await get_user_data(this.#config, key?.privkey as string);
+        if (
+          userData?.balances.find((b) => b.token_index === 0)!.amount ===
+          updatedUserData?.balances.find((b) => b.token_index === 0)!.amount
+        ) {
+          await sleep(80000);
+        }
+      }
+    }
+
     return this.broadcastTransaction(
       [
         {
           amount,
           address,
           token,
+          claim_beneficiary,
         },
       ],
       true,
+      derivations,
     );
   }
 
@@ -462,16 +634,29 @@ export class IntMaxNodeClient implements INTMAXClient {
     return parseEther((gasPrice ?? 0n * estimatedGas).toString());
   }
 
-  async deposit(params: PrepareDepositTransactionRequest): Promise<PrepareDepositTransactionResponse> {
-    try {
-      // APPROVE WITH ESTIMATE
-      await this.estimateDepositGas({ ...params, isGasEstimation: true });
-    } catch (e) {
-      console.error(e);
-      throw Error('Failed to estimate gas');
+  async deposit({
+    derivationPath,
+    redepositPath,
+    ...params
+  }: PrepareDepositTransactionRequest): Promise<PrepareDepositTransactionResponse> {
+    let address = params.address;
+
+    if (params.isMining) {
+      if (![0.1, 1, 10, 100].includes(Number(params.amount))) {
+        throw new Error('Mining amount must be 0.1, 1, 10 or 100');
+      }
+      if (derivationPath !== undefined && derivationPath >= 0 && redepositPath !== undefined && redepositPath >= 0) {
+        throw new Error('Derivation and Redeposit paths should be provided');
+      }
+
+      const dataKey = await this.#getDeriveKey({
+        derive_path: derivationPath as number,
+        redeposit_derive_path: redepositPath as number,
+      });
+      address = dataKey.pubkey;
     }
 
-    const txConfig = await this.#prepareDepositToken({ ...params, isGasEstimation: false });
+    const txConfig = await this.#prepareDepositToken({ ...params, address, isGasEstimation: false });
     const { gas, maxPriorityFeePerGas, maxFeePerGas } = await this.#estimateFee(txConfig);
     const encodeData = encodeFunctionData({
       abi: txConfig.abi,
@@ -511,6 +696,11 @@ export class IntMaxNodeClient implements INTMAXClient {
         console.error(e);
       }
     }
+
+    if (params.isMining) {
+      await this.#saveDerivationPath(new JsDerive(Number(derivationPath), Number(redepositPath)));
+    }
+
     return {
       status,
       txHash: depositHash,
@@ -631,6 +821,12 @@ export class IntMaxNodeClient implements INTMAXClient {
     }
   }
 
+  async getDerivationPathList(): Promise<DerivePath[]> {
+    const resp = await get_derive_path_list(this.#config, this.#privateKey);
+
+    return resp.map((d) => ({ derive_path: d.derive_path, redeposit_path: d.derive_path }));
+  }
+
   // PRIVATE METHODS
   #generateConfig(env: IntMaxEnvironment): Config {
     const urls = env === 'mainnet' ? MAINNET_ENV : env === 'testnet' ? TESTNET_ENV : DEVNET_ENV;
@@ -656,7 +852,17 @@ export class IntMaxNodeClient implements INTMAXClient {
       BigInt(urls.chain_id_l2), // L2 Chain ID
       urls.rollup_contract, // Rollup Contract Address
       BigInt(urls.rollup_contract_deployed_block_number), // Rollup Contract Deployed Block Number
+      urls.withdrawal_contract_address, // Withdrawal Contract Address
     );
+  }
+
+  async #getDeriveKey(derivePath: { derive_path: number; redeposit_derive_path: number }) {
+    const hdKey = getPkFromMnemonic(this.#entropyKey, derivePath);
+    if (!hdKey) {
+      throw new Error("Can't get private key from mnemonic");
+    }
+
+    return generate_intmax_account_from_eth_key(Buffer.from(hdKey).toString('hex'));
   }
 
   #checkAllowanceToExecuteMethod() {
@@ -686,6 +892,7 @@ export class IntMaxNodeClient implements INTMAXClient {
 
     this.address = keySet.pubkey;
     this.#privateKey = keySet.privkey;
+    this.#entropyKey = entropy;
 
     return;
   }
@@ -726,7 +933,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       // sync withdrawals
       await retryWithAttempts(
         () => {
-          return sync_withdrawals(this.#config, this.#privateKey);
+          return sync_withdrawals(this.#config, this.#privateKey, 0);
         },
         10000,
         5,
@@ -752,7 +959,13 @@ export class IntMaxNodeClient implements INTMAXClient {
     return userData;
   }
 
-  async #prepareDepositToken({ token, isGasEstimation, amount, address }: PrepareEstimateDepositTransactionRequest) {
+  async #prepareDepositToken({
+    token,
+    isGasEstimation,
+    amount,
+    address,
+    isMining,
+  }: PrepareEstimateDepositTransactionRequest) {
     const salt = isGasEstimation
       ? randomBytesHex(16)
       : await this.#depositToAccount({
@@ -767,6 +980,7 @@ export class IntMaxNodeClient implements INTMAXClient {
           tokenIndex: token.tokenIndex,
           token_type: token.tokenType,
           token_address: token.contractAddress as `0x${string}`,
+          isMining,
         });
 
     return this.#prepareTransaction({
@@ -1031,5 +1245,9 @@ export class IntMaxNodeClient implements INTMAXClient {
       maxPriorityFeePerGas,
       maxFeePerGas,
     };
+  }
+
+  async #saveDerivationPath(derive: JsDerive) {
+    return save_derive_path(this.#config, this.#privateKey, derive);
   }
 }

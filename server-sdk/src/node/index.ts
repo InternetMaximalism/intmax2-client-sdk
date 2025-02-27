@@ -29,6 +29,7 @@ import {
   ContractWithdrawal,
   DerivePath,
   DEVNET_ENV,
+  FeeResponse,
   FetchTransactionsRequest,
   FetchWithdrawalsResponse,
   getPkFromMnemonic,
@@ -832,6 +833,39 @@ export class IntMaxNodeClient implements INTMAXClient {
     const resp = await get_derive_path_list(this.#config, this.#privateKey);
 
     return resp.map((d) => ({ derive_path: d.derive_path, redeposit_path: d.derive_path }));
+  }
+
+  async getTransferFee(): Promise<FeeResponse> {
+    const transferFee = (await quote_transfer_fee(
+      this.#config,
+      this.#urls.block_builder_url,
+      this.address as string,
+      0,
+    )) as JsFeeQuote;
+    return {
+      beneficiary: transferFee.beneficiary,
+      fee: transferFee.fee,
+      collateral_fee: transferFee.collateral_fee,
+    };
+  }
+
+  async getWithdrawalFee(token: Token): Promise<FeeResponse> {
+    const withdrawalFee = (await quote_withdrawal_fee(this.#config, token.tokenIndex, 0)) as JsFeeQuote;
+    return {
+      beneficiary: withdrawalFee.beneficiary,
+      fee: withdrawalFee.fee,
+      collateral_fee: withdrawalFee.collateral_fee,
+    };
+  }
+
+  async getClaimFee(): Promise<FeeResponse> {
+    const claim_fee = await quote_claim_fee(this.#config, 0);
+
+    return {
+      beneficiary: claim_fee.beneficiary,
+      fee: claim_fee.fee,
+      collateral_fee: claim_fee.collateral_fee,
+    };
   }
 
   // PRIVATE METHODS

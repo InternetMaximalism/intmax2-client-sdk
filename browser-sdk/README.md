@@ -55,6 +55,11 @@ export interface INTMAXClient {
   withdraw: (params: WithdrawRequest) => Promise<WithdrawalResponse>;
   claimWithdrawal: (params: ContractWithdrawal[]) => Promise<ClaimWithdrawalTransactionResponse>;
 
+  // Fees
+  getTransferFee: (token: Token) => Promise<FeeResponse>;
+  getWithdrawalFee: () => Promise<FeeResponse>;
+  getClaimFee: () => Promise<FeeResponse>;
+
   // additional services
   login: () => Promise<LoginResponse>;
   logout: () => Promise<void>;

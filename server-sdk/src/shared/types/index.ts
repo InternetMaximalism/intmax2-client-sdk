@@ -239,6 +239,11 @@ export interface INTMAXClient {
   withdraw: (params: WithdrawRequest) => Promise<WithdrawalResponse>;
   claimWithdrawal: (params: ContractWithdrawal[]) => Promise<ClaimWithdrawalTransactionResponse>;
 
+  // Fees
+  getTransferFee: () => Promise<FeeResponse>;
+  getWithdrawalFee: (token: Token) => Promise<FeeResponse>;
+  getClaimFee: () => Promise<FeeResponse>;
+
   // additional services
   login: () => Promise<LoginResponse>;
   logout: () => Promise<void>;
@@ -300,4 +305,15 @@ export interface IntMaxTxBroadcast {
   token_address?: `0x${string}`;
   depositor?: `0x${string}`;
   isMining?: boolean;
+}
+
+interface Fee {
+  amount: string;
+  token_index: number;
+}
+
+export interface FeeResponse {
+  beneficiary: string | undefined;
+  fee: Fee | undefined;
+  collateral_fee: Fee | undefined;
 }

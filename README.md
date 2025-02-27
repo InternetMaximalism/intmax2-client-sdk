@@ -34,6 +34,8 @@ or
 ## Interface
 
 ```ts
+import { FeeResponse } from './index';
+
 export interface INTMAXClient {
   // properties
   tokenBalances: TokenBalance[] | undefined;
@@ -56,7 +58,7 @@ export interface INTMAXClient {
   waitForTransactionConfirmation: (
     params: WaitForTransactionConfirmationRequest,
   ) => Promise<WaitForTransactionConfirmationResponse>;
-
+  
   // deposit
   deposit: (params: PrepareDepositTransactionRequest) => Promise<PrepareDepositTransactionResponse>;
   fetchDeposits: (params: FetchTransactionsRequest) => Promise<(Transaction | null)[]>;
@@ -66,6 +68,11 @@ export interface INTMAXClient {
   withdraw: (params: WithdrawRequest) => Promise<WithdrawalResponse>;
   claimWithdrawal: (params: ContractWithdrawal[]) => Promise<ClaimWithdrawalTransactionResponse>;
 
+  // Fees
+  getTransferFee: (token: Token) => Promise<FeeResponse>;
+  getWithdrawalFee: () => Promise<FeeResponse>;
+  getClaimFee: () => Promise<FeeResponse>;
+  
   // additional services
   login: () => Promise<LoginResponse>;
   logout: () => Promise<void>;

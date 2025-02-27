@@ -674,13 +674,20 @@ export class IntMaxClient implements INTMAXClient {
         throw new Error('Mining amount must be 0.1, 1, 10 or 100');
       }
 
-      if (derivationPath !== undefined && derivationPath >= 0 && redepositPath !== undefined && redepositPath >= 0) {
+      if (
+        !(
+          typeof derivationPath === 'number' &&
+          derivationPath < 0 &&
+          typeof redepositPath === 'number' &&
+          redepositPath < 0
+        )
+      ) {
         throw new Error('Derivation and Redeposit paths should be provided');
       }
 
       const dataKey = await this.#getDeriveKey({
-        derive_path: derivationPath as number,
-        redeposit_derive_path: redepositPath as number,
+        derive_path: derivationPath,
+        redeposit_derive_path: redepositPath,
       });
       address = dataKey.pubkey;
     }

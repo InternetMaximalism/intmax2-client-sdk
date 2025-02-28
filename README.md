@@ -85,8 +85,6 @@ export interface INTMAXClient {
 
 ### Initialization
 ```javascript
-import { IntmaxClient } from 'intmax2-client-sdk';
-
 const intmaxClient = IntmaxClient.init({
     environment: 'testnet', //  'mainnet' | 'devnet' | 'testnet' 
 }) 

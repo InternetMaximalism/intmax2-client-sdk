@@ -163,7 +163,7 @@ export class TokenFetcher {
   }
 
   async #fetchTokens(cursor: string | null): Promise<PaginatedResponse<Token>> {
-    return this.#httpClient.get<PaginatedResponse<Token>, PaginatedResponse<Token>>('/token-mappings/list', {
+    return this.#httpClient.get<PaginatedResponse<Token>, PaginatedResponse<Token>>('/token-maps/list', {
       params: {
         perPage: 100,
         cursor,

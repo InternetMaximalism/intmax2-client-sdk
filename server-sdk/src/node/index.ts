@@ -743,12 +743,12 @@ export class IntMaxNodeClient implements INTMAXClient {
       urls.balance_prover_url,
       urls.validity_prover_url,
       urls.withdrawal_aggregator_url,
-      BigInt(60), // Deposit Timeout
-      BigInt(60), // Tx timeout
+      BigInt(3600), // Deposit Timeout
+      BigInt(80), // Tx timeout
       // ---------------------
       isFasterMining,
-      BigInt(10), // Block Builder Request Interval
-      BigInt(6), // Block Builder Request Limit
+      BigInt(5), // Block Builder Request Interval
+      BigInt(5), // Block Builder Request Limit
       BigInt(5), // Block Builder Query Wait Time
       BigInt(5), // Block Builder Query Interval
       BigInt(20), // Block Builder Query Limit

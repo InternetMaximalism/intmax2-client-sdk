@@ -9,7 +9,7 @@ const deriveKey = async (
   password: Uint8Array<ArrayBuffer>,
   salt: Uint8Array<ArrayBuffer>,
   iterations: number
-): Promise<Uint8Array> => {
+) => {
   // Import the hashed password as a key
   const baseKey = await crypto.subtle.importKey(
     "raw",

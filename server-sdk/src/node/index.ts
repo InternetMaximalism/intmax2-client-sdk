@@ -5,7 +5,6 @@ import {
   encodeFunctionData,
   erc20Abi,
   erc721Abi,
-  Hex,
   http,
   isAddress,
   parseEther,
@@ -13,7 +12,6 @@ import {
   PrivateKeyAccount,
   PublicClient,
   sha256,
-  toHex,
   WriteContractParameters,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';

@@ -5,6 +5,35 @@ import { hexToUint8Array } from "../utils";
 const TIME_COST = 100000;
 const DERIVED_KEY_LENGTH_BITS = 256; // 32 bytes (256 bits) for AES-256
 
+const deriveKey = async (
+  password: Uint8Array<ArrayBuffer>,
+  salt: Uint8Array<ArrayBuffer>,
+  iterations: number
+): Promise<Uint8Array> => {
+  // Import the hashed password as a key
+  const baseKey = await crypto.subtle.importKey(
+    "raw",
+    password,
+    { name: "PBKDF2" },
+    false,
+    ["deriveBits"]
+  );
+
+  // Derive the final key using PBKDF2
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: "PBKDF2",
+      salt: salt,
+      iterations: iterations,
+      hash: "SHA-256"
+    },
+    baseKey,
+    DERIVED_KEY_LENGTH_BITS
+  );
+
+  return new Uint8Array(derivedBits);
+};
+
 /**
  * Derives a cryptographic key from input bytes and a nonce
  * @param messageBytes - The input bytes to derive a key from
@@ -28,29 +57,9 @@ export const generateEncryptionKey = async (messageHex: `0x${string}`, nonce: nu
     combinedSalt.set(nonceBuf);
     combinedSalt.set(new TextEncoder().encode(FIXED_SALT), nonceBuf.byteLength);
 
-    // Import the hashed password as a key
-    const baseKey = await (crypto.subtle as any).importKey(
-      "raw",
-      passwordHashBytes,
-      { name: "PBKDF2" },
-      false,
-      ["deriveBits"]
+    return await deriveKey(
+      passwordHashBytes, combinedSalt, TIME_COST
     );
-
-    // Derive the final key using PBKDF2
-    const derivedBits = await crypto.subtle.deriveBits(
-      {
-        name: "PBKDF2",
-        salt: combinedSalt,
-        iterations: TIME_COST,
-        hash: "SHA-256"
-      },
-      baseKey,
-      DERIVED_KEY_LENGTH_BITS
-    );
-
-    // Convert to Uint8Array and return
-    return new Uint8Array(derivedBits);
   } catch (error) {
     console.error("Error deriving key:", error);
     throw error;

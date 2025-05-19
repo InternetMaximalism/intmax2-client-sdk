@@ -35,7 +35,7 @@ export function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export function hexToUint8Array(input: string): Uint8Array {
+export function hexToUint8Array(input: string): Uint8Array<ArrayBuffer> {
   // Remove '0x' prefix if present
   const hexString = input.replace('0x', '');
 

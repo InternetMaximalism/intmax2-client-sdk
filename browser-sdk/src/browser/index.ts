@@ -6,14 +6,12 @@ import {
   custom,
   erc20Abi,
   erc721Abi,
-  Hex,
   http,
   isAddress,
   parseEther,
   parseUnits,
   PublicClient,
   sha256,
-  toHex,
   WalletClient,
   WriteContractParameters,
 } from 'viem';
@@ -30,13 +28,15 @@ import {
   FeeResponse,
   FetchTransactionsRequest,
   FetchWithdrawalsResponse,
-  getPkFromMnemonic,
+  generateEntropy,
+  getPkFromEntropy,
   IndexerFetcher,
   INTMAXClient,
   IntMaxEnvironment,
   IntMaxTxBroadcast,
   LiquidityAbi,
   localStorageManager,
+  LoginResponse,
   MAINNET_ENV,
   networkMessage,
   PredicateFetcher,
@@ -59,12 +59,14 @@ import {
   TransactionFetcher,
   TransactionStatus,
   TransactionType,
+  uint8ToBase64,
   WaitForTransactionConfirmationRequest,
   WaitForTransactionConfirmationResponse,
   wasmTxToTx,
   WithdrawalResponse,
   WithdrawRequest,
 } from '../shared';
+import { generateEncryptionKey } from '../shared/shared/generate-encryption-key';
 import {
   await_tx_sendable,
   Config,
@@ -162,7 +164,7 @@ export class IntMaxClient implements INTMAXClient {
     }
   }
 
-  async login() {
+  async login(): Promise<LoginResponse> {
     this.isLoggedIn = false;
 
     await this.#walletClient.requestAddresses();
@@ -173,10 +175,11 @@ export class IntMaxClient implements INTMAXClient {
       message: networkMessage(address),
     });
 
-    const data = await this.#vaultHttpClient.post<
+    const challengeData = await this.#vaultHttpClient.post<
       {},
       {
         message: string;
+        nonce?: string;
       }
     >('/challenge', {
       address,
@@ -185,14 +188,16 @@ export class IntMaxClient implements INTMAXClient {
 
     const challengeSignature = await this.#walletClient.signMessage({
       account: address,
-      message: data.message,
+      message: challengeData.message,
     });
 
-    const { hashedSignature } = await this.#vaultHttpClient.post<
+    const loginResponse = await this.#vaultHttpClient.post<
       {},
       {
         hashedSignature: string;
         encryptedEntropy: string;
+        nonce: number;
+        accessToken?: string;
       }
     >('/wallet/login', {
       address,
@@ -200,13 +205,19 @@ export class IntMaxClient implements INTMAXClient {
       securitySeed: sha256(signNetwork),
     });
 
-    await this.#entropy(signNetwork, hashedSignature);
+    await this.#entropy(signNetwork, loginResponse.hashedSignature);
+
+    const encryptionKeyBytes = await generateEncryptionKey(signNetwork, loginResponse.nonce);
+    const encryptionKey = uint8ToBase64(encryptionKeyBytes);
 
     this.isLoggedIn = true;
 
     return {
       address: this.address,
       isLoggedIn: this.isLoggedIn,
+      nonce: loginResponse.nonce,
+      encryptionKey,
+      accessToken: loginResponse.accessToken,
     };
   }
 
@@ -740,25 +751,20 @@ export class IntMaxClient implements INTMAXClient {
     }
   }
 
-  async #entropy(networkSignedMessage: `0x${string}`, hashedSignature: string) {
-    const securitySeed = sha256(networkSignedMessage);
-    const entropyPreImage = (securitySeed + hashedSignature.slice(2)) as Hex;
-    const entropy = sha256(entropyPreImage);
-    const hdKey = getPkFromMnemonic(entropy);
+  async #entropy(
+    networkSignedMessage: `0x${string}`,
+    hashedSignature: string,
+  ) {
+    const entropy = generateEntropy(networkSignedMessage as `0x${string}`, hashedSignature);
+    const hdKey = getPkFromEntropy(entropy);
     if (!hdKey) {
-      throw Error('No key found');
+      throw new Error("Can't get private key from mnemonic");
     }
 
-    const keySet = await generate_intmax_account_from_eth_key(toHex(hdKey));
-
-    if (!keySet) {
-      throw new Error('No key found');
-    }
+    const keySet = await generate_intmax_account_from_eth_key(hdKey);
 
     this.address = keySet.pubkey;
     this.#privateKey = keySet.privkey;
-
-    return;
   }
 
   async #fetchUserData(): Promise<JsUserData> {
@@ -840,13 +846,13 @@ export class IntMaxClient implements INTMAXClient {
     const salt = isGasEstimation
       ? randomBytesHex(16)
       : await this.#depositToAccount({
-          amountInDecimals,
-          depositor: accounts[0],
-          pubkey: address,
-          tokenIndex: token.tokenIndex,
-          token_address: token.contractAddress as `0x${string}`,
-          token_type: token.tokenType,
-        });
+        amountInDecimals,
+        depositor: accounts[0],
+        pubkey: address,
+        tokenIndex: token.tokenIndex,
+        token_address: token.contractAddress as `0x${string}`,
+        token_type: token.tokenType,
+      });
 
     let amlPermission: `0x${string}` = '0x';
     if (!isGasEstimation) {

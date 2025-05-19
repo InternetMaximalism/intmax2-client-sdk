@@ -3,7 +3,7 @@ import { SDKUrls } from '../types';
 export * from './abis';
 
 export const networkMessage = (address: string) =>
-  `\nThis signature on this message will be used to access the INTMAX network. \nYour address: ${address}\nCaution: Do not sign if requested on any domain other than intmax.io`;
+  `\nThis signature on this message will be used to access the INTMAX network. \nYour address: ${address}\nCaution: Please make sure that the domain you are connected to is correct.`;
 
 export const MAINNET_ENV: SDKUrls = {
   balance_prover_url: 'https://dev.private.zkp.intmax.xyz',

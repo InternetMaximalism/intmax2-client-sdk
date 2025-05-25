@@ -266,10 +266,7 @@ const withdraw = await intmaxClient.withdraw({
 // Withdraw response
 // {
 //   txTreeRoot: string;
-//   transferData: TransferData[];
-//   withdrawalData: TransferData[];
 //   transferDigests: string[];
-//   withdrawalDigests: string[];
 // }
 ```
 

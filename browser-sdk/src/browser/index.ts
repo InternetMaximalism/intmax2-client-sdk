@@ -357,12 +357,16 @@ export class IntMaxClient implements INTMAXClient {
 
     let memo: JsTxRequestMemo;
     try {
-      const fee = (await quote_transfer_fee(
+      const fee = await quote_transfer_fee(
         this.#config,
         await this.#indexerFetcher.getBlockBuilderUrl(),
         pubKey,
         0,
-      )) as JsFeeQuote;
+      );
+
+      if (!fee) {
+        throw new Error('Failed to quote transfer fee');
+      }
 
       let withdrawalTransfers: JsWithdrawalTransfers | undefined;
 
@@ -370,10 +374,10 @@ export class IntMaxClient implements INTMAXClient {
         withdrawalTransfers = await generate_withdrawal_transfers(this.#config, transfers[0], 0, true);
       }
 
-      await await_tx_sendable(this.#config, privateKey);
+      await await_tx_sendable(this.#config, privateKey, transfers, fee);
 
       // send the tx request
-      memo = (await send_tx_request(
+      memo = await send_tx_request(
         this.#config,
         await this.#indexerFetcher.getBlockBuilderUrl(),
         privateKey,
@@ -383,10 +387,8 @@ export class IntMaxClient implements INTMAXClient {
           withdrawalTransfers?.withdrawal_fee_transfer_index,
           withdrawalTransfers?.claim_fee_transfer_index,
         ),
-        fee.beneficiary,
-        fee.fee,
-        fee.collateral_fee,
-      )) as JsTxRequestMemo;
+        fee,
+      );
 
       if (!memo) {
         throw new Error('Failed to send tx request');
@@ -423,8 +425,7 @@ export class IntMaxClient implements INTMAXClient {
 
     return {
       txTreeRoot: tx.tx_tree_root,
-      transferDigests: tx.transfer_digests,
-      withdrawalDigests: tx.withdrawal_digests,
+      transferDigests: tx.tx_data.transfer_digests,
     };
   }
 
@@ -719,11 +720,9 @@ export class IntMaxClient implements INTMAXClient {
       urls.validity_prover_url,
       urls.withdrawal_aggregator_url,
       BigInt(60), // Deposit Timeout
-      BigInt(60), // Tx timeout
+      BigInt(80), // Tx timeout
       // ---------------------
       isFasterMining,
-      BigInt(10), // Block Builder Request Interval
-      BigInt(6), // Block Builder Request Limit
       BigInt(5), // Block Builder Query Wait Time
       BigInt(5), // Block Builder Query Interval
       BigInt(20), // Block Builder Query Limit

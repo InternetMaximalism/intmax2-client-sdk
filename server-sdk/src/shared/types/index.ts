@@ -103,7 +103,6 @@ export interface BroadcastTransactionResponse extends TransactionResult {}
 export interface TransactionResult {
   txTreeRoot: string;
   transferDigests: string[];
-  withdrawalDigests: string[];
 }
 
 export interface TransferData {
@@ -257,7 +256,6 @@ export interface SDKUrls {
   key_vault_url: string;
   liquidity_contract: string;
   rollup_contract: string;
-  rollup_contract_deployed_block_number: number;
   rpc_url_l1: string;
   rpc_url_l2: string;
   store_vault_server_url: string;

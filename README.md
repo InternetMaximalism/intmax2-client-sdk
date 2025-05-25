@@ -288,10 +288,7 @@ Here you should sign two message, they will be appeared in the popup window auto
     // Withdraw response
     // {
     //   txTreeRoot: string;
-    //   transferData: TransferData[];
-    //   withdrawalData: TransferData[];
     //   transferDigests: string[];
-    //   withdrawalDigests: string[];
     // }
 ```
 

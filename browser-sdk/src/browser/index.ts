@@ -719,7 +719,7 @@ export class IntMaxClient implements INTMAXClient {
       urls.balance_prover_url,
       urls.validity_prover_url,
       urls.withdrawal_aggregator_url,
-      BigInt(60), // Deposit Timeout
+      BigInt(180), // Deposit Timeout
       BigInt(80), // Tx timeout
       // ---------------------
       isFasterMining,

@@ -209,6 +209,7 @@ export interface INTMAXClient {
   fetchTokenBalances: () => Promise<TokenBalancesResponse>;
   getPrivateKey: () => Promise<string | undefined>;
   signMessage: (data: string) => Promise<SignMessageResponse>;
+  verifySignature: (signature: SignMessageResponse, message: string | Uint8Array) => Promise<boolean>;
 
   // transaction
   fetchTransactions: (params: FetchTransactionsRequest) => Promise<Transaction[]>;

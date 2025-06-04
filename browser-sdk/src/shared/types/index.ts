@@ -104,7 +104,7 @@ export interface BroadcastTransactionRequest {
   token: Token;
   claim_beneficiary?: `0x${string}`;
 }
-export interface BroadcastTransactionResponse extends TransactionResult { }
+export interface BroadcastTransactionResponse extends TransactionResult {}
 
 export interface TransactionResult {
   txTreeRoot: string;
@@ -178,7 +178,7 @@ export interface ClaimWithdrawalTransactionResponse {
   status: TransactionStatus;
 }
 
-export interface WithdrawalResponse extends TransactionResult { }
+export interface WithdrawalResponse extends TransactionResult {}
 
 export interface WithdrawRequest {
   address: `0x${string}`;
@@ -217,6 +217,7 @@ export interface INTMAXClient {
   fetchTokenBalances: () => Promise<TokenBalancesResponse>;
   getPrivateKey: () => Promise<string | undefined>;
   signMessage: (data: string) => Promise<SignMessageResponse>;
+  verifySignature: (signature: SignMessageResponse, message: string | Uint8Array) => Promise<boolean>;
 
   // transaction
   fetchTransactions: (params: FetchTransactionsRequest) => Promise<Transaction[]>;

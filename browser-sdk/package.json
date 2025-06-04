@@ -1,6 +1,6 @@
 {
   "name": "intmax2-client-sdk",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Client SDK for Intmax2",
   "type": "module",
   "main": "./dist/cjs/index.js",

@@ -1,5 +1,4 @@
 // General
-import { JsDerive } from '../../wasm/browser/intmax2_wasm_lib';
 
 export interface FetchItemsRequest<T> {
   page?: number;
@@ -185,7 +184,6 @@ export interface WithdrawRequest {
   token: Token;
   amount: number;
   claim_beneficiary?: `0x${string}`;
-  derivations?: JsDerive;
 }
 export interface LoginResponse {
   address: string;

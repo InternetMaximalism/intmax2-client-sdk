@@ -185,6 +185,9 @@ export interface WithdrawRequest {
 export interface LoginResponse {
   address: string;
   isLoggedIn: boolean;
+  nonce: number;
+  encryptionKey: string; // base64
+  accessToken?: string;
 }
 
 export type IntMaxEnvironment = 'testnet' | 'mainnet' | 'devnet';

@@ -28,6 +28,7 @@ import {
   FeeResponse,
   FetchTransactionsRequest,
   FetchWithdrawalsResponse,
+  generateEncryptionKey,
   generateEntropy,
   getPkFromEntropy,
   IndexerFetcher,
@@ -56,6 +57,7 @@ import {
   TransactionFetcher,
   TransactionStatus,
   TransactionType,
+  uint8ToBase64,
   WaitForTransactionConfirmationRequest,
   WaitForTransactionConfirmationResponse,
   wasmTxToTx,
@@ -180,11 +182,13 @@ export class IntMaxNodeClient implements INTMAXClient {
       message: data.message,
     });
 
-    const { hashedSignature } = await this.#vaultHttpClient.post<
+    const { hashedSignature, nonce, accessToken } = await this.#vaultHttpClient.post<
       {},
       {
         hashedSignature: string;
         encryptedEntropy: string;
+        nonce: number;
+        accessToken: string;
       }
     >('/wallet/login', {
       address,
@@ -194,11 +198,17 @@ export class IntMaxNodeClient implements INTMAXClient {
 
     await this.#entropy(signNetwork, hashedSignature);
 
+    const encryptionKeyBytes = await generateEncryptionKey(signNetwork, nonce);
+    const encryptionKey = uint8ToBase64(encryptionKeyBytes);
+
     this.isLoggedIn = true;
 
     return {
       address: this.address,
       isLoggedIn: this.isLoggedIn,
+      nonce,
+      encryptionKey,
+      accessToken,
     };
   }
 
@@ -337,12 +347,7 @@ export class IntMaxNodeClient implements INTMAXClient {
 
     let memo: JsTxRequestMemo;
     try {
-      const fee = await quote_transfer_fee(
-        this.#config,
-        await this.#indexerFetcher.getBlockBuilderUrl(),
-        pubKey,
-        0,
-      );
+      const fee = await quote_transfer_fee(this.#config, await this.#indexerFetcher.getBlockBuilderUrl(), pubKey, 0);
 
       if (!fee) {
         throw new Error('Failed to quote transfer fee');
@@ -776,10 +781,7 @@ export class IntMaxNodeClient implements INTMAXClient {
     }
   }
 
-  async #entropy(
-    networkSignedMessage: `0x${string}`,
-    hashedSignature: string,
-  ) {
+  async #entropy(networkSignedMessage: `0x${string}`, hashedSignature: string) {
     const entropy = generateEntropy(networkSignedMessage as `0x${string}`, hashedSignature);
     const hdKey = getPkFromEntropy(entropy);
     if (!hdKey) {

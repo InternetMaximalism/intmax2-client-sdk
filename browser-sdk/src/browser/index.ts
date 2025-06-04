@@ -357,12 +357,7 @@ export class IntMaxClient implements INTMAXClient {
 
     let memo: JsTxRequestMemo;
     try {
-      const fee = await quote_transfer_fee(
-        this.#config,
-        await this.#indexerFetcher.getBlockBuilderUrl(),
-        pubKey,
-        0,
-      );
+      const fee = await quote_transfer_fee(this.#config, await this.#indexerFetcher.getBlockBuilderUrl(), pubKey, 0);
 
       if (!fee) {
         throw new Error('Failed to quote transfer fee');
@@ -749,10 +744,7 @@ export class IntMaxClient implements INTMAXClient {
     }
   }
 
-  async #entropy(
-    networkSignedMessage: `0x${string}`,
-    hashedSignature: string,
-  ) {
+  async #entropy(networkSignedMessage: `0x${string}`, hashedSignature: string) {
     const entropy = generateEntropy(networkSignedMessage as `0x${string}`, hashedSignature);
     const hdKey = getPkFromEntropy(entropy);
     if (!hdKey) {
@@ -844,13 +836,13 @@ export class IntMaxClient implements INTMAXClient {
     const salt = isGasEstimation
       ? randomBytesHex(16)
       : await this.#depositToAccount({
-        amountInDecimals,
-        depositor: accounts[0],
-        pubkey: address,
-        tokenIndex: token.tokenIndex,
-        token_address: token.contractAddress as `0x${string}`,
-        token_type: token.tokenType,
-      });
+          amountInDecimals,
+          depositor: accounts[0],
+          pubkey: address,
+          tokenIndex: token.tokenIndex,
+          token_address: token.contractAddress as `0x${string}`,
+          token_type: token.tokenType,
+        });
 
     let amlPermission: `0x${string}` = '0x';
     if (!isGasEstimation) {

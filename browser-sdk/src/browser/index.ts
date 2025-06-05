@@ -547,7 +547,7 @@ export class IntMaxClient implements INTMAXClient {
 
     const gasPrice = await this.#publicClient.getGasPrice();
 
-    return parseEther((gasPrice ?? 0n * estimatedGas).toString());
+    return (gasPrice ?? 0n) * estimatedGas;
   }
 
   async deposit(params: PrepareDepositTransactionRequest): Promise<PrepareDepositTransactionResponse> {

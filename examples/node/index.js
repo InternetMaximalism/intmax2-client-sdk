@@ -7,7 +7,7 @@ const main = async () => {
     // Initialize client
     console.log('Initializing client...');
     const client = new IntMaxNodeClient({
-      environment: 'testnet',
+      environment: 'devnet',
       eth_private_key: process.env.ETH_PRIVATE_KEY,
       l1_rpc_url: process.env.L1_RPC_URL,
     });
@@ -36,21 +36,21 @@ const main = async () => {
 
     // Example deposit
     // console.log('\nPreparing deposit...');
-    // const tokens = await client.getTokensList();
+    const tokens = await client.getTokensList();
 
     //  Here you can update token address to find exist token in the list
-    // const nativeToken = tokens.find(
-    //   (t) => t.contractAddress.toLowerCase() === '0x0000000000000000000000000000000000000000',
-    // );
-    //
-    // let token;
-    //
-    // if (nativeToken) {
-    //   token = {
-    //     ...nativeToken,
-    //     tokenType: TokenType.NATIVE, // should be changed, if you are using not ETH, to  TokenType.ERC20
-    //   };
-    // }
+    const nativeToken = tokens.find(
+      (t) => t.contractAddress.toLowerCase() === '0x0000000000000000000000000000000000000000',
+    );
+
+    let token;
+
+    if (nativeToken) {
+      token = {
+        ...nativeToken,
+        tokenType: 0, // should be changed, if you are using not ETH, to  TokenType.ERC20
+      };
+    }
 
     // If you want to deposit a specific token, you can set it like this one
     // token = {
@@ -62,13 +62,13 @@ const main = async () => {
     // }
 
     // Estimate deposit gas
-    // const gas = await client.estimateDepositGas({
-    //   amount: 1,
-    //   token,
-    //   address: client.address,
-    //   isGasEstimation: true,
-    // });
-    // console.log('Estimated gas for deposit:', gas);
+    const gas = await client.estimateDepositGas({
+      amount: 1,
+      token,
+      address: client.address,
+      isGasEstimation: true,
+    });
+    console.log('Estimated gas for deposit:', gas);
 
     // Perform deposit
     // console.log('Performing deposit...');

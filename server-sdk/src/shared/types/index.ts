@@ -94,7 +94,7 @@ export type FetchTransactionsResponse = FetchItemsResponse<Transaction>;
 
 export interface BroadcastTransactionRequest {
   address: string;
-  amount: number;
+  amount: number | string;
   token: Token;
   claim_beneficiary?: `0x${string}`;
 }
@@ -178,7 +178,7 @@ export interface WithdrawalResponse extends TransactionResult {}
 export interface WithdrawRequest {
   address: `0x${string}`;
   token: Token;
-  amount: number;
+  amount: number | string;
   claim_beneficiary?: `0x${string}`;
 }
 

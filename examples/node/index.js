@@ -62,13 +62,13 @@ const main = async () => {
     // }
 
     // Estimate deposit gas
-    const gas = await client.estimateDepositGas({
-      amount: 1,
-      token,
-      address: client.address,
-      isGasEstimation: true,
-    });
-    console.log('Estimated gas for deposit:', gas);
+    // const gas = await client.estimateDepositGas({
+    //   amount: 1,
+    //   token,
+    //   address: client.address,
+    //   isGasEstimation: true,
+    // });
+    // console.log('Estimated gas for deposit:', gas);
 
     // Perform deposit
     // console.log('Performing deposit...');

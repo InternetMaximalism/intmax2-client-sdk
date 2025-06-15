@@ -366,21 +366,29 @@ const fetchHistoryButton = () => {
   button.onclick = async () => {
     button.innerHTML = 'Fetching...';
 
-    const promises = [client.fetchDeposits({}), client.fetchTransfers({}), client.fetchTransactions({})];
-    const [deposits, receiveTxs, send] = await Promise.all(promises);
+    try {
+      const promises = [client.fetchDeposits({}), client.fetchTransfers({}), client.fetchTransactions({})];
+      const [deposits, receiveTxs, send] = await Promise.all(promises);
 
-    const history = {
-      deposits,
-      receiveTxs,
-      send,
-    };
+      const history = {
+        deposits,
+        receiveTxs,
+        send,
+      };
 
-    const historyDiv = document.createElement('pre');
-    historyDiv.style.marginTop = '10px';
-    historyDiv.style.maxHeight = '500px';
-    historyDiv.style.overflowY = 'auto';
-    historyDiv.innerHTML = JSON.stringify(history, null, 2);
-    wrapper.appendChild(historyDiv);
+      const historyDiv = document.createElement('pre');
+      historyDiv.style.marginTop = '10px';
+      historyDiv.style.maxHeight = '500px';
+      historyDiv.style.overflowY = 'auto';
+      historyDiv.innerHTML = JSON.stringify(history, null, 2);
+      wrapper.appendChild(historyDiv);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      if (message === "User data not found") {
+        alert('User data not found. Please fetch token balances first.');
+      }
+    }
+
     button.innerHTML = 'Fetch History';
   };
   wrapper.appendChild(button);

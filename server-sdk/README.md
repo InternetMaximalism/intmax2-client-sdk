@@ -2,22 +2,26 @@
 
 This SDK is a client library for the INTMAX API. It is designed to help you integrate INTMAX services into your applications.
 
+For detailed interface specifications and usage instructions, please refer to the documentation.
+
+[INTMAX Client SDK Docs](https://aquatic-paperback-675.notion.site/INTMAX-Client-SDK-Docs-176d989987db8096a012d144ae0e0dba)
+
 ## Installation for Node.js
 
 ```bash
-  npm install intmax2-server-sdk
+npm install intmax2-server-sdk
 ```
 
 or
 
 ```bash
-  pnpm install intmax2-server-sdk
+pnpm install intmax2-server-sdk
 ```
 
 or
 
 ```bash
-  yarn add intmax2-server-sdk
+yarn add intmax2-server-sdk
 ```
 
 ## Interface
@@ -25,15 +29,20 @@ or
 ```ts
 export interface INTMAXClient {
   // properties
-  tokenBalances: TokenBalance[] | undefined;
-  address: string; // IntMax public_key
   isLoggedIn: boolean;
+  address: string; // IntMax public_key
+  tokenBalances: TokenBalance[] | undefined;
 
   // account
-  fetchTokenBalances: () => Promise<TokenBalancesResponse>;
+  login: () => Promise<LoginResponse>;
+  logout: () => Promise<void>;
   getPrivateKey: () => Promise<string | undefined>;
   signMessage: (message: string) => Promise<SignMessageResponse>;
   verifySignature: (signature: SignMessageResponse, message: string | Uint8Array) => Promise<boolean>;
+
+  // token
+  getTokensList: () => Promise<Token[]>;
+  fetchTokenBalances: () => Promise<TokenBalancesResponse>;
 
   // transaction
   fetchTransactions: (params: FetchTransactionsRequest) => Promise<Transaction[]>;
@@ -58,11 +67,6 @@ export interface INTMAXClient {
   getTransferFee: () => Promise<FeeResponse>;
   getWithdrawalFee: (token: Token) => Promise<FeeResponse>;
   getClaimFee: () => Promise<FeeResponse>;
-
-  // additional services
-  login: () => Promise<LoginResponse>;
-  logout: () => Promise<void>;
-  getTokensList: () => Promise<Token[]>;
 }
 ```
 
@@ -74,7 +78,7 @@ export interface INTMAXClient {
 const { IntmaxNodeClient } = require('intmax2-server-sdk');
 
 const intMaxClient = new IntMaxNodeClient({
-  environment: 'devnet', //  'mainnet' | 'devnet' | 'testnet'
+  environment: 'testnet', //  'mainnet' | 'testnet'
   eth_private_key: process.env.ETH_PRIVATE_KEY,
   l1_rpc_url: process.env.L1_RPC_URL, // better to paste your own rpc url, by default it will be use public RPC.
 });

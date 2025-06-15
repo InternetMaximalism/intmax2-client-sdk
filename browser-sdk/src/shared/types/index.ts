@@ -207,15 +207,20 @@ export interface ConstructorNodeParams extends ConstructorParams {
 
 export interface INTMAXClient {
   // properties
-  tokenBalances: TokenBalance[] | undefined;
-  address: string; // IntMax public_key
   isLoggedIn: boolean;
+  address: string; // IntMax public_key
+  tokenBalances: TokenBalance[] | undefined;
 
   // account
-  fetchTokenBalances: () => Promise<TokenBalancesResponse>;
+  login: () => Promise<LoginResponse>;
+  logout: () => Promise<void>;
   getPrivateKey: () => Promise<string | undefined>;
   signMessage: (data: string) => Promise<SignMessageResponse>;
   verifySignature: (signature: SignMessageResponse, message: string | Uint8Array) => Promise<boolean>;
+
+  // token
+  getTokensList: () => Promise<Token[]>;
+  fetchTokenBalances: () => Promise<TokenBalancesResponse>;
 
   // transaction
   fetchTransactions: (params: FetchTransactionsRequest) => Promise<Transaction[]>;
@@ -240,11 +245,6 @@ export interface INTMAXClient {
   getTransferFee: () => Promise<FeeResponse>;
   getWithdrawalFee: (token: Token) => Promise<FeeResponse>;
   getClaimFee: () => Promise<FeeResponse>;
-
-  // additional services
-  login: () => Promise<LoginResponse>;
-  logout: () => Promise<void>;
-  getTokensList: () => Promise<Token[]>;
 }
 
 export interface PaginatedResponse<T> {

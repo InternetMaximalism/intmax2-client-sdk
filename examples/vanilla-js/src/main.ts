@@ -93,7 +93,7 @@ const showInfo = (wrapper: HTMLDivElement) => {
   wrapper.appendChild(info);
 };
 
-const fetchPendingsWithdrawalsButton = () => {
+const fetchPendingWithdrawalsButton = () => {
   const wrapper = document.createElement('div');
   wrapper.style.marginTop = '10px';
   appDiv.appendChild(wrapper);
@@ -157,7 +157,7 @@ const createLoginButton = () => {
     fetchBalancesButton();
     createDepositForm();
     fetchHistoryButton();
-    fetchPendingsWithdrawalsButton();
+    fetchPendingWithdrawalsButton();
     await claimWithdrawalsButton();
     await createWithdrawForm();
   };

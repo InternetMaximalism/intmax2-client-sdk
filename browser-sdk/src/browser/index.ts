@@ -738,10 +738,6 @@ export class IntMaxClient implements INTMAXClient {
     if (!this.isLoggedIn && !this.address) {
       throw Error('Not logged in');
     }
-
-    if (!this.#userData) {
-      throw Error('User data not found');
-    }
   }
 
   async #entropy(networkSignedMessage: `0x${string}`, hashedSignature: string) {

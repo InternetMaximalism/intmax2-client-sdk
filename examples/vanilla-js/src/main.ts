@@ -93,16 +93,16 @@ const showInfo = (wrapper: HTMLDivElement) => {
   wrapper.appendChild(info);
 };
 
-const fetchPendingWithdrawalsButton = () => {
+const fetchWithdrawalsButton = () => {
   const wrapper = document.createElement('div');
   wrapper.style.marginTop = '10px';
   appDiv.appendChild(wrapper);
 
   const button = document.createElement('button');
-  button.innerHTML = 'Fetch Pending Withdrawals';
+  button.innerHTML = 'Fetch Withdrawals';
   button.onclick = async () => {
     button.innerHTML = 'Fetching...';
-    const withdrawals = await client.fetchPendingWithdrawals();
+    const withdrawals = await client.fetchWithdrawals();
     wrapper.innerHTML = '';
     wrapper.appendChild(button);
 
@@ -113,7 +113,7 @@ const fetchPendingWithdrawalsButton = () => {
     withdrawalsDiv.style.marginTop = '10px';
     withdrawalsDiv.innerHTML = JSON.stringify(withdrawals, null, 2);
     wrapper.appendChild(withdrawalsDiv);
-    button.innerHTML = 'Fetch Pending Withdrawals';
+    button.innerHTML = 'Fetch Withdrawals';
   };
   wrapper.appendChild(button);
 };
@@ -127,14 +127,14 @@ const claimWithdrawalsButton = async () => {
   button.innerHTML = 'Claim Withdrawals (Fetching...)';
   wrapper.appendChild(button);
 
-  const withdrawals = await client.fetchPendingWithdrawals();
+  const withdrawals = await client.fetchWithdrawals();
   const withdrawalsToClaim = withdrawals.need_claim;
   button.innerHTML = `Claim Withdrawals (${withdrawalsToClaim.length})`;
 
   button.onclick = async () => {
     button.innerHTML = 'Claiming...';
     try {
-      const withdrawals = await client.fetchPendingWithdrawals();
+      const withdrawals = await client.fetchWithdrawals();
       const result = await client.claimWithdrawal(withdrawals.need_claim);
       const resultDiv = document.createElement('pre');
       resultDiv.style.marginTop = '10px';
@@ -157,7 +157,7 @@ const createLoginButton = () => {
     fetchBalancesButton();
     createDepositForm();
     fetchHistoryButton();
-    fetchPendingWithdrawalsButton();
+    fetchWithdrawalsButton();
     await claimWithdrawalsButton();
     await createWithdrawForm();
   };

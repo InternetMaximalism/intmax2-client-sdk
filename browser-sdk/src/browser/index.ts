@@ -582,8 +582,8 @@ export class IntMaxClient implements INTMAXClient {
     };
   }
 
-  async fetchPendingWithdrawals(): Promise<FetchWithdrawalsResponse> {
-    return this.#txFetcher.fetchPendingWithdrawals(this.#config, this.#privateKey);
+  async fetchWithdrawals(): Promise<FetchWithdrawalsResponse> {
+    return this.#txFetcher.fetchWithdrawals(this.#config, this.#privateKey);
   }
 
   async claimWithdrawal(needClaimWithdrawals: ContractWithdrawal[]): Promise<ClaimWithdrawalTransactionResponse> {

@@ -24,11 +24,11 @@ export class TransactionFetcher {
     });
   }
 
-  async fetchPendingWithdrawals(
+  async fetchWithdrawals(
     config: Config,
     privateKey: string,
   ): Promise<Record<WithdrawalsStatus, ContractWithdrawal[]>> {
-    const pendingWithdrawals = {
+    const withdrawals = {
       [WithdrawalsStatus.Failed]: [] as ContractWithdrawal[],
       [WithdrawalsStatus.NeedClaim]: [] as ContractWithdrawal[],
       [WithdrawalsStatus.Relayed]: [] as ContractWithdrawal[],
@@ -44,7 +44,7 @@ export class TransactionFetcher {
     }
 
     withdrawalInfo.forEach(({ contract_withdrawal, status }) => {
-      pendingWithdrawals[status as WithdrawalsStatus].push({
+      withdrawals[status as WithdrawalsStatus].push({
         recipient: contract_withdrawal.recipient as `0x${string}`,
         nullifier: contract_withdrawal.nullifier as `0x${string}`,
         amount: contract_withdrawal.amount,
@@ -52,12 +52,12 @@ export class TransactionFetcher {
       });
     });
 
-    pendingWithdrawals[WithdrawalsStatus.NeedClaim] = Array.from(
-      new Map(pendingWithdrawals[WithdrawalsStatus.NeedClaim].map((w) => [w.nullifier, w])).values(),
+    withdrawals[WithdrawalsStatus.NeedClaim] = Array.from(
+      new Map(withdrawals[WithdrawalsStatus.NeedClaim].map((w) => [w.nullifier, w])).values(),
     );
 
-    if (pendingWithdrawals[WithdrawalsStatus.NeedClaim].length > 0) {
-      const withdrawalHashes = new Set(pendingWithdrawals[WithdrawalsStatus.NeedClaim].map(getWithdrawHash));
+    if (withdrawals[WithdrawalsStatus.NeedClaim].length > 0) {
+      const withdrawalHashes = new Set(withdrawals[WithdrawalsStatus.NeedClaim].map(getWithdrawHash));
       const results = await this.#publicClient.multicall({
         contracts: [...withdrawalHashes].map((hash) => ({
           abi: LiquidityAbi as Abi,
@@ -70,13 +70,13 @@ export class TransactionFetcher {
       results.forEach((result, i: number) => {
         if (result.status === 'success' && result.result) {
           updatedWithdrawalsToClaim.push({
-            ...pendingWithdrawals[WithdrawalsStatus.NeedClaim][i],
+            ...withdrawals[WithdrawalsStatus.NeedClaim][i],
           });
         }
       });
-      pendingWithdrawals[WithdrawalsStatus.NeedClaim] = updatedWithdrawalsToClaim;
+      withdrawals[WithdrawalsStatus.NeedClaim] = updatedWithdrawalsToClaim;
     }
 
-    return pendingWithdrawals;
+    return withdrawals;
   }
 }

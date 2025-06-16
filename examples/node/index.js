@@ -115,11 +115,11 @@ const main = async () => {
     console.log('Received Transfers:', JSON.stringify(receiveTxs, null, 2));
     console.log('Sent Transfers:', JSON.stringify(sendTxs, null, 2));
 
-    console.log('\nFetching pending withdrawals...');
-    const pendingWithdrawals = await client.fetchPendingWithdrawals();
-    console.log('Pending withdrawals:', JSON.stringify(pendingWithdrawals, null, 2));
+    console.log('\nFetching withdrawals...');
+    const withdrawals = await client.fetchWithdrawals();
+    console.log('withdrawals:', JSON.stringify(withdrawals, null, 2));
 
-    // const claimWithdraw = await client.claimWithdrawal(pendingWithdrawals.need_claim);
+    // const claimWithdraw = await client.claimWithdrawal(withdrawals.need_claim);
     // console.log('Claim Withdrawal:', JSON.stringify(claimWithdraw, null, 2));
 
     // Logout

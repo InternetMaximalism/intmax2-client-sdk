@@ -234,7 +234,7 @@ export interface INTMAXClient {
   fetchDeposits: (params: FetchTransactionsRequest) => Promise<(Transaction | null)[]>;
 
   // withdrawal
-  fetchPendingWithdrawals: (params: FetchWithdrawalsRequest) => Promise<FetchWithdrawalsResponse>;
+  fetchWithdrawals: (params: FetchWithdrawalsRequest) => Promise<FetchWithdrawalsResponse>;
   withdraw: (params: WithdrawRequest) => Promise<WithdrawalResponse>;
   claimWithdrawal: (params: ContractWithdrawal[]) => Promise<ClaimWithdrawalTransactionResponse>;
 

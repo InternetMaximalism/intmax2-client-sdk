@@ -1,12 +1,13 @@
 import { SDKUrls } from '../types';
+import { getAddress } from 'viem';
 
 export * from './abis';
 
 export const networkMessage = (address: string) =>
-  `\nThis signature on this message will be used to access the INTMAX network. \nYour address: ${address}\nCaution: Please make sure that the domain you are connected to is correct.`;
+  `\nThis signature on this message will be used to access the INTMAX network. \nYour address: ${getAddress(address)}\nCaution: Please make sure that the domain you are connected to is correct.`;
 
 export const spendFundsMessage = (amount: string, address: string) =>
-  `\nThis signature on this message will be used to send ETH to your mining address via INTMAX network.\n Amount: ${amount} ETH\nYour mining address: ${address}\nCaution: Please make sure that the domain you are connected to is correct.`;
+  `\nThis signature on this message will be used to send ETH to your mining address via INTMAX network.\n Amount: ${amount} ETH\nYour mining address: ${getAddress(address)}\nCaution: Please make sure that the domain you are connected to is correct.`;
 
 export const MAINNET_ENV: SDKUrls = {
   balance_prover_url: 'https://stage.api.private.zkp.intmax.io',

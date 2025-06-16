@@ -1,10 +1,9 @@
 import { AxiosInstance } from 'axios';
-import { signaturesToBytes } from 'predicate-sdk';
 import { encodeAbiParameters, encodeFunctionData } from 'viem';
 
 import { DEVNET_ENV, MAINNET_ENV, TESTNET_ENV } from '../constants';
 import { IntMaxEnvironment, PredicateSignatureRequest, PredicateSignatureResponse, TokenType } from '../types';
-import { axiosClientInit } from '../utils';
+import { axiosClientInit, signaturesToBytes } from '../utils';
 
 const depositNativeTokenAbi = {
   name: 'depositNativeToken',

@@ -1,0 +1,114 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18, 20]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies (browser-sdk)
+        run: cd browser-sdk && pnpm install
+
+      - name: Lint (browser-sdk)
+        run: cd browser-sdk && pnpm run lint
+
+      - name: Format check (browser-sdk)
+        run: cd browser-sdk && pnpm run format --check
+
+      - name: Build (browser-sdk)
+        run: cd browser-sdk && pnpm run build
+
+      - name: Install dependencies (server-sdk)
+        run: cd server-sdk && pnpm install
+
+      - name: Lint (server-sdk)
+        run: cd server-sdk && pnpm run lint
+
+      - name: Format check (server-sdk)
+        run: cd server-sdk && pnpm run format --check
+
+      - name: Build (server-sdk)
+        run: cd server-sdk && pnpm run build
+
+  type-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: Install dependencies (browser-sdk)
+        run: cd browser-sdk && pnpm install
+
+      - name: Type check (browser-k)
+        run: cd browser-sdk && npx tsc --noEmit
+
+      - name: Install dependencies (server-sdk)
+        run: cd server-sdk && pnpm install
+
+      - name: Type check (server-sdk)
+        run: cd server-sdk && npx tsc --noEmit
+
+  security-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: Audit dependencies (browser-sdk)
+        run: cd browser-sdk && pnpm audit --audit-level moderate
+
+      - name: Audit dependencies (server-sdk)
+        run: cd server-sdk && pnpm audit --audit-level moderate

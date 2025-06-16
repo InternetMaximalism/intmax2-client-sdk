@@ -97,7 +97,15 @@ export const __wbg_jstx_free: (a: number, b: number) => void;
 export const __wbg_jscontractwithdrawal_free: (a: number, b: number) => void;
 export const __wbg_get_jscontractwithdrawal_token_index: (a: number) => number;
 export const __wbg_set_jscontractwithdrawal_token_index: (a: number, b: number) => void;
-export const jscontractwithdrawal_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => number;
+export const jscontractwithdrawal_new: (
+  a: number,
+  b: number,
+  c: number,
+  d: number,
+  e: number,
+  f: number,
+  g: number,
+) => number;
 export const jscontractwithdrawal_hash: (a: number) => [number, number, number, number];
 export const __wbg_jsclaim_free: (a: number, b: number) => void;
 export const __wbg_get_jsclaim_recipient: (a: number) => [number, number];
@@ -327,15 +335,68 @@ export const __wbg_get_config_private_zkp_server_max_retires: (a: number) => num
 export const __wbg_set_config_private_zkp_server_max_retires: (a: number, b: number) => void;
 export const __wbg_get_config_private_zkp_server_retry_interval: (a: number) => [number, bigint];
 export const __wbg_set_config_private_zkp_server_retry_interval: (a: number, b: number, c: bigint) => void;
-export const config_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: bigint, j: bigint, k: number, l: bigint, m: bigint, n: bigint, o: number, p: number, q: number, r: number, s: number, t: number, u: number, v: number, w: number, x: number, y: number, z: number, a1: number, b1: number, c1: bigint) => number;
+export const config_new: (
+  a: number,
+  b: number,
+  c: number,
+  d: number,
+  e: number,
+  f: number,
+  g: number,
+  h: number,
+  i: bigint,
+  j: bigint,
+  k: number,
+  l: bigint,
+  m: bigint,
+  n: bigint,
+  o: number,
+  p: number,
+  q: number,
+  r: number,
+  s: number,
+  t: number,
+  u: number,
+  v: number,
+  w: number,
+  x: number,
+  y: number,
+  z: number,
+  a1: number,
+  b1: number,
+  c1: bigint,
+) => number;
 export const __wbg_intmaxaccount_free: (a: number, b: number) => void;
 export const __wbg_get_intmaxaccount_privkey: (a: number) => [number, number];
 export const __wbg_set_intmaxaccount_privkey: (a: number, b: number, c: number) => void;
 export const __wbg_get_intmaxaccount_pubkey: (a: number) => [number, number];
 export const __wbg_set_intmaxaccount_pubkey: (a: number, b: number, c: number) => void;
 export const generate_intmax_account_from_eth_key: (a: number, b: number) => any;
-export const get_deposit_hash: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number, number, number];
-export const prepare_deposit: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number, m: number) => any;
+export const get_deposit_hash: (
+  a: number,
+  b: number,
+  c: number,
+  d: number,
+  e: number,
+  f: number,
+  g: number,
+  h: number,
+) => [number, number, number, number];
+export const prepare_deposit: (
+  a: number,
+  b: number,
+  c: number,
+  d: number,
+  e: number,
+  f: number,
+  g: number,
+  h: number,
+  i: number,
+  j: number,
+  k: number,
+  l: number,
+  m: number,
+) => any;
 export const await_tx_sendable: (a: number, b: number, c: number, d: any, e: number) => any;
 export const send_tx_request: (a: number, b: number, c: number, d: number, e: number, f: any, g: any, h: number) => any;
 export const query_and_finalize: (a: number, b: number, c: number, d: number, e: number, f: number) => any;
@@ -358,7 +419,12 @@ export const validate_transfer_receipt: (a: number, b: number, c: number, d: num
 export const get_balances_without_sync: (a: number, b: number, c: number) => any;
 export const check_validity_prover: (a: number) => any;
 export const generate_withdrawal_transfers: (a: number, b: number, c: number, d: number) => any;
-export const generate_fee_payment_memo: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+export const generate_fee_payment_memo: (
+  a: number,
+  b: number,
+  c: number,
+  d: number,
+) => [number, number, number, number];
 export const decrypt_deposit_data: (a: number, b: number, c: number, d: number) => any;
 export const decrypt_transfer_data: (a: number, b: number, c: number, d: number) => any;
 export const decrypt_tx_data: (a: number, b: number, c: number, d: number) => any;
@@ -373,9 +439,19 @@ export const encrypt_message: (a: number, b: number, c: number, d: number) => [n
 export const decrypt_bls_interaction_step1: (a: number, b: number, c: number, d: number) => [number, number, number];
 export const decrypt_bls_interaction_step2: (a: number, b: number, c: number) => [number, number, number];
 export const decrypt_bls_interaction_step3: (a: number, b: number, c: number, d: number) => [number, number, number];
-export const multi_signature_interaction_step1: (a: number, b: number, c: number, d: number) => [number, number, number];
+export const multi_signature_interaction_step1: (
+  a: number,
+  b: number,
+  c: number,
+  d: number,
+) => [number, number, number];
 export const multi_signature_interaction_step2: (a: number, b: number, c: number) => [number, number, number];
-export const multi_signature_interaction_step3: (a: number, b: number, c: number, d: number) => [number, number, number];
+export const multi_signature_interaction_step3: (
+  a: number,
+  b: number,
+  c: number,
+  d: number,
+) => [number, number, number];
 export const __wbg_jsdeposithistory_free: (a: number, b: number) => void;
 export const __wbg_get_jsdeposithistory_history: (a: number) => [number, number];
 export const __wbg_set_jsdeposithistory_history: (a: number, b: number, c: number) => void;
@@ -470,9 +546,18 @@ export const __wbindgen_free: (a: number, b: number, c: number) => void;
 export const __wbindgen_export_6: WebAssembly.Table;
 export const __externref_table_dealloc: (a: number) => void;
 export const __externref_drop_slice: (a: number, b: number) => void;
-export const _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h7b1ee111f31eaefa: (a: number, b: number) => void;
-export const _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hd85ae587763e801d: (a: number, b: number) => void;
-export const _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__haf279ec2a748ebef: (a: number, b: number) => void;
+export const _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h7b1ee111f31eaefa: (
+  a: number,
+  b: number,
+) => void;
+export const _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hd85ae587763e801d: (
+  a: number,
+  b: number,
+) => void;
+export const _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__haf279ec2a748ebef: (
+  a: number,
+  b: number,
+) => void;
 export const closure1793_externref_shim: (a: number, b: number, c: any) => void;
 export const closure2113_externref_shim: (a: number, b: number, c: any, d: any) => void;
 export const __wbindgen_start: () => void;

@@ -1,34 +1,24 @@
-import { sha256 } from "viem";
+import { sha256 } from 'viem';
 
-import { hexToUint8Array } from "../utils";
+import { hexToUint8Array } from '../utils';
 
 const TIME_COST = 100000;
 const DERIVED_KEY_LENGTH_BITS = 256; // 32 bytes (256 bits) for AES-256
 
-const deriveKey = async (
-  password: Uint8Array<ArrayBuffer>,
-  salt: Uint8Array<ArrayBuffer>,
-  iterations: number
-) => {
+const deriveKey = async (password: Uint8Array<ArrayBuffer>, salt: Uint8Array<ArrayBuffer>, iterations: number) => {
   // Import the hashed password as a key
-  const baseKey = await crypto.subtle.importKey(
-    "raw",
-    password,
-    { name: "PBKDF2" },
-    false,
-    ["deriveBits"]
-  );
+  const baseKey = await crypto.subtle.importKey('raw', password, { name: 'PBKDF2' }, false, ['deriveBits']);
 
   // Derive the final key using PBKDF2
   const derivedBits = await crypto.subtle.deriveBits(
     {
-      name: "PBKDF2",
+      name: 'PBKDF2',
       salt: salt,
       iterations: iterations,
-      hash: "SHA-256"
+      hash: 'SHA-256',
     },
     baseKey,
-    DERIVED_KEY_LENGTH_BITS
+    DERIVED_KEY_LENGTH_BITS,
   );
 
   return new Uint8Array(derivedBits);
@@ -52,16 +42,14 @@ export const generateEncryptionKey = async (messageHex: `0x${string}`, nonce: nu
     const nonceBuf = new Uint8Array(new Uint32Array([nonce]).buffer);
 
     // Combine the salt with a fixed string to make it longer
-    const FIXED_SALT = ":PBKDF2-salt";
+    const FIXED_SALT = ':PBKDF2-salt';
     const combinedSalt = new Uint8Array(16);
     combinedSalt.set(nonceBuf);
     combinedSalt.set(new TextEncoder().encode(FIXED_SALT), nonceBuf.byteLength);
 
-    return await deriveKey(
-      passwordHashBytes, combinedSalt, TIME_COST
-    );
+    return await deriveKey(passwordHashBytes, combinedSalt, TIME_COST);
   } catch (error) {
-    console.error("Error deriving key:", error);
+    console.error('Error deriving key:', error);
     throw error;
   }
 };

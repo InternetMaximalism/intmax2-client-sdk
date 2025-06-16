@@ -5,7 +5,8 @@ declare module '*.wasm?url' {
 
 declare module '*.wasm' {
   const wasm: ArrayBuffer;
-  const content: string;
+    // eslint-disable-next-line unused-imports/no-unused-vars, @typescript-eslint/no-unused-vars
+  const content: stringこ
   export default wasm;
 }
 

@@ -9,25 +9,57 @@ export function generate_intmax_account_from_eth_key(eth_private_key: string): P
 /**
  * Get the hash of the deposit.
  */
-export function get_deposit_hash(depositor: string, recipient_salt_hash: string, token_index: number, amount: string, is_eligible: boolean): string;
+export function get_deposit_hash(
+  depositor: string,
+  recipient_salt_hash: string,
+  token_index: number,
+  amount: string,
+  is_eligible: boolean,
+): string;
 /**
  * Function to take a backup before calling the deposit function of the liquidity contract.
  * You can also get the pubkey_salt_hash from the return value.
  */
-export function prepare_deposit(config: Config, depositor: string, recipient: string, amount: string, token_type: number, token_address: string, token_id: string, is_mining: boolean): Promise<JsDepositResult>;
+export function prepare_deposit(
+  config: Config,
+  depositor: string,
+  recipient: string,
+  amount: string,
+  token_type: number,
+  token_address: string,
+  token_id: string,
+  is_mining: boolean,
+): Promise<JsDepositResult>;
 /**
  * Wait for the tx to be sendable. Wait for the sync of validity prover and balance proof.
  */
-export function await_tx_sendable(config: Config, private_key: string, transfers: any, fee_quote: JsTransferFeeQuote): Promise<void>;
+export function await_tx_sendable(
+  config: Config,
+  private_key: string,
+  transfers: any,
+  fee_quote: JsTransferFeeQuote,
+): Promise<void>;
 /**
  * Function to send a tx request to the block builder. The return value contains information to take a backup.
  */
-export function send_tx_request(config: Config, block_builder_url: string, private_key: string, transfers: any, payment_memos: any, fee_quote: JsTransferFeeQuote): Promise<JsTxRequestMemo>;
+export function send_tx_request(
+  config: Config,
+  block_builder_url: string,
+  private_key: string,
+  transfers: any,
+  payment_memos: any,
+  fee_quote: JsTransferFeeQuote,
+): Promise<JsTxRequestMemo>;
 /**
  * Function to query the block proposal from the block builder, and
  * send the signed tx tree root to the block builder during taking a backup of the tx.
  */
-export function query_and_finalize(config: Config, block_builder_url: string, private_key: string, tx_request_memo: JsTxRequestMemo): Promise<JsTxResult>;
+export function query_and_finalize(
+  config: Config,
+  block_builder_url: string,
+  private_key: string,
+  tx_request_memo: JsTxRequestMemo,
+): Promise<JsTxResult>;
 export function get_tx_status(config: Config, pubkey: string, tx_tree_root: string): Promise<string>;
 /**
  * Synchronize the user's balance proof. It may take a long time to generate ZKP.
@@ -46,7 +78,12 @@ export function sync_withdrawals(config: Config, private_key: string, fee_token_
  * Synchronize the user's claim of staking mining, and send request to the withdrawal aggregator.
  * It may take a long time to generate ZKP.
  */
-export function sync_claims(config: Config, private_key: string, recipient: string, fee_token_index: number): Promise<void>;
+export function sync_claims(
+  config: Config,
+  private_key: string,
+  recipient: string,
+  fee_token_index: number,
+): Promise<void>;
 /**
  * Get the user's data. It is recommended to sync before calling this function.
  */
@@ -55,19 +92,51 @@ export function get_withdrawal_info(config: Config, private_key: string): Promis
 export function get_withdrawal_info_by_recipient(config: Config, recipient: string): Promise<JsWithdrawalInfo[]>;
 export function get_mining_list(config: Config, private_key: string): Promise<JsMining[]>;
 export function get_claim_info(config: Config, private_key: string): Promise<JsClaimInfo[]>;
-export function quote_transfer_fee(config: Config, block_builder_url: string, pubkey: string, fee_token_index: number): Promise<JsTransferFeeQuote>;
-export function quote_withdrawal_fee(config: Config, withdrawal_token_index: number, fee_token_index: number): Promise<JsFeeQuote>;
+export function quote_transfer_fee(
+  config: Config,
+  block_builder_url: string,
+  pubkey: string,
+  fee_token_index: number,
+): Promise<JsTransferFeeQuote>;
+export function quote_withdrawal_fee(
+  config: Config,
+  withdrawal_token_index: number,
+  fee_token_index: number,
+): Promise<JsFeeQuote>;
 export function quote_claim_fee(config: Config, fee_token_index: number): Promise<JsFeeQuote>;
-export function make_history_backup(config: Config, private_key: string, from: bigint, chunk_size: number): Promise<string[]>;
-export function generate_transfer_receipt(config: Config, private_key: string, tx_digest: string, transfer_index: number): Promise<string>;
-export function validate_transfer_receipt(config: Config, private_key: string, transfer_receipt: string): Promise<JsTransferData>;
+export function make_history_backup(
+  config: Config,
+  private_key: string,
+  from: bigint,
+  chunk_size: number,
+): Promise<string[]>;
+export function generate_transfer_receipt(
+  config: Config,
+  private_key: string,
+  tx_digest: string,
+  transfer_index: number,
+): Promise<string>;
+export function validate_transfer_receipt(
+  config: Config,
+  private_key: string,
+  transfer_receipt: string,
+): Promise<JsTransferData>;
 export function get_balances_without_sync(config: Config, private_key: string): Promise<TokenBalance[]>;
 export function check_validity_prover(config: Config): Promise<void>;
-export function generate_withdrawal_transfers(config: Config, withdrawal_transfer: JsTransfer, fee_token_index: number, with_claim_fee: boolean): Promise<JsWithdrawalTransfers>;
+export function generate_withdrawal_transfers(
+  config: Config,
+  withdrawal_transfer: JsTransfer,
+  fee_token_index: number,
+  with_claim_fee: boolean,
+): Promise<JsWithdrawalTransfers>;
 /**
  * Generate fee payment memo from given transfers and fee transfer indices
  */
-export function generate_fee_payment_memo(transfers: JsTransfer[], withdrawal_fee_transfer_index?: number | null, claim_fee_transfer_index?: number | null): JsPaymentMemoEntry[];
+export function generate_fee_payment_memo(
+  transfers: JsTransfer[],
+  withdrawal_fee_transfer_index?: number | null,
+  claim_fee_transfer_index?: number | null,
+): JsPaymentMemoEntry[];
 /**
  * Decrypt the deposit data.
  */
@@ -81,25 +150,77 @@ export function decrypt_transfer_data(private_key: string, data: Uint8Array): Pr
  */
 export function decrypt_tx_data(private_key: string, data: Uint8Array): Promise<JsTxData>;
 export function generate_auth_for_store_vault(private_key: string, use_s3: boolean): Promise<JsAuth>;
-export function fetch_encrypted_data(config: Config, auth: JsAuth, cursor: JsMetaDataCursor): Promise<JsEncryptedData[]>;
+export function fetch_encrypted_data(
+  config: Config,
+  auth: JsAuth,
+  cursor: JsMetaDataCursor,
+): Promise<JsEncryptedData[]>;
 export function get_account_info(config: Config, public_key: string): Promise<JsAccountInfo>;
 export function get_deposit_info(config: Config, pubkey_salt_hash: string): Promise<JsDepositInfo | undefined>;
 export function sign_message(private_key: string, message: Uint8Array): Promise<JsFlatG2>;
 export function verify_signature(signature: JsFlatG2, public_key: string, message: Uint8Array): Promise<boolean>;
 export function calc_simple_aggregated_pubkey(signers: string[]): string;
 export function encrypt_message(pubkey: string, data: Uint8Array): Uint8Array;
-export function decrypt_bls_interaction_step1(client_key: string, encrypted_data: Uint8Array): JsMultiEciesStep1Response;
-export function decrypt_bls_interaction_step2(server_key: string, step1_response: JsMultiEciesStep1Response): JsMultiEciesStep2Response;
-export function decrypt_bls_interaction_step3(client_key: string, step1_response: JsMultiEciesStep1Response, step2_response: JsMultiEciesStep2Response): JsMultiEciesStep3Response;
-export function multi_signature_interaction_step1(client_private_key: string, message: Uint8Array): JsMultisigStep1Response;
-export function multi_signature_interaction_step2(server_private_key: string, step1_response: JsMultisigStep1Response): JsMultisigStep2Response;
-export function multi_signature_interaction_step3(client_private_key: string, step1_response: JsMultisigStep1Response, step2_response: JsMultisigStep2Response): JsMultisigStep3Response;
-export function fetch_deposit_history(config: Config, private_key: string, cursor: JsMetaDataCursor): Promise<JsDepositHistory>;
-export function fetch_transfer_history(config: Config, private_key: string, cursor: JsMetaDataCursor): Promise<JsTransferHistory>;
+export function decrypt_bls_interaction_step1(
+  client_key: string,
+  encrypted_data: Uint8Array,
+): JsMultiEciesStep1Response;
+export function decrypt_bls_interaction_step2(
+  server_key: string,
+  step1_response: JsMultiEciesStep1Response,
+): JsMultiEciesStep2Response;
+export function decrypt_bls_interaction_step3(
+  client_key: string,
+  step1_response: JsMultiEciesStep1Response,
+  step2_response: JsMultiEciesStep2Response,
+): JsMultiEciesStep3Response;
+export function multi_signature_interaction_step1(
+  client_private_key: string,
+  message: Uint8Array,
+): JsMultisigStep1Response;
+export function multi_signature_interaction_step2(
+  server_private_key: string,
+  step1_response: JsMultisigStep1Response,
+): JsMultisigStep2Response;
+export function multi_signature_interaction_step3(
+  client_private_key: string,
+  step1_response: JsMultisigStep1Response,
+  step2_response: JsMultisigStep2Response,
+): JsMultisigStep3Response;
+export function fetch_deposit_history(
+  config: Config,
+  private_key: string,
+  cursor: JsMetaDataCursor,
+): Promise<JsDepositHistory>;
+export function fetch_transfer_history(
+  config: Config,
+  private_key: string,
+  cursor: JsMetaDataCursor,
+): Promise<JsTransferHistory>;
 export function fetch_tx_history(config: Config, private_key: string, cursor: JsMetaDataCursor): Promise<JsTxHistory>;
 export class Config {
   free(): void;
-  constructor(store_vault_server_url: string, balance_prover_url: string, validity_prover_url: string, withdrawal_server_url: string, deposit_timeout: bigint, tx_timeout: bigint, is_faster_mining: boolean, block_builder_query_wait_time: bigint, block_builder_query_interval: bigint, block_builder_query_limit: bigint, l1_rpc_url: string, liquidity_contract_address: string, l2_rpc_url: string, rollup_contract_address: string, withdrawal_contract_address: string, use_private_zkp_server: boolean, use_s3: boolean, private_zkp_server_max_retires?: number | null, private_zkp_server_retry_interval?: bigint | null);
+  constructor(
+    store_vault_server_url: string,
+    balance_prover_url: string,
+    validity_prover_url: string,
+    withdrawal_server_url: string,
+    deposit_timeout: bigint,
+    tx_timeout: bigint,
+    is_faster_mining: boolean,
+    block_builder_query_wait_time: bigint,
+    block_builder_query_interval: bigint,
+    block_builder_query_limit: bigint,
+    l1_rpc_url: string,
+    liquidity_contract_address: string,
+    l2_rpc_url: string,
+    rollup_contract_address: string,
+    withdrawal_contract_address: string,
+    use_private_zkp_server: boolean,
+    use_s3: boolean,
+    private_zkp_server_max_retires?: number | null,
+    private_zkp_server_retry_interval?: bigint | null,
+  );
   /**
    * URL of the store vault server
    */
@@ -708,7 +829,15 @@ export interface InitOutput {
   readonly __wbg_jscontractwithdrawal_free: (a: number, b: number) => void;
   readonly __wbg_get_jscontractwithdrawal_token_index: (a: number) => number;
   readonly __wbg_set_jscontractwithdrawal_token_index: (a: number, b: number) => void;
-  readonly jscontractwithdrawal_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => number;
+  readonly jscontractwithdrawal_new: (
+    a: number,
+    b: number,
+    c: number,
+    d: number,
+    e: number,
+    f: number,
+    g: number,
+  ) => number;
   readonly jscontractwithdrawal_hash: (a: number) => [number, number, number, number];
   readonly __wbg_jsclaim_free: (a: number, b: number) => void;
   readonly __wbg_get_jsclaim_recipient: (a: number) => [number, number];
@@ -938,15 +1067,68 @@ export interface InitOutput {
   readonly __wbg_set_config_private_zkp_server_max_retires: (a: number, b: number) => void;
   readonly __wbg_get_config_private_zkp_server_retry_interval: (a: number) => [number, bigint];
   readonly __wbg_set_config_private_zkp_server_retry_interval: (a: number, b: number, c: bigint) => void;
-  readonly config_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: bigint, j: bigint, k: number, l: bigint, m: bigint, n: bigint, o: number, p: number, q: number, r: number, s: number, t: number, u: number, v: number, w: number, x: number, y: number, z: number, a1: number, b1: number, c1: bigint) => number;
+  readonly config_new: (
+    a: number,
+    b: number,
+    c: number,
+    d: number,
+    e: number,
+    f: number,
+    g: number,
+    h: number,
+    i: bigint,
+    j: bigint,
+    k: number,
+    l: bigint,
+    m: bigint,
+    n: bigint,
+    o: number,
+    p: number,
+    q: number,
+    r: number,
+    s: number,
+    t: number,
+    u: number,
+    v: number,
+    w: number,
+    x: number,
+    y: number,
+    z: number,
+    a1: number,
+    b1: number,
+    c1: bigint,
+  ) => number;
   readonly __wbg_intmaxaccount_free: (a: number, b: number) => void;
   readonly __wbg_get_intmaxaccount_privkey: (a: number) => [number, number];
   readonly __wbg_set_intmaxaccount_privkey: (a: number, b: number, c: number) => void;
   readonly __wbg_get_intmaxaccount_pubkey: (a: number) => [number, number];
   readonly __wbg_set_intmaxaccount_pubkey: (a: number, b: number, c: number) => void;
   readonly generate_intmax_account_from_eth_key: (a: number, b: number) => any;
-  readonly get_deposit_hash: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number, number, number];
-  readonly prepare_deposit: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number, m: number) => any;
+  readonly get_deposit_hash: (
+    a: number,
+    b: number,
+    c: number,
+    d: number,
+    e: number,
+    f: number,
+    g: number,
+    h: number,
+  ) => [number, number, number, number];
+  readonly prepare_deposit: (
+    a: number,
+    b: number,
+    c: number,
+    d: number,
+    e: number,
+    f: number,
+    g: number,
+    h: number,
+    i: number,
+    j: number,
+    k: number,
+    l: number,
+    m: number,
+  ) => any;
   readonly await_tx_sendable: (a: number, b: number, c: number, d: any, e: number) => any;
   readonly send_tx_request: (a: number, b: number, c: number, d: number, e: number, f: any, g: any, h: number) => any;
   readonly query_and_finalize: (a: number, b: number, c: number, d: number, e: number, f: number) => any;
@@ -1081,9 +1263,18 @@ export interface InitOutput {
   readonly __wbindgen_export_6: WebAssembly.Table;
   readonly __externref_table_dealloc: (a: number) => void;
   readonly __externref_drop_slice: (a: number, b: number) => void;
-  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h7b1ee111f31eaefa: (a: number, b: number) => void;
-  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hd85ae587763e801d: (a: number, b: number) => void;
-  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__haf279ec2a748ebef: (a: number, b: number) => void;
+  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h7b1ee111f31eaefa: (
+    a: number,
+    b: number,
+  ) => void;
+  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hd85ae587763e801d: (
+    a: number,
+    b: number,
+  ) => void;
+  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__haf279ec2a748ebef: (
+    a: number,
+    b: number,
+  ) => void;
   readonly closure1793_externref_shim: (a: number, b: number, c: any) => void;
   readonly closure2113_externref_shim: (a: number, b: number, c: any, d: any) => void;
   readonly __wbindgen_start: () => void;
@@ -1091,21 +1282,23 @@ export interface InitOutput {
 
 export type SyncInitInput = BufferSource | WebAssembly.Module;
 /**
-* Instantiates the given `module`, which can either be bytes or
-* a precompiled `WebAssembly.Module`.
-*
-* @param {{ module: SyncInitInput }} module - Passing `SyncInitInput` directly is deprecated.
-*
-* @returns {InitOutput}
-*/
+ * Instantiates the given `module`, which can either be bytes or
+ * a precompiled `WebAssembly.Module`.
+ *
+ * @param {{ module: SyncInitInput }} module - Passing `SyncInitInput` directly is deprecated.
+ *
+ * @returns {InitOutput}
+ */
 export function initSync(module: { module: SyncInitInput } | SyncInitInput): InitOutput;
 
 /**
-* If `module_or_path` is {RequestInfo} or {URL}, makes a request and
-* for everything else, calls `WebAssembly.instantiate` directly.
-*
-* @param {{ module_or_path: InitInput | Promise<InitInput> }} module_or_path - Passing `InitInput` directly is deprecated.
-*
-* @returns {Promise<InitOutput>}
-*/
-export default function __wbg_init (module_or_path?: { module_or_path: InitInput | Promise<InitInput> } | InitInput | Promise<InitInput>): Promise<InitOutput>;
+ * If `module_or_path` is {RequestInfo} or {URL}, makes a request and
+ * for everything else, calls `WebAssembly.instantiate` directly.
+ *
+ * @param {{ module_or_path: InitInput | Promise<InitInput> }} module_or_path - Passing `InitInput` directly is deprecated.
+ *
+ * @returns {Promise<InitOutput>}
+ */
+export default function __wbg_init(
+  module_or_path?: { module_or_path: InitInput | Promise<InitInput> } | InitInput | Promise<InitInput>,
+): Promise<InitOutput>;

@@ -57,7 +57,7 @@ export const getHdPrivateKeyFromMnemonic = (mnemonic: string, derivePath: string
   const seed = mnemonicToSeedSync(mnemonic);
   const hdKey = HDKey.fromMasterSeed(seed).derive(derivePath);
   return toHex(hdKey.privateKey!);
-}
+};
 
 export function getPkFromEntropy(
   entropy: string,
@@ -71,10 +71,7 @@ export function getPkFromEntropy(
   const derive_path = derivativePath?.derive_path ?? 0;
   const redeposit_derive_path = derivativePath?.redeposit_derive_path ?? 0;
 
-  return getHdPrivateKeyFromMnemonic(
-    mnemonic,
-    `m/44'/60'/${redeposit_derive_path}'/0/${derive_path}`,
-  );
+  return getHdPrivateKeyFromMnemonic(mnemonic, `m/44'/60'/${redeposit_derive_path}'/0/${derive_path}`);
 }
 
 export function getWithdrawHash(w: ContractWithdrawal): string {

@@ -1,9 +1,9 @@
 import { HDKey } from '@scure/bip32';
 import { entropyToMnemonic, mnemonicToSeedSync } from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english';
-import { encodePacked, Hex, hexToBytes, keccak256, sha256, toHex } from 'viem';
+import { encodePacked, Hex, hexToBytes, keccak256, sha256, toBytes, toHex } from 'viem';
 
-import { ContractWithdrawal } from '../types';
+import { ContractWithdrawal, type PredicateSignatureResponse } from '../types';
 
 export * from './api.utils';
 export * from './localstorage.manager';
@@ -100,4 +100,16 @@ export const generateEntropy = (networkSign: Hex, hashedSignature: string) => {
   combined.set(hashedSignatureBytes, networkSignBytes.length);
 
   return sha256(combined);
+};
+
+export const signaturesToBytes = (response: PredicateSignatureResponse) => {
+  if (!response) {
+    throw new Error('Could not convert API response, it was undefined');
+  }
+  return {
+    taskId: response.task_id,
+    expireByBlockNumber: response.expiry_block,
+    signerAddresses: response.signers,
+    signatures: response.signature.map((sig) => toBytes(sig)),
+  };
 };

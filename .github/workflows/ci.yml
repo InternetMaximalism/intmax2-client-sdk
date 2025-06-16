@@ -51,6 +51,9 @@ jobs:
       - name: Build (browser-sdk)
         run: cd browser-sdk && pnpm run build
 
+      - name: Test (browser-sdk)
+        run: cd browser-sdk && pnpm run test
+
       - name: Install dependencies (server-sdk)
         run: cd server-sdk && pnpm install
 

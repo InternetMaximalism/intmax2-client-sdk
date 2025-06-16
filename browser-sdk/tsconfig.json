@@ -14,7 +14,7 @@
     "target": "esnext",
     "typeRoots": ["./src/wasm.d.ts", "./node_modules/@types"],
     "sourceMap": true,
-    "rootDir": "./src"
+    "rootDir": "./src",
   },
   "exclude": ["node_modules", "dist"],
   "include": ["src"]

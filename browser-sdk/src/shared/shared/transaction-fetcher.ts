@@ -24,10 +24,7 @@ export class TransactionFetcher {
     });
   }
 
-  async fetchWithdrawals(
-    config: Config,
-    privateKey: string,
-  ): Promise<Record<WithdrawalsStatus, ContractWithdrawal[]>> {
+  async fetchWithdrawals(config: Config, privateKey: string): Promise<Record<WithdrawalsStatus, ContractWithdrawal[]>> {
     const withdrawals = {
       [WithdrawalsStatus.Failed]: [] as ContractWithdrawal[],
       [WithdrawalsStatus.NeedClaim]: [] as ContractWithdrawal[],

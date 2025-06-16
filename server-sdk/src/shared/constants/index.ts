@@ -1,5 +1,6 @@
-import { SDKUrls } from '../types';
 import { getAddress } from 'viem';
+
+import { SDKUrls } from '../types';
 
 export * from './abis';
 

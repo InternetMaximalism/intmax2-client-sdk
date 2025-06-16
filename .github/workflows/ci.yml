@@ -66,6 +66,9 @@ jobs:
       - name: Build (server-sdk)
         run: cd server-sdk && pnpm run build
 
+      - name: Test (server-sdk)
+        run: cd server-sdk && pnpm run test
+
   type-check:
     runs-on: ubuntu-latest
     steps:

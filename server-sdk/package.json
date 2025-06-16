@@ -23,7 +23,9 @@
     "copy-wasm": "mkdir -p dist && cp -r src/wasm/node/* dist/",
     "prepare": "pnpm build",
     "format": "prettier --write \"src/**/*.ts\"",
-    "lint": "eslint src --max-warnings=0 --fix"
+    "lint": "eslint src --max-warnings=0 --fix",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "keywords": [
     "sdk",
@@ -52,13 +54,15 @@
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "^5.4.1",
     "eslint-plugin-unused-imports": "^4.1.4",
+    "msw": "^2.10.2",
     "node": "^24.2.0",
     "prettier": "^3.5.3",
     "rimraf": "^6.0.1",
     "rollup": "^4.43.0",
     "rollup-plugin-dts": "^6.2.1",
     "tslib": "^2.8.1",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.3"
   },
   "engines": {
     "node": ">=18"

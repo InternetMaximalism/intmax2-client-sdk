@@ -49,12 +49,10 @@ yarn add intmax2-server-sdk
 ## Interface
 
 ```ts
-import { FeeResponse } from "./index";
-
 export interface INTMAXClient {
   // properties
   isLoggedIn: boolean;
-  address: string; // IntMax public_key
+  address: string;
   tokenBalances: TokenBalance[] | undefined;
 
   // account
@@ -72,38 +70,29 @@ export interface INTMAXClient {
   fetchTokenBalances: () => Promise<TokenBalancesResponse>;
 
   // transaction
-  fetchTransactions: (
-    params: FetchTransactionsRequest
-  ) => Promise<Transaction[]>;
+  fetchTransfers: (params: {}) => Promise<Transaction[]>;
+  fetchTransactions: (params: {}) => Promise<Transaction[]>;
   broadcastTransaction: (
     rawTransfers: BroadcastTransactionRequest[],
     isWithdrawal: boolean
   ) => Promise<BroadcastTransactionResponse>;
-  waitForTransactionConfirmation: (
-    params: WaitForTransactionConfirmationRequest
-  ) => Promise<WaitForTransactionConfirmationResponse>;
 
   // deposit
   deposit: (
     params: PrepareDepositTransactionRequest
   ) => Promise<PrepareDepositTransactionResponse>;
-  fetchDeposits: (
-    params: FetchTransactionsRequest
-  ) => Promise<(Transaction | null)[]>;
+  fetchDeposits: (params: {}) => Promise<Transaction[]>;
 
   // withdrawal
-  fetchWithdrawals: (
-    params: FetchWithdrawalsRequest
-  ) => Promise<FetchWithdrawalsResponse>;
   withdraw: (params: WithdrawRequest) => Promise<WithdrawalResponse>;
   claimWithdrawal: (
-    params: ContractWithdrawal[]
+    params: ContractWithdrawal[
   ) => Promise<ClaimWithdrawalTransactionResponse>;
+  fetchWithdrawals: (params: FetchWithdrawalsRequest) => Promise<FetchWithdrawalsResponse>;
 
   // Fees
   getTransferFee: () => Promise<FeeResponse>;
   getWithdrawalFee: (token: Token) => Promise<FeeResponse>;
-  getClaimFee: () => Promise<FeeResponse>;
 }
 ```
 

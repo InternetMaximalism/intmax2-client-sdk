@@ -54,9 +54,6 @@ export interface INTMAXClient {
     rawTransfers: BroadcastTransactionRequest[],
     isWithdrawal: boolean,
   ) => Promise<BroadcastTransactionResponse>;
-  waitForTransactionConfirmation: (
-    params: WaitForTransactionConfirmationRequest,
-  ) => Promise<WaitForTransactionConfirmationResponse>;
 
   // deposit
   deposit: (params: PrepareDepositTransactionRequest) => Promise<PrepareDepositTransactionResponse>;
@@ -70,7 +67,6 @@ export interface INTMAXClient {
   // Fees
   getTransferFee: () => Promise<FeeResponse>;
   getWithdrawalFee: (token: Token) => Promise<FeeResponse>;
-  getClaimFee: () => Promise<FeeResponse>;
 }
 ```
 

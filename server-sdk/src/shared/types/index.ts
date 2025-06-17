@@ -241,7 +241,6 @@ export interface INTMAXClient {
   // Fees
   getTransferFee: () => Promise<FeeResponse>;
   getWithdrawalFee: (token: Token) => Promise<FeeResponse>;
-  getClaimFee: () => Promise<FeeResponse>;
 }
 
 export interface PaginatedResponse<T> {

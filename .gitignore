@@ -6,13 +6,16 @@
 /*/node_modules
 /examples/*/node_modules
 
+# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 /.pnp
 .pnp.js
 
-
+# IDE and editor files
 .vscode/*
 .idea/*
+
+# Environment variables
 .env

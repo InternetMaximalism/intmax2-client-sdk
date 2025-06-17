@@ -88,7 +88,9 @@ export interface INTMAXClient {
   claimWithdrawal: (
     params: ContractWithdrawal[]
   ) => Promise<ClaimWithdrawalTransactionResponse>;
-  fetchWithdrawals: (params: FetchWithdrawalsRequest) => Promise<FetchWithdrawalsResponse>;
+  fetchWithdrawals: (
+    params: FetchWithdrawalsRequest
+  ) => Promise<FetchWithdrawalsResponse>;
 
   // Fees
   getTransferFee: () => Promise<FeeResponse>;
@@ -178,12 +180,6 @@ const isFakeMessageVerify = await intMaxClient.verifySignature(
   "Another message"
 );
 console.log(isFakeMessageVerify); // false
-
-const isFakeSignatureVerify = await intMaxClient.verifySignature(
-  "Another signature",
-  message
-);
-console.log(isFakeSignatureVerify); // false
 ```
 
 ### List Available Tokens & Retrieve Information for a Specific Token
@@ -192,11 +188,16 @@ Shows how to get the list of tokens supported by the network.
 
 ```ts
 const tokens = await intMaxClient.getTokensList();
-console.log('Available tokens:', tokens);
+console.log("Available tokens:", tokens);
 
 const nativeToken = tokens.find(
-  (t) => t.contractAddress.toLowerCase() === '0x0000000000000000000000000000000000000000',
+  (t) =>
+    t.contractAddress.toLowerCase() ===
+    "0x0000000000000000000000000000000000000000"
 );
+
+// or use can use tokenIndex
+const nativeToken = tokens.find((token) => token.tokenIndex === 0);
 ```
 
 ### Fetch Transaction History
@@ -210,9 +211,9 @@ const [deposits, transfers, sentTxs] = await Promise.all([
   client.fetchTransactions({}),
 ]);
 
-console.log('Deposits:', deposits);
-console.log('Received Transfers:', transfers);
-console.log('Sent Transfers:', sentTxs);
+console.log("Deposits:", deposits);
+console.log("Received Transfers:", transfers);
+console.log("Sent Transfers:", sentTxs);
 ```
 
 ### Deposit Native Token (ETH)
@@ -231,7 +232,7 @@ if (token) {
 const depositParams = {
   amount: 0.000001, // 0.000001 ETH
   token,
-  address: '0x2e4b60f5680324c8cbf202abdbcf9f913d75629ff9f93bc016afa822665d7322', // recipient INTMAX address
+  address: "0x2e4b60f5680324c8cbf202abdbcf9f913d75629ff9f93bc016afa822665d7322", // recipient INTMAX address
 };
 
 // Dry-run gas estimation
@@ -239,12 +240,12 @@ const gas = await intMaxClient.estimateDepositGas({
   ...depositParams,
   isGasEstimation: true,
 });
-console.log('Estimated gas:', gas);
+console.log("Estimated gas:", gas);
 
 // Execute the deposit
 const depositResult = await intMaxClient.deposit(depositParams);
-console.log('Deposit result:', depositResult);
-console.log('Transaction Hash:', depositResult.txHash);
+console.log("Deposit result:", depositResult);
+console.log("Transaction Hash:", depositResult.txHash);
 ```
 
 The final txHash obtained can be searched on [SepoliaScan](https://sepolia.etherscan.io/).
@@ -252,7 +253,7 @@ The final txHash obtained can be searched on [SepoliaScan](https://sepolia.ether
 ### Deposit ERC20
 
 ```ts
-const contractAddress = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
+const contractAddress = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"; // ERC20 address
 const tokens = await intMaxClient.getTokensList(); // Get list of the tokens
 let token = tokens.find((token) => token.contractAddress === contractAddress); // Find token by symbol
 
@@ -272,7 +273,7 @@ if (!token) {
 const depositParams = {
   amount: 0.000001, // 0.000001 USDC
   token,
-  address: '0x2e4b60f5680324c8cbf202abdbcf9f913d75629ff9f93bc016afa822665d7322', // recipient INTMAX address
+  address: "0x2e4b60f5680324c8cbf202abdbcf9f913d75629ff9f93bc016afa822665d7322", // recipient INTMAX address
 };
 
 // Dry-run gas estimation
@@ -283,15 +284,15 @@ const gas = await intMaxClient.estimateDepositGas({
 
 // Execute the deposit
 const depositResult = await intMaxClient.deposit(depositParams);
-console.log('Deposit result:', depositResult);
-console.log('Transaction Hash:', depositResult.txHash);
+console.log("Deposit result:", depositResult);
+console.log("Transaction Hash:", depositResult.txHash);
 ```
 
 ### Deposit ERC721 / ERC1155
 
 ```ts
 const token = {
-  tokenIndex: 1, // Nft id in contract
+  tokenIndex: 1, // NFT id in contract
   tokenType: TokenType.ERC721, // or TokenType.ERC1155
   contractAddress: "0x....", // Your Token address if not exist on token list
 };
@@ -299,7 +300,7 @@ const token = {
 const depositParams = {
   amount: 1, // Amount of the token for erc721 should be 1, for erc1155 can be more than 1
   token,
-  address: '0x2e4b60f5680324c8cbf202abdbcf9f913d75629ff9f93bc016afa822665d7322', // recipient INTMAX address
+  address: "0x2e4b60f5680324c8cbf202abdbcf9f913d75629ff9f93bc016afa822665d7322", // recipient INTMAX address
 };
 
 // Estimate gas if need to show for user
@@ -310,8 +311,8 @@ const gas = await intMaxClient.estimateDepositGas({
 
 // Deposit
 const depositResult = await intMaxClient.deposit(depositParams);
-console.log('Deposit result:', depositResult);
-console.log('Transaction Hash:', depositResult.txHash);
+console.log("Deposit result:", depositResult);
+console.log("Transaction Hash:", depositResult.txHash);
 ```
 
 ### Withdraw
@@ -324,18 +325,18 @@ const token = balances.find((b) => b.token.tokenIndex === 0).token;
 
 // Withdraw
 const withdrawalResult = await intMaxClient.withdraw({
-  address: '0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B', // Your public key of ETH wallet
+  address: "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B", // Your public key of ETH wallet
   token,
   amount: 0.000001, // Amount of the token, for erc721 should be 1, for erc1155 can be more than 1
 });
-console.log('Withdrawal result:', withdrawalResult);
+console.log("Withdrawal result:", withdrawalResult);
 ```
 
 ### Fetch withdrawals (needToClaim, etc.)
 
 ```ts
 const withdrawals = await intMaxClient.fetchWithdrawals();
-console.log('Withdrawals:', withdrawals);
+console.log("Withdrawals:", withdrawals);
 ```
 
 ### Claim withdrawals
@@ -343,7 +344,7 @@ console.log('Withdrawals:', withdrawals);
 ```ts
 const withdrawals = await intMaxClient.fetchWithdrawals();
 const claim = await intMaxClient.claimWithdrawal(withdrawals.needClaim); // Claim response (should be add additional check for receiver address you can claim withdrawals only for your address)
-console.log('Claim result:', claim);
+console.log("Claim result:", claim);
 ```
 
 ### Logout

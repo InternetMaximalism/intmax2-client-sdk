@@ -1,136 +1,148 @@
-const { IntMaxNodeClient } = require('intmax2-server-sdk');
+const { IntMaxNodeClient, TokenType } = require('intmax2-server-sdk');
 const dotenv = require('dotenv');
 dotenv.config();
 
 const main = async () => {
-  try {
-    // Initialize client
-    console.log('Initializing client...');
-    const client = new IntMaxNodeClient({
-      environment: 'testnet',
-      eth_private_key: process.env.ETH_PRIVATE_KEY,
-      l1_rpc_url: process.env.L1_RPC_URL,
-    });
+  // Initialize client
+  console.log('Initializing client...');
+  const client = new IntMaxNodeClient({
+    environment: 'testnet',
+    eth_private_key: process.env.ETH_PRIVATE_KEY,
+    l1_rpc_url: process.env.L1_RPC_URL,
+  });
 
-    // Login
-    console.log('Logging in...');
-    await client.login();
-    console.log('Logged in successfully');
-    console.log('Address:', client.address);
+  // Login
+  console.log('Logging in...');
+  await client.login();
+  console.log('Logged in successfully');
+  console.log('Address:', client.address);
 
-    // Fetch and display balances
-    console.log('\nFetching balances...');
-    const { balances } = await client.fetchTokenBalances();
-    console.log('Balances:');
-    balances.forEach((balance) => {
-      console.log(JSON.stringify(balance, (_, v) => (typeof v === 'bigint' ? v.toString() : v), 2));
-    });
+  // Fetch and display balances
+  console.log('\nFetching balances...');
+  const { balances } = await client.fetchTokenBalances();
+  console.log('Balances:');
+  balances.forEach((balance) => {
+    console.log(JSON.stringify(balance, (_, v) => (typeof v === 'bigint' ? v.toString() : v), 2));
+  });
 
-    // Verify message signature
-    const message = 'Hello, World!';
-    const signature = await client.signMessage(message);
-    console.log('Signature: ', signature);
+  // Verify message signature
+  const message = 'Hello, World!';
+  const signature = await client.signMessage(message);
+  console.log('Signature: ', signature);
 
-    const isVerified = await client.verifySignature(signature, message);
-    console.log('Message verified:', isVerified);
+  const isVerified = await client.verifySignature(signature, message);
+  console.log('Message verified:', isVerified);
 
-    // Example deposit
-    // console.log('\nPreparing deposit...');
-    const tokens = await client.getTokensList();
+  // Example deposit
+  console.log('\nPreparing deposit...');
+  const tokens = await client.getTokensList();
+  console.log('Available tokens:', JSON.stringify(tokens, null, 2));
 
-    //  Here you can update token address to find exist token in the list
-    const nativeToken = tokens.find(
-      (t) => t.contractAddress.toLowerCase() === '0x0000000000000000000000000000000000000000',
-    );
+  // Fetch transaction history
+  console.log('\nFetching transaction history...');
+  const [deposits, receiveTransfers, sendTxs] = await Promise.all([
+    client.fetchDeposits({}),
+    client.fetchTransfers({}),
+    client.fetchTransactions({}),
+  ]);
+  console.log('\nTransaction History:');
+  console.log('Latest deposits:', deposits[0]);
+  console.log('Latest received transfers:', receiveTransfers[0]);
+  console.log('Latest sent transfers:', sendTxs[0]);
 
-    let token;
+  const token = {
+    tokenType: TokenType.NATIVE,
+    tokenIndex: 0,
+    decimals: 18,
+    contractAddress: '0x0000000000000000000000000000000000000000',
+    price: 2417.08,
+  };
 
-    if (nativeToken) {
-      token = {
-        ...nativeToken,
-        tokenType: 0, // should be changed, if you are using not ETH, to  TokenType.ERC20
-      };
+  const depositParams = {
+    amount: 0.000001, // 0.000001 ETH
+    token,
+    // Your public key of the IntMax wallet or any other IntMax wallet public key
+    address: client.address,
+  };
+
+  // Check gas estimation to verify if the transaction can be executed
+  const gas = await client.estimateDepositGas({
+    ...depositParams,
+    isGasEstimation: true,
+  });
+  console.log('Estimated gas for deposit:', gas);
+
+  const deposit = await client.deposit(depositParams);
+  console.log('Deposit result:', JSON.stringify(deposit, null, 2));
+
+  // The user needs to pay `transferFeeAmount` of tokens corresponding to the `transferFeeToken`.
+  const transferFee = await client.getTransferFee();
+  const transferFeeToken = transferFee?.fee?.token_index;
+  const transferFeeAmount = transferFee?.fee?.amount;
+  console.log('Transfer Fee Token Index:', transferFeeToken);
+  console.log('Transfer Fee Amount:', transferFeeAmount);
+
+  // Token information can be obtained from the return value of `fetchBalances`.
+  const transfers = [
+    {
+      amount: 0.000001, // 0.000001 ETH
+      token,
+      address: client.address, // Transfer to self
+    },
+  ];
+  const transferResult = await client.broadcastTransaction(transfers);
+  console.log('Transfer result:', JSON.stringify(transferResult, null, 2));
+
+  // The user needs to pay `withdrawalFeeAmount` of tokens corresponding to the `withdrawalFeeToken`.
+  const withdrawalFee = await client.getWithdrawalFee(token);
+  const withdrawalFeeToken = withdrawalFee?.fee?.token_index;
+  const withdrawalFeeAmount = withdrawalFee?.fee?.amount;
+  console.log('Withdrawal Fee Token Index:', withdrawalFeeToken);
+  console.log('Withdrawal Fee Amount:', withdrawalFeeAmount);
+
+  await client.fetchTokenBalances();
+
+  console.log('Withdraw ETH...');
+  while (true) {
+    try {
+      const withdrawResult = await client.withdraw({
+        address: '0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B', // Ethereum address
+        token,
+        amount: 0.000001,
+      });
+      console.log('Withdrawal result:', JSON.stringify(withdrawResult, null, 2));
+      break;
+    } catch (error) {
+      console.warn('Withdrawal error:', error);
+
+      const expectedErrorMessage = ['Pending tx error', 'Failed to send tx request'];
+      if (expectedErrorMessage.some((errorMessage) => error.message.includes(errorMessage))) {
+        console.log('Retrying withdrawal in 5 seconds...');
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      }
     }
-
-    // If you want to deposit a specific token, you can set it like this one
-    // token = {
-    //   decimals: 0,
-    //   price: 0,
-    //   contractAddress:  '0x28e16f104a2ca00e75ffa5816cea2f63b34b986c', // Address of the token contract
-    //   tokenIndex: 1, // Token id in contractAddress if this NFT, if not NFT set to 0
-    //   tokenType: TokenType.ERC721, // TokenType.ERC20, TokenType.ERC721, TokenType.ERC1155
-    // }
-
-    // Estimate deposit gas
-    // const gas = await client.estimateDepositGas({
-    //   amount: 0.00001, // 0.00001 ETH
-    //   token,
-    //   address: client.address,
-    //   isGasEstimation: true,
-    // });
-    // console.log('Estimated gas for deposit:', gas);
-
-    // // Perform deposit
-    // console.log('Performing deposit...');
-    // const deposit = await client.deposit({
-    //   amount: 0.00001, // 0.00001 ETH
-    //   token,
-    //   address: client.address,
-    // });
-    // console.log('Deposit result:', JSON.stringify(deposit, null, 2));
-
-    // // Example withdrawal
-    // console.log('\nPreparing withdrawal...');
-    // const { balances: updatedBalances } = await client.fetchTokenBalances();
-    // const availableTokens = updatedBalances.filter((b) => b.amount > 0);
-    //
-    // if (availableTokens.length > 0) {
-    //   const withdrawToken = availableTokens.find((tb)=>tb.token.tokenIndex===0);
-
-    //   const withrawalFee = await client.getWithdrawalFee(withdrawToken);
-    //   const trasnferFee = await client.getTransferFee();
-    //   console.log('withrawalFee', withrawalFee);
-    //   console.log('trasnferFee', trasnferFee);
-
-    //   console.log('Performing withdrawal...');
-    //   const withdraw = await client.withdraw({
-    //     amount: 0.001,
-    //     token: withdrawToken.token,
-    //     address: '0xb6865560b8a966b50832364eDC068D89DD9c1157',
-    //   });
-    //   console.log('Withdrawal result:', JSON.stringify(withdraw, null, 2));
-    // } else {
-    //   console.log('No tokens available for withdrawal');
-    // }
-
-    // Fetch transaction history
-    console.log('\nFetching transaction history...');
-    const [deposits, receiveTxs, sendTxs] = await Promise.all([
-      client.fetchDeposits({}),
-      client.fetchTransfers({}),
-      client.fetchTransactions({}),
-    ]);
-    console.log('\nTransaction History:');
-    console.log('Deposits:', JSON.stringify(deposits, null, 2));
-    console.log('Received Transfers:', JSON.stringify(receiveTxs, null, 2));
-    console.log('Sent Transfers:', JSON.stringify(sendTxs, null, 2));
-
-    console.log('\nFetching withdrawals...');
-    const withdrawals = await client.fetchWithdrawals();
-    console.log('withdrawals:', JSON.stringify(withdrawals, null, 2));
-
-    // const claimWithdraw = await client.claimWithdrawal(withdrawals.need_claim);
-    // console.log('Claim Withdrawal:', JSON.stringify(claimWithdraw, null, 2));
-
-    // Logout
-    console.log('\nLogging out...');
-    await client.logout();
-    console.log('Logged out successfully');
-
-    process.exit(0);
-  } catch (error) {
-    console.error('An error occurred:', error);
   }
+
+  const withdrawals = await client.fetchWithdrawals();
+  console.log('Pending Withdrawals:', JSON.stringify(withdrawals, null, 2));
+
+  if (withdrawals.need_claim.length === 0) {
+    console.log('No withdrawals to claim.');
+  } else {
+    const claim = await client.claimWithdrawal(withdrawals.need_claim);
+    console.log('Claim Withdrawal result:', JSON.stringify(claim, null, 2));
+  }
+
+  // Logout
+  await client.logout();
+  console.log('Logged out successfully');
 };
 
-main();
+main()
+  .then(() => {
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('Error:', error);
+    process.exit(1);
+  });

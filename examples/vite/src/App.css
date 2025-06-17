@@ -24,6 +24,7 @@
   border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
+  margin: 0.25em 0;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
@@ -48,6 +49,24 @@
 
 .btn-primary:hover:not(:disabled) {
   background-color: #535bf2;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: #ffffff;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #5a6268;
+}
+
+.btn-warning {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.btn-warning:hover:not(:disabled) {
+  background-color: #e0a800;
 }
 
 .wallet-grid {

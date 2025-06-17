@@ -64,8 +64,8 @@ export const BalanceDisplay: React.FC<BalanceDisplayProps> = ({ client }) => {
       
       {balances.length > 0 ? (
         <div className="balances-list">
-          {balances.map((balance, index) => (
-            <div key={index} className="balance-item">
+          {balances.map((balance) => (
+            <div key={balance.token.contractAddress} className="balance-item">
               <div className="token-info">
                 <span className="token-symbol">{balance.token.symbol || `Token #${balance.token.tokenIndex}`}</span>
                 {" "}

@@ -19,13 +19,13 @@ npm install intmax2-server-sdk
 or
 
 ```bash
-pnpm install intmax2-server-sdk
+yarn add intmax2-server-sdk
 ```
 
 or
 
 ```bash
-yarn add intmax2-server-sdk
+pnpm install intmax2-server-sdk
 ```
 
 ## Interface

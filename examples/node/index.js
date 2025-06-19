@@ -132,10 +132,6 @@ const main = async () => {
     const claim = await client.claimWithdrawal(withdrawals.need_claim);
     console.log('Claim Withdrawal result:', JSON.stringify(claim, null, 2));
   }
-
-  // Logout
-  await client.logout();
-  console.log('Logged out successfully');
 };
 
 main()

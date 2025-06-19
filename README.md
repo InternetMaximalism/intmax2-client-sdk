@@ -5,8 +5,8 @@ This SDK is a client library for the INTMAX API. It is designed to help you inte
 For detailed interface specifications and usage instructions, please refer to the documentation below:
 
 - [📘 INTMAX Client SDK Docs (API Reference)](https://aquatic-paperback-675.notion.site/INTMAX-Client-SDK-Docs-176d989987db8096a012d144ae0e0dba)
-- [🧪 Examples on GitHub](https://github.com/InternetMaximalism/intmax2-client-sdk/tree/main/examples)
 - [🔧 Integration Guide](https://aquatic-paperback-675.notion.site/INTMAX-Client-SDK-Integration-Guide-208d989987db809db876ff8c79e78853)
+- [🧪 Examples on GitHub](https://github.com/InternetMaximalism/intmax2-client-sdk/tree/main/examples)
 
 Use these resources to quickly get started with building, integrating, and testing INTMAX-powered applications.
 
@@ -78,19 +78,19 @@ export interface INTMAXClient {
   ) => Promise<BroadcastTransactionResponse>;
 
   // deposit
+  fetchDeposits: (params: {}) => Promise<Transaction[]>;
   deposit: (
     params: PrepareDepositTransactionRequest
   ) => Promise<PrepareDepositTransactionResponse>;
-  fetchDeposits: (params: {}) => Promise<Transaction[]>;
 
   // withdrawal
+  fetchWithdrawals: (
+    params: FetchWithdrawalsRequest
+  ) => Promise<FetchWithdrawalsResponse>;
   withdraw: (params: WithdrawRequest) => Promise<WithdrawalResponse>;
   claimWithdrawal: (
     params: ContractWithdrawal[]
   ) => Promise<ClaimWithdrawalTransactionResponse>;
-  fetchWithdrawals: (
-    params: FetchWithdrawalsRequest
-  ) => Promise<FetchWithdrawalsResponse>;
 
   // Fees
   getTransferFee: () => Promise<FeeResponse>;
@@ -136,11 +136,13 @@ const { balances } = await intMaxClient.fetchTokenBalances();
 
 `IntMaxNodeClient` is a core component of the INTMAX SDK that provides seamless interaction with the INTMAX network.
 
+To initialize the client, you need to provide the Ethereum private key `(eth_private_key`) and the Layer 1 RPC URL (`l1_rpc_url`). These are required to sign transactions and connect to the Ethereum network.
+
 ```ts
 import { IntMaxNodeClient } from "intmax2-server-sdk";
 
 const intMaxClient = new IntMaxNodeClient({
-  environment: "testnet",
+  environment: "testnet", //  'mainnet' | 'testnet'
   eth_private_key: process.env.ETH_PRIVATE_KEY,
   l1_rpc_url: process.env.L1_RPC_URL,
 });
@@ -202,18 +204,20 @@ const nativeToken = tokens.find((token) => token.tokenIndex === 0);
 
 ### Fetch Transaction History
 
-Retrieves deposits, transfers, and sent transactions in parallel, then prints the latest entries.
+Retrieves deposits, transfers, sent transactions, withdrawals in parallel, then prints the latest entries.
 
 ```ts
-const [deposits, transfers, sentTxs] = await Promise.all([
+const [deposits, transfers, sentTxs, withdrawals] = await Promise.all([
   client.fetchDeposits({}),
   client.fetchTransfers({}),
   client.fetchTransactions({}),
+  client.fetchWithdrawals(),
 ]);
 
 console.log("Deposits:", deposits);
 console.log("Received Transfers:", transfers);
 console.log("Sent Transfers:", sentTxs);
+console.log("Withdrawals:", withdrawals);
 ```
 
 ### Deposit Native Token (ETH)
@@ -330,13 +334,6 @@ const withdrawalResult = await intMaxClient.withdraw({
   amount: 0.000001, // Amount of the token, for erc721 should be 1, for erc1155 can be more than 1
 });
 console.log("Withdrawal result:", withdrawalResult);
-```
-
-### Fetch withdrawals (needToClaim, etc.)
-
-```ts
-const withdrawals = await intMaxClient.fetchWithdrawals();
-console.log("Withdrawals:", withdrawals);
 ```
 
 ### Claim withdrawals

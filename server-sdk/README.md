@@ -5,8 +5,8 @@ This SDK is a client library for the INTMAX API. It is designed to help you inte
 For detailed interface specifications and usage instructions, please refer to the documentation below:
 
 - [📘 INTMAX Client SDK Docs (API Reference)](https://aquatic-paperback-675.notion.site/INTMAX-Client-SDK-Docs-176d989987db8096a012d144ae0e0dba)
-- [🧪 Examples on GitHub](https://github.com/InternetMaximalism/intmax2-client-sdk/tree/main/examples)
 - [🔧 Integration Guide](https://aquatic-paperback-675.notion.site/INTMAX-Client-SDK-Integration-Guide-208d989987db809db876ff8c79e78853)
+- [🧪 Examples on GitHub](https://github.com/InternetMaximalism/intmax2-client-sdk/tree/main/examples)
 
 Use these resources to quickly get started with building, integrating, and testing INTMAX-powered applications.
 
@@ -56,8 +56,8 @@ export interface INTMAXClient {
   ) => Promise<BroadcastTransactionResponse>;
 
   // deposit
-  deposit: (params: PrepareDepositTransactionRequest) => Promise<PrepareDepositTransactionResponse>;
   fetchDeposits: (params: FetchTransactionsRequest) => Promise<(Transaction | null)[]>;
+  deposit: (params: PrepareDepositTransactionRequest) => Promise<PrepareDepositTransactionResponse>;
 
   // withdrawal
   fetchWithdrawals: (params: FetchWithdrawalsRequest) => Promise<FetchWithdrawalsResponse>;
@@ -73,6 +73,8 @@ export interface INTMAXClient {
 ## Usage
 
 ### Initialization
+
+To initialize the client, you need to provide the Ethereum private key `(eth_private_key`) and the Layer 1 RPC URL (`l1_rpc_url`). These are required to sign transactions and connect to the Ethereum network.
 
 ```javascript
 const { IntmaxNodeClient } = require('intmax2-server-sdk');
@@ -143,6 +145,24 @@ const { balances } = await intmaxClient.fetchTokenBalances();
 //    token: Token; // Check get tokens list response
 //    amount: bigint;
 // }
+```
+
+### Fetch Transaction History
+
+Retrieves deposits, transfers, sent transactions, withdrawals in parallel, then prints the latest entries.
+
+```ts
+const [deposits, transfers, sentTxs, withdrawals] = await Promise.all([
+  client.fetchDeposits({}),
+  client.fetchTransfers({}),
+  client.fetchTransactions({}),
+  client.fetchWithdrawals(),
+]);
+
+console.log('Deposits:', deposits);
+console.log('Received Transfers:', transfers);
+console.log('Sent Transfers:', sentTxs);
+console.log('Withdrawals:', withdrawals);
 ```
 
 ### Deposit Native Token (ETH)
@@ -274,12 +294,6 @@ const withdraw = await intmaxClient.withdraw({
 // }
 ```
 
-### Fetch withdrawals (needToClaim, etc.)
-
-```javascript
-const withdrawals = await intmaxClient.fetchWithdrawals(); // Record<WithdrawalsStatus, ContractWithdrawal[]>
-```
-
 ### Claim withdrawals
 
 ```javascript
@@ -293,6 +307,4 @@ const claim = await intmaxClient.claimWithdrawal(withdrawals.needClaim); // Clai
 
 ### Logout
 
-```javascript
-await intmaxClient.logout();
-```
+Logout is not required when using the Server SDK, as it does not maintain any user session or authentication state.

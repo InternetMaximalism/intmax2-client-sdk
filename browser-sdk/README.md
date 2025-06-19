@@ -5,8 +5,8 @@ This SDK is a client library for the INTMAX API. It is designed to help you inte
 For detailed interface specifications and usage instructions, please refer to the documentation below:
 
 - [📘 INTMAX Client SDK Docs (API Reference)](https://aquatic-paperback-675.notion.site/INTMAX-Client-SDK-Docs-176d989987db8096a012d144ae0e0dba)
-- [🧪 Examples on GitHub](https://github.com/InternetMaximalism/intmax2-client-sdk/tree/main/examples)
 - [🔧 Integration Guide](https://aquatic-paperback-675.notion.site/INTMAX-Client-SDK-Integration-Guide-208d989987db809db876ff8c79e78853)
+- [🧪 Examples on GitHub](https://github.com/InternetMaximalism/intmax2-client-sdk/tree/main/examples)
 
 Use these resources to quickly get started with building, integrating, and testing INTMAX-powered applications.
 
@@ -143,6 +143,24 @@ const { balances } = await intmaxClient.fetchTokenBalances();
 // }
 ```
 
+### Fetch Transaction History
+
+Retrieves deposits, transfers, sent transactions, withdrawals in parallel, then prints the latest entries.
+
+```ts
+const [deposits, transfers, sentTxs, withdrawals] = await Promise.all([
+  client.fetchDeposits({}),
+  client.fetchTransfers({}),
+  client.fetchTransactions({}),
+  client.fetchWithdrawals(),
+]);
+
+console.log('Deposits:', deposits);
+console.log('Received Transfers:', transfers);
+console.log('Sent Transfers:', sentTxs);
+console.log('Withdrawals:', withdrawals);
+```
+
 ### Deposit Native Token (ETH)
 
 ```javascript
@@ -270,12 +288,6 @@ const withdraw = await intmaxClient.withdraw({
 //   txTreeRoot: string;
 //   transferDigests: string[];
 // }
-```
-
-### Fetch withdrawals (needToClaim, etc.)
-
-```javascript
-const withdrawals = await intmaxClient.fetchWithdrawals(); // Record<WithdrawalsStatus, ContractWithdrawal[]>
 ```
 
 ### Claim withdrawals

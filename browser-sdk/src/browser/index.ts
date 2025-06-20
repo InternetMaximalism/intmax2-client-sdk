@@ -592,14 +592,6 @@ export class IntMaxClient implements INTMAXClient {
   }
 
   async withdraw({ amount, address, token, claim_beneficiary }: WithdrawRequest): Promise<WithdrawalResponse> {
-    console.log('Withdraw request:', {
-      amount,
-      address,
-      token,
-      claim_beneficiary,
-    });
-    console.log('Current address:', this.address);
-    console.log('Current spendPub:', this.#spendPub);
     return this.broadcastTransaction(
       [
         {

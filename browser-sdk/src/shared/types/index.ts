@@ -334,3 +334,9 @@ export interface PredicateSignatureResponse {
   expiry_block: number;
   task_id: string;
 }
+
+export interface WalletMetaResponse {
+  meta: {
+    isLegacy: boolean;
+  };
+}

@@ -6,7 +6,7 @@ const main = async () => {
   // Initialize client
   console.log('Initializing client...');
   const client = new IntMaxNodeClient({
-    environment: 'testnet',
+    environment: 'devnet',
     eth_private_key: process.env.ETH_PRIVATE_KEY,
     l1_rpc_url: process.env.L1_RPC_URL,
   });

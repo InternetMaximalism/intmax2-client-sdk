@@ -76,9 +76,8 @@ import {
   get_user_data,
   JsFeeQuote,
   JsFlatG2,
-  JsGenericAddress,
   JsMetaDataCursor,
-  JsTransfer,
+  JsTransferRequest,
   JsTxRequestMemo,
   JsTxResult,
   JsUserData,
@@ -109,6 +108,9 @@ export class IntMaxNodeClient implements INTMAXClient {
   readonly #cacheMap: Map<string, any> = new Map();
   readonly #ethAccount: PrivateKeyAccount;
   #privateKey: string = '';
+  #spendKey: string = '';
+  #spendPub: string = '';
+  #viewKey: string = '';
   #userData: JsUserData | undefined;
 
   isLoggedIn: boolean = false;
@@ -168,7 +170,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       message: networkMessage(address),
     });
 
-    const data = await this.#vaultHttpClient.post<
+    const challenge = await this.#vaultHttpClient.post<
       {},
       {
         message: string;
@@ -179,8 +181,41 @@ export class IntMaxNodeClient implements INTMAXClient {
     });
 
     const challengeSignature = await this.#ethAccount.signMessage({
-      message: data.message,
+      message: challenge.message,
     });
+
+    const hashedNetworkMessage = await this.#vaultHttpClient.post<
+      {},
+      {
+        hashedNetworkMessage: string | null;
+        walletProviderType: string | null;
+      }
+    >('/wallet/hashed-network-message', {
+      address,
+      challengeSignature,
+    });
+
+    if (hashedNetworkMessage.hashedNetworkMessage !== null) {
+      if (hashedNetworkMessage.hashedNetworkMessage !== sha256(sha256(signNetwork))) {
+        this.logout();
+        const isIntmaxWallet = false;
+        const isProviderIntmax = hashedNetworkMessage.walletProviderType === 'intmax wallet';
+
+        if (isIntmaxWallet && isProviderIntmax) {
+          throw new Error(
+            'Different Google account detected. Please use the same Google account you used during initial setup.',
+          );
+        } else if (isIntmaxWallet && !isProviderIntmax) {
+          throw new Error(
+            'Wallet type mismatch. You initially used a different wallet. Please switch back to your original wallet provider or contact support.',
+          );
+        } else if (!isIntmaxWallet && isProviderIntmax) {
+          throw new Error(
+            'Wallet type mismatch. You initially used INTMAX Wallet. Please switch back to INTMAX Wallet or contact support.',
+          );
+        }
+      }
+    }
 
     const { hashedSignature, nonce, accessToken } = await this.#vaultHttpClient.post<
       {},
@@ -194,6 +229,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       address,
       challengeSignature,
       securitySeed: sha256(signNetwork),
+      walletProviderType: hashedNetworkMessage.walletProviderType || 'unknown',
     });
 
     await this.#entropy(signNetwork, hashedSignature);
@@ -302,7 +338,6 @@ export class IntMaxNodeClient implements INTMAXClient {
     }
 
     const transfers = rawTransfers.map((transfer) => {
-      const salt = `0x${randomBytesHex(32)}`;
       let amount = `${transfer.amount}`;
       if (transfer.token.decimals) {
         amount = parseUnits(transfer.amount.toString(), transfer.token.decimals).toString();
@@ -313,33 +348,25 @@ export class IntMaxNodeClient implements INTMAXClient {
           throw Error('Invalid address to withdraw');
         }
 
-        return new JsTransfer(
-          new JsGenericAddress(!isWithdrawal, transfer.address),
-          transfer.token.tokenIndex,
-          amount,
-          salt,
-        );
+        return new JsTransferRequest(transfer.address, transfer.token.tokenIndex, amount, null);
       }
 
       if (!isWithdrawal && isAddress(transfer.address)) {
         throw Error('Invalid address to transfer');
       }
 
-      return new JsTransfer(
-        new JsGenericAddress(!isWithdrawal, transfer.address),
-        transfer.token.tokenIndex,
-        amount,
-        salt,
-      );
+      return new JsTransferRequest(transfer.address, transfer.token.tokenIndex, amount, null);
     });
 
     let privateKey = '';
-    let pubKey = this.address;
+    let pubKey = this.#spendPub;
+    let viewPair = this.#viewKey;
 
     try {
       await this.getPrivateKey();
       privateKey = this.#privateKey;
-      pubKey = this.address;
+      pubKey = this.#spendPub;
+      viewPair = this.#viewKey;
     } catch (e) {
       console.error(e);
       throw Error('No private key found');
@@ -359,21 +386,21 @@ export class IntMaxNodeClient implements INTMAXClient {
         withdrawalTransfers = await generate_withdrawal_transfers(this.#config, transfers[0], 0, true);
       }
 
-      await await_tx_sendable(this.#config, privateKey, transfers, fee);
+      await await_tx_sendable(this.#config, viewPair, transfers, fee);
 
       // send the tx request
-      memo = (await send_tx_request(
+      memo = await send_tx_request(
         this.#config,
         await this.#indexerFetcher.getBlockBuilderUrl(),
         privateKey,
-        withdrawalTransfers ? withdrawalTransfers.transfers : transfers,
+        withdrawalTransfers ? withdrawalTransfers.transfer_requests : transfers,
         generate_fee_payment_memo(
-          withdrawalTransfers?.transfers ?? [],
+          withdrawalTransfers?.transfer_requests ?? [],
           withdrawalTransfers?.withdrawal_fee_transfer_index,
           withdrawalTransfers?.claim_fee_transfer_index,
         ),
         fee,
-      )) as JsTxRequestMemo;
+      );
 
       if (!memo) {
         throw new Error('Failed to send tx request');
@@ -398,14 +425,14 @@ export class IntMaxNodeClient implements INTMAXClient {
       await sleep(40000);
       if (rawTransfers[0].claim_beneficiary) {
         try {
-          await sync_claims(this.#config, privateKey, rawTransfers[0].claim_beneficiary, 0);
+          await sync_claims(this.#config, viewPair, rawTransfers[0].claim_beneficiary, 0);
         } catch (e) {
           console.error(e);
           throw e;
         }
       }
       await sleep(40000);
-      await retryWithAttempts(async () => await sync_withdrawals(this.#config, privateKey, 0), 1000, 5);
+      await retryWithAttempts(async () => await sync_withdrawals(this.#config, viewPair, 0), 1000, 5);
     }
 
     return {
@@ -418,11 +445,12 @@ export class IntMaxNodeClient implements INTMAXClient {
   async fetchTransactions(_params: FetchTransactionsRequest): Promise<Transaction[]> {
     this.#checkAllowanceToExecuteMethod();
 
-    const data = await fetch_tx_history(this.#config, this.#privateKey, new JsMetaDataCursor(null, 'desc'));
+    const data = await fetch_tx_history(this.#config, this.#viewKey, new JsMetaDataCursor(null, 'desc'));
 
     return data.history
       .map((tx) => {
         return wasmTxToTx(
+          this.#config,
           {
             data: tx.data,
             meta: tx.meta,
@@ -431,6 +459,7 @@ export class IntMaxNodeClient implements INTMAXClient {
             free: tx.free,
           },
           this.#tokenFetcher.tokens,
+          this.address,
         );
       })
       .filter(Boolean) as Transaction[];
@@ -440,11 +469,12 @@ export class IntMaxNodeClient implements INTMAXClient {
   async fetchTransfers(_params: FetchTransactionsRequest): Promise<Transaction[]> {
     this.#checkAllowanceToExecuteMethod();
 
-    const data = await fetch_transfer_history(this.#config, this.#privateKey, new JsMetaDataCursor(null, 'desc'));
+    const data = await fetch_transfer_history(this.#config, this.#viewKey, new JsMetaDataCursor(null, 'desc'));
 
     return data.history
       .map((tx) => {
         return wasmTxToTx(
+          this.#config,
           {
             data: tx.data,
             meta: tx.meta,
@@ -453,6 +483,7 @@ export class IntMaxNodeClient implements INTMAXClient {
             free: tx.free,
           },
           this.#tokenFetcher.tokens,
+          this.address,
         );
       })
       .filter(Boolean) as Transaction[];
@@ -462,11 +493,12 @@ export class IntMaxNodeClient implements INTMAXClient {
   async fetchDeposits(_params: FetchTransactionsRequest): Promise<Transaction[]> {
     this.#checkAllowanceToExecuteMethod();
 
-    const data = await fetch_deposit_history(this.#config, this.#privateKey, new JsMetaDataCursor(null, 'desc'));
+    const data = await fetch_deposit_history(this.#config, this.#viewKey, new JsMetaDataCursor(null, 'desc'));
 
     return data.history
       .map((tx) => {
         return wasmTxToTx(
+          this.#config,
           {
             data: tx.data,
             meta: tx.meta,
@@ -475,6 +507,7 @@ export class IntMaxNodeClient implements INTMAXClient {
             free: tx.free,
           },
           this.#tokenFetcher.tokens,
+          this.address,
         );
       })
       .filter(Boolean) as Transaction[];
@@ -498,6 +531,8 @@ export class IntMaxNodeClient implements INTMAXClient {
     this.isLoggedIn = false;
     this.#privateKey = '';
     this.address = '';
+    this.#spendPub = '';
+    this.#viewKey = '';
     this.#userData = undefined;
     await this.#vaultHttpClient.post('/wallet/logout', {});
     return;
@@ -602,7 +637,7 @@ export class IntMaxNodeClient implements INTMAXClient {
 
   async signMessage(message: string): Promise<SignMessageResponse> {
     const data = Buffer.from(message);
-    const signature = await sign_message(this.#privateKey, data);
+    const signature = await sign_message(this.#spendKey, data);
     return signature.elements as SignMessageResponse;
   }
 
@@ -615,7 +650,7 @@ export class IntMaxNodeClient implements INTMAXClient {
     }
 
     const newSignature = new JsFlatG2(signature);
-    return await verify_signature(newSignature, this.address, data);
+    return await verify_signature(newSignature, this.#spendPub, data);
   }
 
   async getTokensList(): Promise<Token[]> {
@@ -626,7 +661,7 @@ export class IntMaxNodeClient implements INTMAXClient {
   }
 
   async fetchWithdrawals(): Promise<FetchWithdrawalsResponse> {
-    return this.#txFetcher.fetchWithdrawals(this.#config, this.#privateKey);
+    return this.#txFetcher.fetchWithdrawals(this.#config, this.#viewKey);
   }
 
   async claimWithdrawal(needClaimWithdrawals: ContractWithdrawal[]): Promise<ClaimWithdrawalTransactionResponse> {
@@ -712,7 +747,7 @@ export class IntMaxNodeClient implements INTMAXClient {
     const transferFee = (await quote_transfer_fee(
       this.#config,
       await this.#indexerFetcher.getBlockBuilderUrl(),
-      this.address as string,
+      this.#spendPub as string,
       0,
     )) as JsFeeQuote;
     return {
@@ -747,6 +782,7 @@ export class IntMaxNodeClient implements INTMAXClient {
 
     const isFasterMining = env === 'devnet';
     return new Config(
+      env,
       urls.store_vault_server_url,
       urls.balance_prover_url,
       urls.validity_prover_url,
@@ -784,10 +820,22 @@ export class IntMaxNodeClient implements INTMAXClient {
       throw new Error("Can't get private key from mnemonic");
     }
 
-    const keySet = await generate_intmax_account_from_eth_key(hdKey);
+    const resp = await this.#vaultHttpClient.get<
+      {},
+      {
+        meta: {
+          isLegacy: boolean;
+        };
+      }
+    >(`/wallet/meta/${this.#ethAccount.address}`);
 
-    this.address = keySet.pubkey;
-    this.#privateKey = keySet.privkey;
+    const keySet = await generate_intmax_account_from_eth_key(this.#config.network, hdKey, resp.meta.isLegacy);
+
+    this.address = keySet.address;
+    this.#privateKey = keySet.key_pair;
+    this.#spendKey = keySet.spend_key;
+    this.#spendPub = keySet.spend_pub;
+    this.#viewKey = keySet.view_pair;
   }
 
   async #fetchUserData(): Promise<JsUserData> {
@@ -805,7 +853,7 @@ export class IntMaxNodeClient implements INTMAXClient {
         return this.#userData;
       } else if (diff < 180_000) {
         console.info('Fetching user data without sync');
-        const userdata = await get_user_data(this.#config, this.#privateKey);
+        const userdata = await get_user_data(this.#config, this.#viewKey);
         this.#userData = userdata;
 
         return userdata;
@@ -816,7 +864,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       // sync the account's balance proof
       await retryWithAttempts(
         () => {
-          return sync(this.#config, this.#privateKey);
+          return sync(this.#config, this.#viewKey);
         },
         10000,
         5,
@@ -826,7 +874,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       // sync withdrawals
       await retryWithAttempts(
         () => {
-          return sync_withdrawals(this.#config, this.#privateKey, 0);
+          return sync_withdrawals(this.#config, this.#viewKey, 0);
         },
         10000,
         5,
@@ -836,7 +884,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       console.info('Failed to sync account balance proof', e);
     }
 
-    const userData = await get_user_data(this.#config, this.#privateKey);
+    const userData = await get_user_data(this.#config, this.#viewKey);
     this.#userData = userData;
 
     const prevFetchDataArr =

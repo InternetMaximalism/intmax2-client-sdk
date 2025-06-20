@@ -166,6 +166,7 @@ export class IntMaxClient implements INTMAXClient {
   readonly #urls: SDKUrls;
   readonly #walletProviderType: string = 'unknown';
   #privateKey: string = '';
+  #spendKey: string = '';
   #spendPub: string = '';
   #viewKey: string = '';
   #userData: JsUserData | undefined;
@@ -758,7 +759,7 @@ export class IntMaxClient implements INTMAXClient {
 
   async signMessage(message: string): Promise<SignMessageResponse> {
     const data = Buffer.from(message);
-    const signature = await sign_message(this.#privateKey, data);
+    const signature = await sign_message(this.#spendKey, data);
     return signature.elements as SignMessageResponse;
   }
 
@@ -771,7 +772,7 @@ export class IntMaxClient implements INTMAXClient {
     }
 
     const newSignature = new JsFlatG2(signature);
-    return await verify_signature(newSignature, this.address, data);
+    return await verify_signature(newSignature, this.#spendPub, data);
   }
 
   async getTokensList(): Promise<Token[]> {
@@ -865,6 +866,7 @@ export class IntMaxClient implements INTMAXClient {
 
     this.address = keySet.address;
     this.#privateKey = keySet.key_pair;
+    this.#spendKey = keySet.spend_key;
     this.#spendPub = keySet.spend_pub;
     this.#viewKey = keySet.view_pair;
   }

@@ -43,108 +43,30 @@ export const __wbg_get_jsmultisigstep3response_aggregated_pubkey: (a: number) =>
 export const __wbg_set_jszkproofforecdhshare_a: (a: number, b: number) => void;
 export const __wbg_get_jsmultieciesstep3response_message: (a: number) => [number, number];
 export const __wbg_get_jszkproofforecdhshare_a: (a: number) => number;
-export const __wbg_jsdepositinfo_free: (a: number, b: number) => void;
-export const __wbg_get_jsdepositinfo_deposit_id: (a: number) => bigint;
-export const __wbg_set_jsdepositinfo_deposit_id: (a: number, b: bigint) => void;
-export const __wbg_get_jsdepositinfo_token_index: (a: number) => number;
-export const __wbg_set_jsdepositinfo_token_index: (a: number, b: number) => void;
-export const __wbg_get_jsdepositinfo_deposit_hash: (a: number) => [number, number];
-export const __wbg_set_jsdepositinfo_deposit_hash: (a: number, b: number, c: number) => void;
-export const __wbg_get_jsdepositinfo_block_number: (a: number) => number;
-export const __wbg_set_jsdepositinfo_block_number: (a: number, b: number) => void;
-export const __wbg_get_jsdepositinfo_deposit_index: (a: number) => number;
-export const __wbg_set_jsdepositinfo_deposit_index: (a: number, b: number) => void;
-export const __wbg_get_jsdepositinfo_l1_deposit_tx_hash: (a: number) => [number, number];
-export const __wbg_set_jsdepositinfo_l1_deposit_tx_hash: (a: number, b: number, c: number) => void;
-export const __wbg_jspaymentmemoentry_free: (a: number, b: number) => void;
-export const __wbg_get_jspaymentmemoentry_transfer_index: (a: number) => number;
-export const __wbg_set_jspaymentmemoentry_transfer_index: (a: number, b: number) => void;
-export const __wbg_get_jspaymentmemoentry_topic: (a: number) => [number, number];
-export const __wbg_set_jspaymentmemoentry_topic: (a: number, b: number, c: number) => void;
-export const __wbg_get_jspaymentmemoentry_memo: (a: number) => [number, number];
-export const __wbg_set_jspaymentmemoentry_memo: (a: number, b: number, c: number) => void;
-export const __wbg_jsderive_free: (a: number, b: number) => void;
-export const __wbg_get_jsderive_derive_path: (a: number) => number;
-export const __wbg_set_jsderive_derive_path: (a: number, b: number) => void;
-export const __wbg_get_jsderive_redeposit_path: (a: number) => number;
-export const __wbg_set_jsderive_redeposit_path: (a: number, b: number) => void;
-export const jsderive_new: (a: number, b: number) => number;
-export const save_derive_path: (a: number, b: number, c: number, d: number) => any;
-export const get_derive_path_list: (a: number, b: number, c: number) => any;
-export const __wbg_jsaccountinfo_free: (a: number, b: number) => void;
-export const __wbg_get_jsaccountinfo_account_id: (a: number) => [number, bigint];
-export const __wbg_set_jsaccountinfo_account_id: (a: number, b: number, c: bigint) => void;
-export const __wbg_get_jsaccountinfo_block_number: (a: number) => number;
-export const __wbg_set_jsaccountinfo_block_number: (a: number, b: number) => void;
-export const __wbg_get_jsaccountinfo_last_block_number: (a: number) => number;
-export const __wbg_set_jsaccountinfo_last_block_number: (a: number, b: number) => void;
-export const __wbg_jsgenericaddress_free: (a: number, b: number) => void;
-export const __wbg_get_jsgenericaddress_is_pubkey: (a: number) => number;
-export const __wbg_set_jsgenericaddress_is_pubkey: (a: number, b: number) => void;
-export const jsgenericaddress_new: (a: number, b: number, c: number) => [number, number, number];
-export const __wbg_jstransfer_free: (a: number, b: number) => void;
-export const __wbg_get_jstransfer_recipient: (a: number) => number;
-export const __wbg_set_jstransfer_recipient: (a: number, b: number) => void;
-export const __wbg_get_jstransfer_token_index: (a: number) => number;
-export const __wbg_set_jstransfer_token_index: (a: number, b: number) => void;
-export const __wbg_get_jstransfer_amount: (a: number) => [number, number];
-export const __wbg_set_jstransfer_amount: (a: number, b: number, c: number) => void;
-export const __wbg_get_jstransfer_salt: (a: number) => [number, number];
-export const __wbg_set_jstransfer_salt: (a: number, b: number, c: number) => void;
-export const jstransfer_new: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
-export const jstransfer_to_withdrawal: (a: number) => [number, number, number];
-export const __wbg_jstx_free: (a: number, b: number) => void;
-export const __wbg_jscontractwithdrawal_free: (a: number, b: number) => void;
-export const __wbg_get_jscontractwithdrawal_token_index: (a: number) => number;
-export const __wbg_set_jscontractwithdrawal_token_index: (a: number, b: number) => void;
-export const jscontractwithdrawal_new: (
-  a: number,
-  b: number,
-  c: number,
-  d: number,
-  e: number,
-  f: number,
-  g: number,
-) => number;
-export const jscontractwithdrawal_hash: (a: number) => [number, number, number, number];
-export const __wbg_jsclaim_free: (a: number, b: number) => void;
-export const __wbg_get_jsclaim_recipient: (a: number) => [number, number];
-export const __wbg_set_jsclaim_recipient: (a: number, b: number, c: number) => void;
-export const __wbg_set_jsclaim_amount: (a: number, b: number, c: number) => void;
-export const __wbg_set_jsclaim_block_hash: (a: number, b: number, c: number) => void;
-export const __wbg_jsmetadata_free: (a: number, b: number) => void;
-export const __wbg_jswithdrawalinfo_free: (a: number, b: number) => void;
-export const __wbg_get_jswithdrawalinfo_contract_withdrawal: (a: number) => number;
-export const __wbg_set_jswithdrawalinfo_contract_withdrawal: (a: number, b: number) => void;
-export const __wbg_get_jswithdrawalinfo_l1_tx_hash: (a: number) => [number, number];
-export const __wbg_set_jswithdrawalinfo_l1_tx_hash: (a: number, b: number, c: number) => void;
-export const __wbg_jsclaiminfo_free: (a: number, b: number) => void;
-export const __wbg_get_jsclaiminfo_claim: (a: number) => number;
-export const __wbg_set_jsclaiminfo_claim: (a: number, b: number) => void;
-export const __wbg_get_jsclaiminfo_submit_claim_proof_tx_hash: (a: number) => [number, number];
-export const __wbg_set_jsclaiminfo_submit_claim_proof_tx_hash: (a: number, b: number, c: number) => void;
-export const __wbg_get_jsclaiminfo_l1_tx_hash: (a: number) => [number, number];
-export const __wbg_set_jsclaiminfo_l1_tx_hash: (a: number, b: number, c: number) => void;
-export const __wbg_jsblock_free: (a: number, b: number) => void;
-export const __wbg_get_jsblock_prev_block_hash: (a: number) => [number, number];
-export const __wbg_set_jsblock_prev_block_hash: (a: number, b: number, c: number) => void;
-export const __wbg_get_jsblock_deposit_tree_root: (a: number) => [number, number];
-export const __wbg_set_jsblock_deposit_tree_root: (a: number, b: number, c: number) => void;
-export const __wbg_get_jsblock_signature_hash: (a: number) => [number, number];
-export const __wbg_set_jsblock_signature_hash: (a: number, b: number, c: number) => void;
-export const __wbg_get_jsblock_timestamp: (a: number) => bigint;
-export const __wbg_set_jsblock_timestamp: (a: number, b: bigint) => void;
-export const __wbg_get_jsblock_block_number: (a: number) => number;
-export const __wbg_set_jsblock_block_number: (a: number, b: number) => void;
-export const __wbg_jsmining_free: (a: number, b: number) => void;
-export const __wbg_get_jsmining_meta: (a: number) => number;
-export const __wbg_set_jsmining_meta: (a: number, b: number) => void;
-export const __wbg_get_jsmining_deposit_data: (a: number) => number;
-export const __wbg_set_jsmining_deposit_data: (a: number, b: number) => void;
-export const __wbg_get_jsmining_block: (a: number) => number;
-export const __wbg_set_jsmining_block: (a: number, b: number) => void;
-export const __wbg_get_jsmining_status: (a: number) => [number, number];
-export const __wbg_set_jsmining_status: (a: number, b: number, c: number) => void;
+export const generate_withdrawal_transfers: (a: number, b: number, c: number, d: number) => any;
+export const generate_fee_payment_memo: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+export const __wbg_jstransferrequest_free: (a: number, b: number) => void;
+export const __wbg_get_jstransferrequest_recipient: (a: number) => [number, number];
+export const __wbg_set_jstransferrequest_recipient: (a: number, b: number, c: number) => void;
+export const __wbg_get_jstransferrequest_token_index: (a: number) => number;
+export const __wbg_set_jstransferrequest_token_index: (a: number, b: number) => void;
+export const __wbg_get_jstransferrequest_amount: (a: number) => [number, number];
+export const __wbg_set_jstransferrequest_amount: (a: number, b: number, c: number) => void;
+export const jstransferrequest_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
+export const __wbg_jstxresult_free: (a: number, b: number) => void;
+export const __wbg_get_jstxresult_tx_data: (a: number) => number;
+export const __wbg_set_jstxresult_tx_data: (a: number, b: number) => void;
+export const __wbg_get_jstxresult_transfer_data_vec: (a: number) => [number, number];
+export const __wbg_set_jstxresult_transfer_data_vec: (a: number, b: number, c: number) => void;
+export const __wbg_get_jstxresult_backup_csv: (a: number) => [number, number];
+export const __wbg_set_jstxresult_backup_csv: (a: number, b: number, c: number) => void;
+export const __wbg_jsdepositresult_free: (a: number, b: number) => void;
+export const __wbg_get_jsdepositresult_deposit_data: (a: number) => number;
+export const __wbg_set_jsdepositresult_deposit_data: (a: number, b: number) => void;
+export const __wbg_get_jsdepositresult_deposit_digest: (a: number) => [number, number];
+export const __wbg_set_jsdepositresult_deposit_digest: (a: number, b: number, c: number) => void;
+export const __wbg_get_jsdepositresult_backup_csv: (a: number) => [number, number];
+export const __wbg_set_jsdepositresult_backup_csv: (a: number, b: number, c: number) => void;
 export const __wbg_jsdepositdata_free: (a: number, b: number) => void;
 export const __wbg_get_jsdepositdata_deposit_salt: (a: number) => [number, number];
 export const __wbg_set_jsdepositdata_deposit_salt: (a: number, b: number, c: number) => void;
@@ -167,30 +89,39 @@ export const __wbg_set_jsdepositdata_is_mining: (a: number, b: number) => void;
 export const __wbg_get_jsdepositdata_token_index: (a: number) => number;
 export const __wbg_set_jsdepositdata_token_index: (a: number, b: number) => void;
 export const __wbg_jstransferdata_free: (a: number, b: number) => void;
+export const __wbg_get_jstransferdata_sender: (a: number) => number;
+export const __wbg_set_jstransferdata_sender: (a: number, b: number) => void;
 export const __wbg_get_jstransferdata_transfer: (a: number) => number;
 export const __wbg_set_jstransferdata_transfer: (a: number, b: number) => void;
+export const __wbg_get_jstransferdata_extra_data: (a: number) => number;
+export const __wbg_set_jstransferdata_extra_data: (a: number, b: number) => void;
 export const __wbg_jstxdata_free: (a: number, b: number) => void;
 export const __wbg_get_jstxdata_tx: (a: number) => number;
+export const __wbg_set_jstxdata_tx: (a: number, b: number) => void;
+export const __wbg_get_jstxdata_tx_index: (a: number) => number;
+export const __wbg_set_jstxdata_tx_index: (a: number, b: number) => void;
+export const __wbg_get_jstxdata_tx_tree_root: (a: number) => [number, number];
+export const __wbg_set_jstxdata_tx_tree_root: (a: number, b: number, c: number) => void;
 export const __wbg_get_jstxdata_transfers: (a: number) => [number, number];
 export const __wbg_set_jstxdata_transfers: (a: number, b: number, c: number) => void;
 export const __wbg_get_jstxdata_transfer_digests: (a: number) => [number, number];
 export const __wbg_set_jstxdata_transfer_digests: (a: number, b: number, c: number) => void;
 export const __wbg_get_jstxdata_transfer_types: (a: number) => [number, number];
 export const __wbg_set_jstxdata_transfer_types: (a: number, b: number, c: number) => void;
-export const __wbg_jsdepositresult_free: (a: number, b: number) => void;
-export const __wbg_get_jsdepositresult_deposit_data: (a: number) => number;
-export const __wbg_set_jsdepositresult_deposit_data: (a: number, b: number) => void;
-export const __wbg_get_jsdepositresult_deposit_digest: (a: number) => [number, number];
-export const __wbg_set_jsdepositresult_deposit_digest: (a: number, b: number, c: number) => void;
-export const __wbg_get_jsdepositresult_backup_csv: (a: number) => [number, number];
-export const __wbg_set_jsdepositresult_backup_csv: (a: number, b: number, c: number) => void;
-export const __wbg_jstxresult_free: (a: number, b: number) => void;
-export const __wbg_get_jstxresult_tx_data: (a: number) => number;
-export const __wbg_set_jstxresult_tx_data: (a: number, b: number) => void;
-export const __wbg_get_jstxresult_transfer_data_vec: (a: number) => [number, number];
-export const __wbg_set_jstxresult_transfer_data_vec: (a: number, b: number, c: number) => void;
-export const __wbg_get_jstxresult_backup_csv: (a: number) => [number, number];
-export const __wbg_set_jstxresult_backup_csv: (a: number, b: number, c: number) => void;
+export const __wbg_get_jstxdata_recipient_view_pubs: (a: number) => [number, number];
+export const __wbg_set_jstxdata_recipient_view_pubs: (a: number, b: number, c: number) => void;
+export const __wbg_get_jstxdata_full_extra_data: (a: number) => [number, number];
+export const __wbg_set_jstxdata_full_extra_data: (a: number, b: number, c: number) => void;
+export const __wbg_jsfullextradata_free: (a: number, b: number) => void;
+export const __wbg_get_jsfullextradata_inner_salt: (a: number) => [number, number];
+export const __wbg_set_jsfullextradata_inner_salt: (a: number, b: number, c: number) => void;
+export const __wbg_jsextradata_free: (a: number, b: number) => void;
+export const __wbg_get_jsextradata_payment_id: (a: number) => [number, number];
+export const __wbg_set_jsextradata_payment_id: (a: number, b: number, c: number) => void;
+export const __wbg_get_jsextradata_description_hash: (a: number) => [number, number];
+export const __wbg_set_jsextradata_description_hash: (a: number, b: number, c: number) => void;
+export const __wbg_get_jsextradata_inner_salt: (a: number) => [number, number];
+export const __wbg_set_jsextradata_inner_salt: (a: number, b: number, c: number) => void;
 export const __wbg_jsuserdata_free: (a: number, b: number) => void;
 export const __wbg_get_jsuserdata_balances: (a: number) => [number, number];
 export const __wbg_set_jsuserdata_balances: (a: number, b: number, c: number) => void;
@@ -198,8 +129,6 @@ export const __wbg_get_jsuserdata_private_commitment: (a: number) => [number, nu
 export const __wbg_set_jsuserdata_private_commitment: (a: number, b: number, c: number) => void;
 export const __wbg_get_jsuserdata_transfer_lpt: (a: number) => bigint;
 export const __wbg_set_jsuserdata_transfer_lpt: (a: number, b: bigint) => void;
-export const __wbg_get_jsuserdata_tx_lpt: (a: number) => bigint;
-export const __wbg_set_jsuserdata_tx_lpt: (a: number, b: bigint) => void;
 export const __wbg_get_jsuserdata_withdrawal_lpt: (a: number) => bigint;
 export const __wbg_set_jsuserdata_withdrawal_lpt: (a: number, b: bigint) => void;
 export const __wbg_get_jsuserdata_processed_deposit_digests: (a: number) => [number, number];
@@ -211,92 +140,94 @@ export const __wbg_set_jsuserdata_processed_tx_digests: (a: number, b: number, c
 export const __wbg_get_jsuserdata_processed_withdrawal_digests: (a: number) => [number, number];
 export const __wbg_set_jsuserdata_processed_withdrawal_digests: (a: number, b: number, c: number) => void;
 export const __wbg_tokenbalance_free: (a: number, b: number) => void;
+export const __wbg_get_tokenbalance_token_index: (a: number) => number;
+export const __wbg_set_tokenbalance_token_index: (a: number, b: number) => void;
 export const __wbg_get_tokenbalance_is_insufficient: (a: number) => number;
 export const __wbg_set_tokenbalance_is_insufficient: (a: number, b: number) => void;
-export const __wbg_jsfee_free: (a: number, b: number) => void;
-export const __wbg_get_jsfee_token_index: (a: number) => number;
-export const __wbg_set_jsfee_token_index: (a: number, b: number) => void;
-export const jsfee_new: (a: number, b: number, c: number) => number;
-export const __wbg_jstransferfeequote_free: (a: number, b: number) => void;
-export const __wbg_get_jstransferfeequote_beneficiary: (a: number) => [number, number];
-export const __wbg_set_jstransferfeequote_beneficiary: (a: number, b: number, c: number) => void;
-export const __wbg_get_jstransferfeequote_fee: (a: number) => number;
-export const __wbg_set_jstransferfeequote_fee: (a: number, b: number) => void;
-export const __wbg_get_jstransferfeequote_collateral_fee: (a: number) => number;
-export const __wbg_set_jstransferfeequote_collateral_fee: (a: number, b: number) => void;
-export const __wbg_jsfeequote_free: (a: number, b: number) => void;
-export const __wbg_get_jsfeequote_fee: (a: number) => number;
-export const __wbg_set_jsfeequote_fee: (a: number, b: number) => void;
-export const __wbg_get_jsfeequote_collateral_fee: (a: number) => number;
-export const __wbg_set_jsfeequote_collateral_fee: (a: number, b: number) => void;
-export const __wbg_jsfeeinfo_free: (a: number, b: number) => void;
-export const __wbg_get_jsfeeinfo_beneficiary: (a: number) => [number, number];
-export const __wbg_set_jsfeeinfo_beneficiary: (a: number, b: number, c: number) => void;
-export const __wbg_get_jsfeeinfo_registration_fee: (a: number) => [number, number];
-export const __wbg_set_jsfeeinfo_registration_fee: (a: number, b: number, c: number) => void;
-export const __wbg_get_jsfeeinfo_non_registration_fee: (a: number) => [number, number];
-export const __wbg_set_jsfeeinfo_non_registration_fee: (a: number, b: number, c: number) => void;
-export const __wbg_get_jsfeeinfo_registration_collateral_fee: (a: number) => [number, number];
-export const __wbg_set_jsfeeinfo_registration_collateral_fee: (a: number, b: number, c: number) => void;
-export const __wbg_get_jsfeeinfo_non_registration_collateral_fee: (a: number) => [number, number];
-export const __wbg_set_jsfeeinfo_non_registration_collateral_fee: (a: number, b: number, c: number) => void;
-export const __wbg_jswithdrawaltransfers_free: (a: number, b: number) => void;
-export const __wbg_get_jswithdrawaltransfers_transfers: (a: number) => [number, number];
-export const __wbg_get_jswithdrawaltransfers_claim_fee_transfer_index: (a: number) => number;
-export const __wbg_set_jswithdrawaltransfers_claim_fee_transfer_index: (a: number, b: number) => void;
-export const __wbg_set_jstx_transfer_tree_root: (a: number, b: number, c: number) => void;
-export const __wbg_set_jsgenericaddress_data: (a: number, b: number, c: number) => void;
-export const __wbg_set_jscontractwithdrawal_recipient: (a: number, b: number, c: number) => void;
-export const __wbg_set_jscontractwithdrawal_amount: (a: number, b: number, c: number) => void;
-export const __wbg_set_jscontractwithdrawal_nullifier: (a: number, b: number, c: number) => void;
-export const __wbg_set_jswithdrawalinfo_status: (a: number, b: number, c: number) => void;
-export const __wbg_set_jsclaiminfo_status: (a: number, b: number, c: number) => void;
-export const __wbg_set_jsmetadata_digest: (a: number, b: number, c: number) => void;
-export const __wbg_set_jsclaim_nullifier: (a: number, b: number, c: number) => void;
-export const __wbg_set_jstransferdata_sender: (a: number, b: number, c: number) => void;
+export const __wbg_jsdepositinfo_free: (a: number, b: number) => void;
+export const __wbg_get_jsdepositinfo_deposit_id: (a: number) => bigint;
+export const __wbg_set_jsdepositinfo_deposit_id: (a: number, b: bigint) => void;
+export const __wbg_get_jsdepositinfo_token_index: (a: number) => number;
+export const __wbg_set_jsdepositinfo_token_index: (a: number, b: number) => void;
+export const __wbg_get_jsdepositinfo_deposit_hash: (a: number) => [number, number];
+export const __wbg_set_jsdepositinfo_deposit_hash: (a: number, b: number, c: number) => void;
+export const __wbg_get_jsdepositinfo_block_number: (a: number) => number;
+export const __wbg_set_jsdepositinfo_block_number: (a: number, b: number) => void;
+export const __wbg_get_jsdepositinfo_deposit_index: (a: number) => number;
+export const __wbg_set_jsdepositinfo_deposit_index: (a: number, b: number) => void;
+export const __wbg_get_jsdepositinfo_l1_deposit_tx_hash: (a: number) => [number, number];
+export const __wbg_set_jsdepositinfo_l1_deposit_tx_hash: (a: number, b: number, c: number) => void;
+export const __wbg_jsencrypteddata_free: (a: number, b: number) => void;
+export const __wbg_get_jsencrypteddata_data: (a: number) => [number, number];
+export const __wbg_set_jsencrypteddata_data: (a: number, b: number, c: number) => void;
+export const __wbg_get_jsencrypteddata_digest: (a: number) => [number, number];
+export const __wbg_set_jsencrypteddata_digest: (a: number, b: number, c: number) => void;
+export const __wbg_get_jsencrypteddata_timestamp: (a: number) => bigint;
+export const __wbg_set_jsencrypteddata_timestamp: (a: number, b: bigint) => void;
+export const __wbg_get_jsencrypteddata_data_type: (a: number) => [number, number];
+export const __wbg_set_jsencrypteddata_data_type: (a: number, b: number, c: number) => void;
+export const __wbg_jsentrystatuswithblocknumber_free: (a: number, b: number) => void;
+export const __wbg_jsdepositentry_free: (a: number, b: number) => void;
+export const __wbg_get_jsdepositentry_data: (a: number) => number;
+export const __wbg_set_jsdepositentry_data: (a: number, b: number) => void;
+export const __wbg_get_jsdepositentry_status: (a: number) => number;
+export const __wbg_set_jsdepositentry_status: (a: number, b: number) => void;
+export const __wbg_get_jsdepositentry_meta: (a: number) => number;
+export const __wbg_set_jsdepositentry_meta: (a: number, b: number) => void;
+export const __wbg_jstransferentry_free: (a: number, b: number) => void;
+export const __wbg_get_jstransferentry_data: (a: number) => number;
+export const __wbg_set_jstransferentry_data: (a: number, b: number) => void;
+export const __wbg_get_jstransferentry_status: (a: number) => number;
+export const __wbg_set_jstransferentry_status: (a: number, b: number) => void;
+export const __wbg_get_jstransferentry_meta: (a: number) => number;
+export const __wbg_set_jstransferentry_meta: (a: number, b: number) => void;
+export const __wbg_jstxentry_free: (a: number, b: number) => void;
+export const __wbg_get_jstxentry_data: (a: number) => number;
+export const __wbg_set_jstxentry_data: (a: number, b: number) => void;
+export const __wbg_get_jstxentry_status: (a: number) => number;
+export const __wbg_set_jstxentry_status: (a: number, b: number) => void;
+export const __wbg_jstxrequestmemo_free: (a: number, b: number) => void;
+export const jstxrequestmemo_tx: (a: number) => [number, number, number];
+export const jstxrequestmemo_is_registration_block: (a: number) => [number, number, number];
+export const __wbg_jsblockproposal_free: (a: number, b: number) => void;
+export const jsblockproposal_tx_tree_root: (a: number) => [number, number, number, number];
+export const __wbg_jsderive_free: (a: number, b: number) => void;
+export const __wbg_get_jsderive_derive_path: (a: number) => number;
+export const __wbg_set_jsderive_derive_path: (a: number, b: number) => void;
+export const __wbg_get_jsderive_redeposit_path: (a: number) => number;
+export const __wbg_set_jsderive_redeposit_path: (a: number, b: number) => void;
+export const jsderive_new: (a: number, b: number) => number;
+export const save_derive_path: (a: number, b: number, c: number, d: number) => any;
+export const get_derive_path_list: (a: number, b: number, c: number) => any;
 export const __wbg_set_jstxresult_tx_tree_root: (a: number, b: number, c: number) => void;
 export const __wbg_set_jstxresult_tx_digest: (a: number, b: number, c: number) => void;
-export const __wbg_set_jsuserdata_pubkey: (a: number, b: number, c: number) => void;
 export const __wbg_set_tokenbalance_amount: (a: number, b: number, c: number) => void;
-export const __wbg_set_jsfee_amount: (a: number, b: number, c: number) => void;
-export const __wbg_set_jstransferfeequote_block_builder_address: (a: number, b: number, c: number) => void;
-export const __wbg_set_jswithdrawaltransfers_transfers: (a: number, b: number, c: number) => void;
-export const __wbg_set_jsmetadata_timestamp: (a: number, b: bigint) => void;
-export const __wbg_set_jsclaim_block_number: (a: number, b: number) => void;
+export const __wbg_set_jsuserdata_pubkey: (a: number, b: number, c: number) => void;
+export const __wbg_set_jsentrystatuswithblocknumber_status: (a: number, b: number, c: number) => void;
+export const __wbg_set_jsuserdata_tx_lpt: (a: number, b: bigint) => void;
 export const __wbg_set_jsuserdata_deposit_lpt: (a: number, b: bigint) => void;
-export const __wbg_set_tokenbalance_token_index: (a: number, b: number) => void;
-export const __wbg_set_jstx_nonce: (a: number, b: number) => void;
-export const __wbg_set_jsfeequote_beneficiary: (a: number, b: number, c: number) => void;
-export const __wbg_get_jsmining_maturity: (a: number) => [number, bigint];
-export const __wbg_get_jsfeequote_beneficiary: (a: number) => [number, number];
-export const __wbg_get_jsmetadata_timestamp: (a: number) => bigint;
-export const __wbg_get_jsclaim_block_number: (a: number) => number;
+export const __wbg_set_jstransferrequest_description: (a: number, b: number, c: number) => void;
+export const __wbg_set_jsfullextradata_payment_id: (a: number, b: number, c: number) => void;
+export const __wbg_set_jsfullextradata_description: (a: number, b: number, c: number) => void;
+export const __wbg_set_jsfullextradata_description_salt: (a: number, b: number, c: number) => void;
+export const __wbg_get_jstransferrequest_description: (a: number) => [number, number];
+export const __wbg_get_jsfullextradata_payment_id: (a: number) => [number, number];
+export const __wbg_get_jsfullextradata_description: (a: number) => [number, number];
+export const __wbg_get_jsfullextradata_description_salt: (a: number) => [number, number];
+export const __wbg_get_jsuserdata_tx_lpt: (a: number) => bigint;
 export const __wbg_get_jsuserdata_deposit_lpt: (a: number) => bigint;
-export const __wbg_get_tokenbalance_token_index: (a: number) => number;
-export const __wbg_get_jstx_nonce: (a: number) => number;
-export const __wbg_get_jstx_transfer_tree_root: (a: number) => [number, number];
-export const __wbg_get_jsgenericaddress_data: (a: number) => [number, number];
-export const __wbg_get_jscontractwithdrawal_recipient: (a: number) => [number, number];
-export const __wbg_get_jscontractwithdrawal_amount: (a: number) => [number, number];
-export const __wbg_get_jscontractwithdrawal_nullifier: (a: number) => [number, number];
-export const __wbg_get_jsmetadata_digest: (a: number) => [number, number];
-export const __wbg_get_jswithdrawalinfo_status: (a: number) => [number, number];
-export const __wbg_get_jsclaiminfo_status: (a: number) => [number, number];
-export const __wbg_get_jsclaim_amount: (a: number) => [number, number];
-export const __wbg_get_jsclaim_nullifier: (a: number) => [number, number];
-export const __wbg_get_jsclaim_block_hash: (a: number) => [number, number];
-export const __wbg_get_jstransferdata_sender: (a: number) => [number, number];
 export const __wbg_get_jstxresult_tx_tree_root: (a: number) => [number, number];
 export const __wbg_get_jstxresult_tx_digest: (a: number) => [number, number];
-export const __wbg_get_jsuserdata_pubkey: (a: number) => [number, number];
 export const __wbg_get_tokenbalance_amount: (a: number) => [number, number];
-export const __wbg_get_jsfee_amount: (a: number) => [number, number];
-export const __wbg_get_jstransferfeequote_block_builder_address: (a: number) => [number, number];
-export const __wbg_set_jswithdrawaltransfers_withdrawal_fee_transfer_index: (a: number, b: number) => void;
-export const __wbg_set_jstxdata_tx: (a: number, b: number) => void;
-export const __wbg_set_jsmining_maturity: (a: number, b: number, c: bigint) => void;
-export const __wbg_get_jswithdrawaltransfers_withdrawal_fee_transfer_index: (a: number) => number;
+export const __wbg_get_jsuserdata_pubkey: (a: number) => [number, number];
+export const __wbg_get_jsentrystatuswithblocknumber_status: (a: number) => [number, number];
+export const __wbg_set_jsentrystatuswithblocknumber_block_number: (a: number, b: number) => void;
+export const __wbg_set_jstxentry_meta: (a: number, b: number) => void;
+export const __wbg_get_jstxentry_meta: (a: number) => number;
+export const __wbg_get_jsentrystatuswithblocknumber_block_number: (a: number) => number;
 export const __wbg_config_free: (a: number, b: number) => void;
+export const __wbg_get_config_network: (a: number) => [number, number];
+export const __wbg_set_config_network: (a: number, b: number, c: number) => void;
 export const __wbg_get_config_store_vault_server_url: (a: number) => [number, number];
 export const __wbg_set_config_store_vault_server_url: (a: number, b: number, c: number) => void;
 export const __wbg_get_config_balance_prover_url: (a: number) => [number, number];
@@ -335,68 +266,24 @@ export const __wbg_get_config_private_zkp_server_max_retires: (a: number) => num
 export const __wbg_set_config_private_zkp_server_max_retires: (a: number, b: number) => void;
 export const __wbg_get_config_private_zkp_server_retry_interval: (a: number) => [number, bigint];
 export const __wbg_set_config_private_zkp_server_retry_interval: (a: number, b: number, c: bigint) => void;
-export const config_new: (
-  a: number,
-  b: number,
-  c: number,
-  d: number,
-  e: number,
-  f: number,
-  g: number,
-  h: number,
-  i: bigint,
-  j: bigint,
-  k: number,
-  l: bigint,
-  m: bigint,
-  n: bigint,
-  o: number,
-  p: number,
-  q: number,
-  r: number,
-  s: number,
-  t: number,
-  u: number,
-  v: number,
-  w: number,
-  x: number,
-  y: number,
-  z: number,
-  a1: number,
-  b1: number,
-  c1: bigint,
-) => number;
+export const config_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: bigint, l: bigint, m: number, n: bigint, o: bigint, p: bigint, q: number, r: number, s: number, t: number, u: number, v: number, w: number, x: number, y: number, z: number, a1: number, b1: number, c1: number, d1: number, e1: bigint) => number;
+export const __wbg_jspaymentmemoentry_free: (a: number, b: number) => void;
+export const __wbg_get_jspaymentmemoentry_transfer_index: (a: number) => number;
+export const __wbg_set_jspaymentmemoentry_transfer_index: (a: number, b: number) => void;
 export const __wbg_intmaxaccount_free: (a: number, b: number) => void;
-export const __wbg_get_intmaxaccount_privkey: (a: number) => [number, number];
-export const __wbg_set_intmaxaccount_privkey: (a: number, b: number, c: number) => void;
-export const __wbg_get_intmaxaccount_pubkey: (a: number) => [number, number];
-export const __wbg_set_intmaxaccount_pubkey: (a: number, b: number, c: number) => void;
-export const generate_intmax_account_from_eth_key: (a: number, b: number) => any;
-export const get_deposit_hash: (
-  a: number,
-  b: number,
-  c: number,
-  d: number,
-  e: number,
-  f: number,
-  g: number,
-  h: number,
-) => [number, number, number, number];
-export const prepare_deposit: (
-  a: number,
-  b: number,
-  c: number,
-  d: number,
-  e: number,
-  f: number,
-  g: number,
-  h: number,
-  i: number,
-  j: number,
-  k: number,
-  l: number,
-  m: number,
-) => any;
+export const __wbg_get_intmaxaccount_address: (a: number) => [number, number];
+export const __wbg_set_intmaxaccount_address: (a: number, b: number, c: number) => void;
+export const __wbg_get_intmaxaccount_view_pair: (a: number) => [number, number];
+export const __wbg_set_intmaxaccount_view_pair: (a: number, b: number, c: number) => void;
+export const __wbg_get_intmaxaccount_key_pair: (a: number) => [number, number];
+export const __wbg_set_intmaxaccount_key_pair: (a: number, b: number, c: number) => void;
+export const __wbg_get_intmaxaccount_spend_key: (a: number) => [number, number];
+export const __wbg_set_intmaxaccount_spend_key: (a: number, b: number, c: number) => void;
+export const __wbg_get_intmaxaccount_spend_pub: (a: number) => [number, number];
+export const __wbg_set_intmaxaccount_spend_pub: (a: number, b: number, c: number) => void;
+export const generate_intmax_account_from_eth_key: (a: number, b: number, c: number, d: number, e: number) => any;
+export const get_deposit_hash: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number, number, number];
+export const prepare_deposit: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number, m: number) => any;
 export const await_tx_sendable: (a: number, b: number, c: number, d: any, e: number) => any;
 export const send_tx_request: (a: number, b: number, c: number, d: number, e: number, f: any, g: any, h: number) => any;
 export const query_and_finalize: (a: number, b: number, c: number, d: number, e: number, f: number) => any;
@@ -418,40 +305,10 @@ export const generate_transfer_receipt: (a: number, b: number, c: number, d: num
 export const validate_transfer_receipt: (a: number, b: number, c: number, d: number, e: number) => any;
 export const get_balances_without_sync: (a: number, b: number, c: number) => any;
 export const check_validity_prover: (a: number) => any;
-export const generate_withdrawal_transfers: (a: number, b: number, c: number, d: number) => any;
-export const generate_fee_payment_memo: (
-  a: number,
-  b: number,
-  c: number,
-  d: number,
-) => [number, number, number, number];
-export const decrypt_deposit_data: (a: number, b: number, c: number, d: number) => any;
-export const decrypt_transfer_data: (a: number, b: number, c: number, d: number) => any;
-export const decrypt_tx_data: (a: number, b: number, c: number, d: number) => any;
-export const generate_auth_for_store_vault: (a: number, b: number, c: number) => any;
-export const fetch_encrypted_data: (a: number, b: number, c: number) => any;
-export const get_account_info: (a: number, b: number, c: number) => any;
-export const get_deposit_info: (a: number, b: number, c: number) => any;
-export const sign_message: (a: number, b: number, c: number, d: number) => any;
-export const verify_signature: (a: number, b: number, c: number, d: number, e: number) => any;
-export const calc_simple_aggregated_pubkey: (a: number, b: number) => [number, number, number, number];
-export const encrypt_message: (a: number, b: number, c: number, d: number) => [number, number];
-export const decrypt_bls_interaction_step1: (a: number, b: number, c: number, d: number) => [number, number, number];
-export const decrypt_bls_interaction_step2: (a: number, b: number, c: number) => [number, number, number];
-export const decrypt_bls_interaction_step3: (a: number, b: number, c: number, d: number) => [number, number, number];
-export const multi_signature_interaction_step1: (
-  a: number,
-  b: number,
-  c: number,
-  d: number,
-) => [number, number, number];
-export const multi_signature_interaction_step2: (a: number, b: number, c: number) => [number, number, number];
-export const multi_signature_interaction_step3: (
-  a: number,
-  b: number,
-  c: number,
-  d: number,
-) => [number, number, number];
+export const __wbg_set_jspaymentmemoentry_topic: (a: number, b: number, c: number) => void;
+export const __wbg_set_jspaymentmemoentry_memo: (a: number, b: number, c: number) => void;
+export const __wbg_get_jspaymentmemoentry_topic: (a: number) => [number, number];
+export const __wbg_get_jspaymentmemoentry_memo: (a: number) => [number, number];
 export const __wbg_jsdeposithistory_free: (a: number, b: number) => void;
 export const __wbg_get_jsdeposithistory_history: (a: number) => [number, number];
 export const __wbg_set_jsdeposithistory_history: (a: number, b: number, c: number) => void;
@@ -466,50 +323,11 @@ export const __wbg_set_jstxhistory_history: (a: number, b: number, c: number) =>
 export const fetch_deposit_history: (a: number, b: number, c: number, d: number) => any;
 export const fetch_transfer_history: (a: number, b: number, c: number, d: number) => any;
 export const fetch_tx_history: (a: number, b: number, c: number, d: number) => any;
-export const __wbg_jsflatg2_free: (a: number, b: number) => void;
-export const __wbg_get_jsflatg2_elements: (a: number) => [number, number];
-export const __wbg_set_jsflatg2_elements: (a: number, b: number, c: number) => void;
-export const jsflatg2_new: (a: number, b: number) => number;
-export const __wbg_jsauth_free: (a: number, b: number) => void;
-export const __wbg_get_jsauth_pubkey: (a: number) => [number, number];
-export const __wbg_set_jsauth_pubkey: (a: number, b: number, c: number) => void;
-export const __wbg_get_jsauth_expiry: (a: number) => bigint;
-export const __wbg_set_jsauth_expiry: (a: number, b: bigint) => void;
-export const __wbg_get_jsauth_signature: (a: number) => number;
-export const __wbg_set_jsauth_signature: (a: number, b: number) => void;
-export const __wbg_jsentrystatuswithblocknumber_free: (a: number, b: number) => void;
-export const __wbg_get_jsentrystatuswithblocknumber_status: (a: number) => [number, number];
-export const __wbg_set_jsentrystatuswithblocknumber_status: (a: number, b: number, c: number) => void;
-export const __wbg_get_jsentrystatuswithblocknumber_block_number: (a: number) => number;
-export const __wbg_set_jsentrystatuswithblocknumber_block_number: (a: number, b: number) => void;
-export const __wbg_jsdepositentry_free: (a: number, b: number) => void;
-export const __wbg_get_jsdepositentry_data: (a: number) => number;
-export const __wbg_set_jsdepositentry_data: (a: number, b: number) => void;
-export const __wbg_get_jsdepositentry_status: (a: number) => number;
-export const __wbg_set_jsdepositentry_status: (a: number, b: number) => void;
-export const __wbg_get_jsdepositentry_meta: (a: number) => number;
-export const __wbg_set_jsdepositentry_meta: (a: number, b: number) => void;
-export const __wbg_jstransferentry_free: (a: number, b: number) => void;
-export const __wbg_get_jstransferentry_data: (a: number) => number;
-export const __wbg_set_jstransferentry_data: (a: number, b: number) => void;
-export const __wbg_get_jstransferentry_status: (a: number) => number;
-export const __wbg_set_jstransferentry_status: (a: number, b: number) => void;
-export const __wbg_get_jstransferentry_meta: (a: number) => number;
-export const __wbg_set_jstransferentry_meta: (a: number, b: number) => void;
-export const __wbg_jstxentry_free: (a: number, b: number) => void;
-export const __wbg_get_jstxentry_data: (a: number) => number;
-export const __wbg_set_jstxentry_data: (a: number, b: number) => void;
-export const __wbg_get_jstxentry_status: (a: number) => number;
-export const __wbg_set_jstxentry_status: (a: number, b: number) => void;
-export const __wbg_set_jstransferhistory_cursor_response: (a: number, b: number) => void;
-export const __wbg_set_jstxhistory_cursor_response: (a: number, b: number) => void;
-export const __wbg_set_jstxentry_meta: (a: number, b: number) => void;
-export const __wbg_get_jstransferhistory_cursor_response: (a: number) => number;
-export const __wbg_get_jstxhistory_cursor_response: (a: number) => number;
-export const __wbg_get_jstxentry_meta: (a: number) => number;
 export const __wbg_jsmetadatacursor_free: (a: number, b: number) => void;
 export const __wbg_get_jsmetadatacursor_cursor: (a: number) => number;
 export const __wbg_set_jsmetadatacursor_cursor: (a: number, b: number) => void;
+export const __wbg_get_jsmetadatacursor_order: (a: number) => [number, number];
+export const __wbg_set_jsmetadatacursor_order: (a: number, b: number, c: number) => void;
 export const __wbg_get_jsmetadatacursor_limit: (a: number) => number;
 export const __wbg_set_jsmetadatacursor_limit: (a: number, b: number) => void;
 export const jsmetadatacursor_new: (a: number, b: number, c: number, d: number) => number;
@@ -521,22 +339,189 @@ export const __wbg_set_jsmetadatacursorresponse_has_more: (a: number, b: number)
 export const __wbg_get_jsmetadatacursorresponse_total_count: (a: number) => number;
 export const __wbg_set_jsmetadatacursorresponse_total_count: (a: number, b: number) => void;
 export const jsmetadatacursorresponse_new: (a: number, b: number, c: number) => number;
-export const __wbg_jsencrypteddata_free: (a: number, b: number) => void;
-export const __wbg_get_jsencrypteddata_data: (a: number) => [number, number];
-export const __wbg_set_jsencrypteddata_data: (a: number, b: number, c: number) => void;
-export const __wbg_get_jsencrypteddata_digest: (a: number) => [number, number];
-export const __wbg_set_jsencrypteddata_digest: (a: number, b: number, c: number) => void;
-export const __wbg_get_jsencrypteddata_timestamp: (a: number) => bigint;
-export const __wbg_set_jsencrypteddata_timestamp: (a: number, b: bigint) => void;
-export const __wbg_get_jsencrypteddata_data_type: (a: number) => [number, number];
-export const __wbg_set_jsencrypteddata_data_type: (a: number, b: number, c: number) => void;
-export const __wbg_jstxrequestmemo_free: (a: number, b: number) => void;
-export const jstxrequestmemo_tx: (a: number) => [number, number, number];
-export const jstxrequestmemo_is_registration_block: (a: number) => [number, number, number];
-export const __wbg_jsblockproposal_free: (a: number, b: number) => void;
-export const jsblockproposal_tx_tree_root: (a: number) => [number, number, number, number];
-export const __wbg_set_jsmetadatacursor_order: (a: number, b: number, c: number) => void;
-export const __wbg_get_jsmetadatacursor_order: (a: number) => [number, number];
+export const __wbg_set_jstransferhistory_cursor_response: (a: number, b: number) => void;
+export const __wbg_set_jstxhistory_cursor_response: (a: number, b: number) => void;
+export const __wbg_get_jstransferhistory_cursor_response: (a: number) => number;
+export const __wbg_get_jstxhistory_cursor_response: (a: number) => number;
+export const __wbg_jsaccountinfo_free: (a: number, b: number) => void;
+export const __wbg_get_jsaccountinfo_account_id: (a: number) => [number, bigint];
+export const __wbg_set_jsaccountinfo_account_id: (a: number, b: number, c: bigint) => void;
+export const __wbg_get_jsaccountinfo_block_number: (a: number) => number;
+export const __wbg_set_jsaccountinfo_block_number: (a: number, b: number) => void;
+export const __wbg_get_jsaccountinfo_last_block_number: (a: number) => number;
+export const __wbg_set_jsaccountinfo_last_block_number: (a: number, b: number) => void;
+export const __wbg_jsflatg2_free: (a: number, b: number) => void;
+export const __wbg_get_jsflatg2_elements: (a: number) => [number, number];
+export const __wbg_set_jsflatg2_elements: (a: number, b: number, c: number) => void;
+export const jsflatg2_new: (a: number, b: number) => number;
+export const __wbg_jsauth_free: (a: number, b: number) => void;
+export const __wbg_get_jsauth_pubkey: (a: number) => [number, number];
+export const __wbg_set_jsauth_pubkey: (a: number, b: number, c: number) => void;
+export const __wbg_get_jsauth_expiry: (a: number) => bigint;
+export const __wbg_set_jsauth_expiry: (a: number, b: bigint) => void;
+export const __wbg_get_jsauth_signature: (a: number) => number;
+export const __wbg_set_jsauth_signature: (a: number, b: number) => void;
+export const __wbg_jsgenericaddress_free: (a: number, b: number) => void;
+export const __wbg_get_jsgenericaddress_is_pubkey: (a: number) => number;
+export const __wbg_set_jsgenericaddress_is_pubkey: (a: number, b: number) => void;
+export const jsgenericaddress_new: (a: number, b: number, c: number) => [number, number, number];
+export const __wbg_jstransfer_free: (a: number, b: number) => void;
+export const __wbg_get_jstransfer_recipient: (a: number) => number;
+export const __wbg_set_jstransfer_recipient: (a: number, b: number) => void;
+export const __wbg_get_jstransfer_token_index: (a: number) => number;
+export const __wbg_set_jstransfer_token_index: (a: number, b: number) => void;
+export const __wbg_get_jstransfer_amount: (a: number) => [number, number];
+export const __wbg_set_jstransfer_amount: (a: number, b: number, c: number) => void;
+export const __wbg_get_jstransfer_salt: (a: number) => [number, number];
+export const __wbg_set_jstransfer_salt: (a: number, b: number, c: number) => void;
+export const jstransfer_new: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
+export const jstransfer_to_withdrawal: (a: number) => [number, number, number];
+export const __wbg_jstx_free: (a: number, b: number) => void;
+export const __wbg_jscontractwithdrawal_free: (a: number, b: number) => void;
+export const __wbg_get_jscontractwithdrawal_token_index: (a: number) => number;
+export const __wbg_set_jscontractwithdrawal_token_index: (a: number, b: number) => void;
+export const jscontractwithdrawal_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => number;
+export const jscontractwithdrawal_hash: (a: number) => [number, number, number, number];
+export const __wbg_jsclaim_free: (a: number, b: number) => void;
+export const __wbg_set_jsclaim_amount: (a: number, b: number, c: number) => void;
+export const __wbg_set_jsclaim_block_hash: (a: number, b: number, c: number) => void;
+export const __wbg_jsmetadata_free: (a: number, b: number) => void;
+export const __wbg_jswithdrawalinfo_free: (a: number, b: number) => void;
+export const __wbg_get_jswithdrawalinfo_contract_withdrawal: (a: number) => number;
+export const __wbg_set_jswithdrawalinfo_contract_withdrawal: (a: number, b: number) => void;
+export const __wbg_get_jswithdrawalinfo_l1_tx_hash: (a: number) => [number, number];
+export const __wbg_set_jswithdrawalinfo_l1_tx_hash: (a: number, b: number, c: number) => void;
+export const __wbg_jsclaiminfo_free: (a: number, b: number) => void;
+export const __wbg_get_jsclaiminfo_claim: (a: number) => number;
+export const __wbg_set_jsclaiminfo_claim: (a: number, b: number) => void;
+export const __wbg_get_jsclaiminfo_submit_claim_proof_tx_hash: (a: number) => [number, number];
+export const __wbg_set_jsclaiminfo_submit_claim_proof_tx_hash: (a: number, b: number, c: number) => void;
+export const __wbg_get_jsclaiminfo_l1_tx_hash: (a: number) => [number, number];
+export const __wbg_set_jsclaiminfo_l1_tx_hash: (a: number, b: number, c: number) => void;
+export const __wbg_jsblock_free: (a: number, b: number) => void;
+export const __wbg_get_jsblock_deposit_tree_root: (a: number) => [number, number];
+export const __wbg_set_jsblock_deposit_tree_root: (a: number, b: number, c: number) => void;
+export const __wbg_get_jsblock_signature_hash: (a: number) => [number, number];
+export const __wbg_set_jsblock_signature_hash: (a: number, b: number, c: number) => void;
+export const __wbg_get_jsblock_block_number: (a: number) => number;
+export const __wbg_set_jsblock_block_number: (a: number, b: number) => void;
+export const __wbg_jsmining_free: (a: number, b: number) => void;
+export const __wbg_get_jsmining_meta: (a: number) => number;
+export const __wbg_set_jsmining_meta: (a: number, b: number) => void;
+export const __wbg_get_jsmining_deposit_data: (a: number) => number;
+export const __wbg_set_jsmining_deposit_data: (a: number, b: number) => void;
+export const __wbg_get_jsmining_block: (a: number) => number;
+export const __wbg_set_jsmining_block: (a: number, b: number) => void;
+export const __wbg_get_jsmining_status: (a: number) => [number, number];
+export const __wbg_set_jsmining_status: (a: number, b: number, c: number) => void;
+export const __wbg_jsfee_free: (a: number, b: number) => void;
+export const __wbg_get_jsfee_token_index: (a: number) => number;
+export const __wbg_set_jsfee_token_index: (a: number, b: number) => void;
+export const jsfee_new: (a: number, b: number, c: number) => number;
+export const __wbg_jstransferfeequote_free: (a: number, b: number) => void;
+export const __wbg_get_jstransferfeequote_fee: (a: number) => number;
+export const __wbg_set_jstransferfeequote_fee: (a: number, b: number) => void;
+export const __wbg_get_jstransferfeequote_collateral_fee: (a: number) => number;
+export const __wbg_set_jstransferfeequote_collateral_fee: (a: number, b: number) => void;
+export const __wbg_jsfeequote_free: (a: number, b: number) => void;
+export const __wbg_get_jsfeequote_fee: (a: number) => number;
+export const __wbg_set_jsfeequote_fee: (a: number, b: number) => void;
+export const __wbg_get_jsfeequote_collateral_fee: (a: number) => number;
+export const __wbg_set_jsfeequote_collateral_fee: (a: number, b: number) => void;
+export const __wbg_jsfeeinfo_free: (a: number, b: number) => void;
+export const __wbg_get_jsfeeinfo_registration_fee: (a: number) => [number, number];
+export const __wbg_set_jsfeeinfo_registration_fee: (a: number, b: number, c: number) => void;
+export const __wbg_get_jsfeeinfo_non_registration_fee: (a: number) => [number, number];
+export const __wbg_set_jsfeeinfo_non_registration_fee: (a: number, b: number, c: number) => void;
+export const __wbg_get_jsfeeinfo_registration_collateral_fee: (a: number) => [number, number];
+export const __wbg_set_jsfeeinfo_registration_collateral_fee: (a: number, b: number, c: number) => void;
+export const __wbg_get_jsfeeinfo_non_registration_collateral_fee: (a: number) => [number, number];
+export const __wbg_set_jsfeeinfo_non_registration_collateral_fee: (a: number, b: number, c: number) => void;
+export const __wbg_jswithdrawaltransfers_free: (a: number, b: number) => void;
+export const __wbg_get_jswithdrawaltransfers_transfer_requests: (a: number) => [number, number];
+export const __wbg_set_jswithdrawaltransfers_transfer_requests: (a: number, b: number, c: number) => void;
+export const __wbg_get_jswithdrawaltransfers_withdrawal_fee_transfer_index: (a: number) => number;
+export const __wbg_set_jswithdrawaltransfers_withdrawal_fee_transfer_index: (a: number, b: number) => void;
+export const __wbg_get_jswithdrawaltransfers_claim_fee_transfer_index: (a: number) => number;
+export const __wbg_set_jswithdrawaltransfers_claim_fee_transfer_index: (a: number, b: number) => void;
+export const __wbg_jspublickeypair_free: (a: number, b: number) => void;
+export const jspublickeypair_new: (a: number, b: number, c: number, d: number) => number;
+export const jspublickeypair_to_string: (a: number) => [number, number, number, number];
+export const jspublickeypair_from_string: (a: number, b: number) => [number, number, number];
+export const is_valid_intmax_address: (a: number, b: number) => number;
+export const __wbg_addressauxinfo_free: (a: number, b: number) => void;
+export const __wbg_get_addressauxinfo_payment_id: (a: number) => [number, number];
+export const __wbg_set_addressauxinfo_payment_id: (a: number, b: number, c: number) => void;
+export const __wbg_get_addressauxinfo_network: (a: number) => [number, number];
+export const __wbg_set_addressauxinfo_network: (a: number, b: number, c: number) => void;
+export const extract_address_aux_info: (a: number, b: number) => [number, number, number];
+export const generate_integrated_address: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+export const get_intmax_address_from_public_pair: (a: number, b: number, c: number) => [number, number, number, number];
+export const decrypt_deposit_data: (a: number, b: number, c: number, d: number) => any;
+export const decrypt_transfer_data: (a: number, b: number, c: number, d: number) => any;
+export const decrypt_tx_data: (a: number, b: number, c: number, d: number) => any;
+export const generate_auth_for_store_vault: (a: number, b: number, c: number) => any;
+export const fetch_encrypted_data: (a: number, b: number, c: number) => any;
+export const get_account_info: (a: number, b: number, c: number) => any;
+export const get_deposit_info: (a: number, b: number, c: number) => any;
+export const sign_message: (a: number, b: number, c: number, d: number) => any;
+export const verify_signature: (a: number, b: number, c: number, d: number, e: number) => any;
+export const calc_simple_aggregated_pubkey: (a: number, b: number) => [number, number, number, number];
+export const encrypt_message: (a: number, b: number, c: number, d: number) => [number, number];
+export const decrypt_bls_interaction_step1: (a: number, b: number, c: number, d: number) => [number, number, number];
+export const decrypt_bls_interaction_step2: (a: number, b: number, c: number) => [number, number, number];
+export const decrypt_bls_interaction_step3: (a: number, b: number, c: number, d: number) => [number, number, number];
+export const multi_signature_interaction_step1: (a: number, b: number, c: number, d: number) => [number, number, number];
+export const multi_signature_interaction_step2: (a: number, b: number, c: number) => [number, number, number];
+export const multi_signature_interaction_step3: (a: number, b: number, c: number, d: number) => [number, number, number];
+export const __wbg_set_jstx_transfer_tree_root: (a: number, b: number, c: number) => void;
+export const __wbg_set_jsgenericaddress_data: (a: number, b: number, c: number) => void;
+export const __wbg_set_jscontractwithdrawal_recipient: (a: number, b: number, c: number) => void;
+export const __wbg_set_jscontractwithdrawal_amount: (a: number, b: number, c: number) => void;
+export const __wbg_set_jscontractwithdrawal_nullifier: (a: number, b: number, c: number) => void;
+export const __wbg_set_jsmetadata_digest: (a: number, b: number, c: number) => void;
+export const __wbg_set_jswithdrawalinfo_status: (a: number, b: number, c: number) => void;
+export const __wbg_set_jsclaiminfo_status: (a: number, b: number, c: number) => void;
+export const __wbg_set_jsblock_prev_block_hash: (a: number, b: number, c: number) => void;
+export const __wbg_set_jsclaim_nullifier: (a: number, b: number, c: number) => void;
+export const __wbg_set_jsfee_amount: (a: number, b: number, c: number) => void;
+export const __wbg_set_jstransferfeequote_beneficiary: (a: number, b: number, c: number) => void;
+export const __wbg_set_jstransferfeequote_block_builder_address: (a: number, b: number, c: number) => void;
+export const __wbg_set_jsfeequote_beneficiary: (a: number, b: number, c: number) => void;
+export const __wbg_set_jsfeeinfo_beneficiary: (a: number, b: number, c: number) => void;
+export const __wbg_set_jspublickeypair_view: (a: number, b: number, c: number) => void;
+export const __wbg_set_jspublickeypair_spend: (a: number, b: number, c: number) => void;
+export const __wbg_set_jsclaim_recipient: (a: number, b: number, c: number) => void;
+export const __wbg_set_jsmetadata_timestamp: (a: number, b: bigint) => void;
+export const __wbg_set_jsblock_timestamp: (a: number, b: bigint) => void;
+export const __wbg_set_jsclaim_block_number: (a: number, b: number) => void;
+export const __wbg_set_jstx_nonce: (a: number, b: number) => void;
+export const __wbg_get_jsmining_maturity: (a: number) => [number, bigint];
+export const __wbg_get_jsmetadata_timestamp: (a: number) => bigint;
+export const __wbg_get_jsblock_timestamp: (a: number) => bigint;
+export const __wbg_get_jsclaim_block_number: (a: number) => number;
+export const __wbg_get_jstx_nonce: (a: number) => number;
+export const __wbg_get_jstx_transfer_tree_root: (a: number) => [number, number];
+export const __wbg_get_jsgenericaddress_data: (a: number) => [number, number];
+export const __wbg_get_jscontractwithdrawal_amount: (a: number) => [number, number];
+export const __wbg_get_jscontractwithdrawal_recipient: (a: number) => [number, number];
+export const __wbg_get_jsclaim_amount: (a: number) => [number, number];
+export const __wbg_get_jscontractwithdrawal_nullifier: (a: number) => [number, number];
+export const __wbg_get_jsmetadata_digest: (a: number) => [number, number];
+export const __wbg_get_jswithdrawalinfo_status: (a: number) => [number, number];
+export const __wbg_get_jsclaiminfo_status: (a: number) => [number, number];
+export const __wbg_get_jsblock_prev_block_hash: (a: number) => [number, number];
+export const __wbg_get_jsclaim_nullifier: (a: number) => [number, number];
+export const __wbg_get_jsclaim_block_hash: (a: number) => [number, number];
+export const __wbg_get_jsfee_amount: (a: number) => [number, number];
+export const __wbg_get_jstransferfeequote_beneficiary: (a: number) => [number, number];
+export const __wbg_get_jstransferfeequote_block_builder_address: (a: number) => [number, number];
+export const __wbg_get_jsfeequote_beneficiary: (a: number) => [number, number];
+export const __wbg_get_jsfeeinfo_beneficiary: (a: number) => [number, number];
+export const __wbg_get_jspublickeypair_view: (a: number) => [number, number];
+export const __wbg_get_jspublickeypair_spend: (a: number) => [number, number];
+export const __wbg_get_jsclaim_recipient: (a: number) => [number, number];
+export const __wbg_set_jsmining_maturity: (a: number, b: number, c: bigint) => void;
 export const __wbindgen_malloc: (a: number, b: number) => number;
 export const __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
 export const __wbindgen_exn_store: (a: number) => void;
@@ -546,18 +531,9 @@ export const __wbindgen_free: (a: number, b: number, c: number) => void;
 export const __wbindgen_export_6: WebAssembly.Table;
 export const __externref_table_dealloc: (a: number) => void;
 export const __externref_drop_slice: (a: number, b: number) => void;
-export const _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h7b1ee111f31eaefa: (
-  a: number,
-  b: number,
-) => void;
-export const _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hd85ae587763e801d: (
-  a: number,
-  b: number,
-) => void;
-export const _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__haf279ec2a748ebef: (
-  a: number,
-  b: number,
-) => void;
-export const closure1793_externref_shim: (a: number, b: number, c: any) => void;
-export const closure2113_externref_shim: (a: number, b: number, c: any, d: any) => void;
+export const _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h7b1ee111f31eaefa: (a: number, b: number) => void;
+export const _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hd85ae587763e801d: (a: number, b: number) => void;
+export const _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h40bd945d86e6b3e1: (a: number, b: number) => void;
+export const closure1863_externref_shim: (a: number, b: number, c: any) => void;
+export const closure2184_externref_shim: (a: number, b: number, c: any, d: any) => void;
 export const __wbindgen_start: () => void;

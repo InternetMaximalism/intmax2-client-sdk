@@ -1,226 +1,130 @@
 /* tslint:disable */
 /* eslint-disable */
-export function save_derive_path(config: Config, private_key: string, derive: JsDerive): Promise<string>;
-export function get_derive_path_list(config: Config, private_key: string): Promise<JsDerive[]>;
+export function generate_withdrawal_transfers(config: Config, withdrawal_transfer_request: JsTransferRequest, fee_token_index: number, with_claim_fee: boolean): Promise<JsWithdrawalTransfers>;
+/**
+ * Generate fee payment memo from given transfers and fee transfer indices
+ */
+export function generate_fee_payment_memo(transfer_requests: JsTransferRequest[], withdrawal_fee_transfer_index?: number | null, claim_fee_transfer_index?: number | null): JsPaymentMemoEntry[];
+export function save_derive_path(config: Config, view_pair: string, derive: JsDerive): Promise<string>;
+export function get_derive_path_list(config: Config, view_pair: string): Promise<JsDerive[]>;
 /**
  * Generate a new key pair from the given ethereum private key (32bytes hex string).
  */
-export function generate_intmax_account_from_eth_key(eth_private_key: string): Promise<IntmaxAccount>;
+export function generate_intmax_account_from_eth_key(network: string, eth_private_key: string, is_legacy: boolean): Promise<IntmaxAccount>;
 /**
  * Get the hash of the deposit.
  */
-export function get_deposit_hash(
-  depositor: string,
-  recipient_salt_hash: string,
-  token_index: number,
-  amount: string,
-  is_eligible: boolean,
-): string;
+export function get_deposit_hash(depositor: string, recipient_salt_hash: string, token_index: number, amount: string, is_eligible: boolean): string;
 /**
  * Function to take a backup before calling the deposit function of the liquidity contract.
  * You can also get the pubkey_salt_hash from the return value.
  */
-export function prepare_deposit(
-  config: Config,
-  depositor: string,
-  recipient: string,
-  amount: string,
-  token_type: number,
-  token_address: string,
-  token_id: string,
-  is_mining: boolean,
-): Promise<JsDepositResult>;
+export function prepare_deposit(config: Config, depositor: string, recipient: string, amount: string, token_type: number, token_address: string, token_id: string, is_mining: boolean): Promise<JsDepositResult>;
 /**
  * Wait for the tx to be sendable. Wait for the sync of validity prover and balance proof.
  */
-export function await_tx_sendable(
-  config: Config,
-  private_key: string,
-  transfers: any,
-  fee_quote: JsTransferFeeQuote,
-): Promise<void>;
+export function await_tx_sendable(config: Config, view_pair: string, transfer_requests: any, fee_quote: JsTransferFeeQuote): Promise<void>;
 /**
  * Function to send a tx request to the block builder. The return value contains information to take a backup.
  */
-export function send_tx_request(
-  config: Config,
-  block_builder_url: string,
-  private_key: string,
-  transfers: any,
-  payment_memos: any,
-  fee_quote: JsTransferFeeQuote,
-): Promise<JsTxRequestMemo>;
+export function send_tx_request(config: Config, block_builder_url: string, key_pair: string, transfer_requests: any, payment_memos: any, fee_quote: JsTransferFeeQuote): Promise<JsTxRequestMemo>;
 /**
  * Function to query the block proposal from the block builder, and
  * send the signed tx tree root to the block builder during taking a backup of the tx.
  */
-export function query_and_finalize(
-  config: Config,
-  block_builder_url: string,
-  private_key: string,
-  tx_request_memo: JsTxRequestMemo,
-): Promise<JsTxResult>;
+export function query_and_finalize(config: Config, block_builder_url: string, key_pair: string, tx_request_memo: JsTxRequestMemo): Promise<JsTxResult>;
 export function get_tx_status(config: Config, pubkey: string, tx_tree_root: string): Promise<string>;
 /**
  * Synchronize the user's balance proof. It may take a long time to generate ZKP.
  */
-export function sync(config: Config, private_key: string): Promise<void>;
+export function sync(config: Config, view_pair: string): Promise<void>;
 /**
  * Resynchronize the user's balance proof.
  */
-export function resync(config: Config, private_key: string, is_deep: boolean): Promise<void>;
+export function resync(config: Config, view_pair: string, is_deep: boolean): Promise<void>;
 /**
  * Synchronize the user's withdrawal proof, and send request to the withdrawal aggregator.
  * It may take a long time to generate ZKP.
  */
-export function sync_withdrawals(config: Config, private_key: string, fee_token_index: number): Promise<void>;
+export function sync_withdrawals(config: Config, view_pair: string, fee_token_index: number): Promise<void>;
 /**
  * Synchronize the user's claim of staking mining, and send request to the withdrawal aggregator.
  * It may take a long time to generate ZKP.
  */
-export function sync_claims(
-  config: Config,
-  private_key: string,
-  recipient: string,
-  fee_token_index: number,
-): Promise<void>;
+export function sync_claims(config: Config, view_pair: string, recipient: string, fee_token_index: number): Promise<void>;
 /**
  * Get the user's data. It is recommended to sync before calling this function.
  */
-export function get_user_data(config: Config, private_key: string): Promise<JsUserData>;
-export function get_withdrawal_info(config: Config, private_key: string): Promise<JsWithdrawalInfo[]>;
+export function get_user_data(config: Config, view_pair: string): Promise<JsUserData>;
+export function get_withdrawal_info(config: Config, view_pair: string): Promise<JsWithdrawalInfo[]>;
 export function get_withdrawal_info_by_recipient(config: Config, recipient: string): Promise<JsWithdrawalInfo[]>;
-export function get_mining_list(config: Config, private_key: string): Promise<JsMining[]>;
-export function get_claim_info(config: Config, private_key: string): Promise<JsClaimInfo[]>;
-export function quote_transfer_fee(
-  config: Config,
-  block_builder_url: string,
-  pubkey: string,
-  fee_token_index: number,
-): Promise<JsTransferFeeQuote>;
-export function quote_withdrawal_fee(
-  config: Config,
-  withdrawal_token_index: number,
-  fee_token_index: number,
-): Promise<JsFeeQuote>;
+export function get_mining_list(config: Config, view_pair: string): Promise<JsMining[]>;
+export function get_claim_info(config: Config, view_pair: string): Promise<JsClaimInfo[]>;
+export function quote_transfer_fee(config: Config, block_builder_url: string, pubkey: string, fee_token_index: number): Promise<JsTransferFeeQuote>;
+export function quote_withdrawal_fee(config: Config, withdrawal_token_index: number, fee_token_index: number): Promise<JsFeeQuote>;
 export function quote_claim_fee(config: Config, fee_token_index: number): Promise<JsFeeQuote>;
-export function make_history_backup(
-  config: Config,
-  private_key: string,
-  from: bigint,
-  chunk_size: number,
-): Promise<string[]>;
-export function generate_transfer_receipt(
-  config: Config,
-  private_key: string,
-  tx_digest: string,
-  transfer_index: number,
-): Promise<string>;
-export function validate_transfer_receipt(
-  config: Config,
-  private_key: string,
-  transfer_receipt: string,
-): Promise<JsTransferData>;
-export function get_balances_without_sync(config: Config, private_key: string): Promise<TokenBalance[]>;
+export function make_history_backup(config: Config, view_pair: string, from: bigint, chunk_size: number): Promise<string[]>;
+export function generate_transfer_receipt(config: Config, view_pair: string, tx_digest: string, transfer_index: number): Promise<string>;
+export function validate_transfer_receipt(config: Config, view_pair: string, transfer_receipt: string): Promise<JsTransferData>;
+export function get_balances_without_sync(config: Config, view_pair: string): Promise<TokenBalance[]>;
 export function check_validity_prover(config: Config): Promise<void>;
-export function generate_withdrawal_transfers(
-  config: Config,
-  withdrawal_transfer: JsTransfer,
-  fee_token_index: number,
-  with_claim_fee: boolean,
-): Promise<JsWithdrawalTransfers>;
+export function fetch_deposit_history(config: Config, view_pair: string, cursor: JsMetaDataCursor): Promise<JsDepositHistory>;
+export function fetch_transfer_history(config: Config, view_pair: string, cursor: JsMetaDataCursor): Promise<JsTransferHistory>;
+export function fetch_tx_history(config: Config, view_pair: string, cursor: JsMetaDataCursor): Promise<JsTxHistory>;
 /**
- * Generate fee payment memo from given transfers and fee transfer indices
+ * Validate if the given address is a valid Intmax address without checking the network.
  */
-export function generate_fee_payment_memo(
-  transfers: JsTransfer[],
-  withdrawal_fee_transfer_index?: number | null,
-  claim_fee_transfer_index?: number | null,
-): JsPaymentMemoEntry[];
+export function is_valid_intmax_address(address: string): boolean;
+/**
+ * Extracts auxiliary information from an Intmax address string, returning an `AddressAuxInfo`
+ * which contains the optional payment ID (if present) and the network as a string.
+ */
+export function extract_address_aux_info(address: string): AddressAuxInfo;
+/**
+ * Generate integrated address from a standard address and a payment ID.
+ */
+export function generate_integrated_address(address: string, payment_id: string): string;
+export function get_intmax_address_from_public_pair(network: string, public_key_pair: JsPublicKeyPair): string;
 /**
  * Decrypt the deposit data.
  */
-export function decrypt_deposit_data(private_key: string, data: Uint8Array): Promise<JsDepositData>;
+export function decrypt_deposit_data(view_pair: string, data: Uint8Array): Promise<JsDepositData>;
 /**
  * Decrypt the transfer data. This is also used to decrypt the withdrawal data.
  */
-export function decrypt_transfer_data(private_key: string, data: Uint8Array): Promise<JsTransferData>;
+export function decrypt_transfer_data(view_pair: string, data: Uint8Array): Promise<JsTransferData>;
 /**
  * Decrypt the tx data.
  */
-export function decrypt_tx_data(private_key: string, data: Uint8Array): Promise<JsTxData>;
-export function generate_auth_for_store_vault(private_key: string, use_s3: boolean): Promise<JsAuth>;
-export function fetch_encrypted_data(
-  config: Config,
-  auth: JsAuth,
-  cursor: JsMetaDataCursor,
-): Promise<JsEncryptedData[]>;
+export function decrypt_tx_data(view_pair: string, data: Uint8Array): Promise<JsTxData>;
+export function generate_auth_for_store_vault(view_pair: string, use_s3: boolean): Promise<JsAuth>;
+export function fetch_encrypted_data(config: Config, auth: JsAuth, cursor: JsMetaDataCursor): Promise<JsEncryptedData[]>;
 export function get_account_info(config: Config, public_key: string): Promise<JsAccountInfo>;
 export function get_deposit_info(config: Config, pubkey_salt_hash: string): Promise<JsDepositInfo | undefined>;
 export function sign_message(private_key: string, message: Uint8Array): Promise<JsFlatG2>;
 export function verify_signature(signature: JsFlatG2, public_key: string, message: Uint8Array): Promise<boolean>;
 export function calc_simple_aggregated_pubkey(signers: string[]): string;
 export function encrypt_message(pubkey: string, data: Uint8Array): Uint8Array;
-export function decrypt_bls_interaction_step1(
-  client_key: string,
-  encrypted_data: Uint8Array,
-): JsMultiEciesStep1Response;
-export function decrypt_bls_interaction_step2(
-  server_key: string,
-  step1_response: JsMultiEciesStep1Response,
-): JsMultiEciesStep2Response;
-export function decrypt_bls_interaction_step3(
-  client_key: string,
-  step1_response: JsMultiEciesStep1Response,
-  step2_response: JsMultiEciesStep2Response,
-): JsMultiEciesStep3Response;
-export function multi_signature_interaction_step1(
-  client_private_key: string,
-  message: Uint8Array,
-): JsMultisigStep1Response;
-export function multi_signature_interaction_step2(
-  server_private_key: string,
-  step1_response: JsMultisigStep1Response,
-): JsMultisigStep2Response;
-export function multi_signature_interaction_step3(
-  client_private_key: string,
-  step1_response: JsMultisigStep1Response,
-  step2_response: JsMultisigStep2Response,
-): JsMultisigStep3Response;
-export function fetch_deposit_history(
-  config: Config,
-  private_key: string,
-  cursor: JsMetaDataCursor,
-): Promise<JsDepositHistory>;
-export function fetch_transfer_history(
-  config: Config,
-  private_key: string,
-  cursor: JsMetaDataCursor,
-): Promise<JsTransferHistory>;
-export function fetch_tx_history(config: Config, private_key: string, cursor: JsMetaDataCursor): Promise<JsTxHistory>;
+export function decrypt_bls_interaction_step1(client_key: string, encrypted_data: Uint8Array): JsMultiEciesStep1Response;
+export function decrypt_bls_interaction_step2(server_key: string, step1_response: JsMultiEciesStep1Response): JsMultiEciesStep2Response;
+export function decrypt_bls_interaction_step3(client_key: string, step1_response: JsMultiEciesStep1Response, step2_response: JsMultiEciesStep2Response): JsMultiEciesStep3Response;
+export function multi_signature_interaction_step1(client_private_key: string, message: Uint8Array): JsMultisigStep1Response;
+export function multi_signature_interaction_step2(server_private_key: string, step1_response: JsMultisigStep1Response): JsMultisigStep2Response;
+export function multi_signature_interaction_step3(client_private_key: string, step1_response: JsMultisigStep1Response, step2_response: JsMultisigStep2Response): JsMultisigStep3Response;
+export class AddressAuxInfo {
+  private constructor();
+  free(): void;
+  get payment_id(): string | undefined;
+  set payment_id(value: string | null | undefined);
+  network: string;
+}
 export class Config {
   free(): void;
-  constructor(
-    store_vault_server_url: string,
-    balance_prover_url: string,
-    validity_prover_url: string,
-    withdrawal_server_url: string,
-    deposit_timeout: bigint,
-    tx_timeout: bigint,
-    is_faster_mining: boolean,
-    block_builder_query_wait_time: bigint,
-    block_builder_query_interval: bigint,
-    block_builder_query_limit: bigint,
-    l1_rpc_url: string,
-    liquidity_contract_address: string,
-    l2_rpc_url: string,
-    rollup_contract_address: string,
-    withdrawal_contract_address: string,
-    use_private_zkp_server: boolean,
-    use_s3: boolean,
-    private_zkp_server_max_retires?: number | null,
-    private_zkp_server_retry_interval?: bigint | null,
-  );
+  constructor(network: string, store_vault_server_url: string, balance_prover_url: string, validity_prover_url: string, withdrawal_server_url: string, deposit_timeout: bigint, tx_timeout: bigint, is_faster_mining: boolean, block_builder_query_wait_time: bigint, block_builder_query_interval: bigint, block_builder_query_limit: bigint, l1_rpc_url: string, liquidity_contract_address: string, l2_rpc_url: string, rollup_contract_address: string, withdrawal_contract_address: string, use_private_zkp_server: boolean, use_s3: boolean, private_zkp_server_max_retires?: number | null, private_zkp_server_retry_interval?: bigint | null);
+  /**
+   * Network of intmax2
+   */
+  network: string;
   /**
    * URL of the store vault server
    */
@@ -290,8 +194,11 @@ export class Config {
 export class IntmaxAccount {
   private constructor();
   free(): void;
-  privkey: string;
-  pubkey: string;
+  address: string;
+  view_pair: string;
+  key_pair: string;
+  spend_key: string;
+  spend_pub: string;
 }
 export class JsAccountInfo {
   private constructor();
@@ -434,6 +341,16 @@ export class JsEntryStatusWithBlockNumber {
   get block_number(): number | undefined;
   set block_number(value: number | null | undefined);
 }
+export class JsExtraData {
+  private constructor();
+  free(): void;
+  get payment_id(): string | undefined;
+  set payment_id(value: string | null | undefined);
+  get description_hash(): string | undefined;
+  set description_hash(value: string | null | undefined);
+  get inner_salt(): string | undefined;
+  set inner_salt(value: string | null | undefined);
+}
 export class JsFee {
   free(): void;
   constructor(amount: string, token_index: number);
@@ -443,8 +360,7 @@ export class JsFee {
 export class JsFeeInfo {
   private constructor();
   free(): void;
-  get beneficiary(): string | undefined;
-  set beneficiary(value: string | null | undefined);
+  beneficiary: string;
   get registration_fee(): JsFee[] | undefined;
   set registration_fee(value: JsFee[] | null | undefined);
   get non_registration_fee(): JsFee[] | undefined;
@@ -457,8 +373,7 @@ export class JsFeeInfo {
 export class JsFeeQuote {
   private constructor();
   free(): void;
-  get beneficiary(): string | undefined;
-  set beneficiary(value: string | null | undefined);
+  beneficiary: string;
   get fee(): JsFee | undefined;
   set fee(value: JsFee | null | undefined);
   get collateral_fee(): JsFee | undefined;
@@ -468,6 +383,18 @@ export class JsFlatG2 {
   free(): void;
   constructor(elements: string[]);
   elements: string[];
+}
+export class JsFullExtraData {
+  private constructor();
+  free(): void;
+  get payment_id(): string | undefined;
+  set payment_id(value: string | null | undefined);
+  get description(): string | undefined;
+  set description(value: string | null | undefined);
+  get description_salt(): string | undefined;
+  set description_salt(value: string | null | undefined);
+  get inner_salt(): string | undefined;
+  set inner_salt(value: string | null | undefined);
 }
 export class JsGenericAddress {
   free(): void;
@@ -558,6 +485,14 @@ export class JsPaymentMemoEntry {
   topic: string;
   memo: string;
 }
+export class JsPublicKeyPair {
+  free(): void;
+  constructor(view: string, spend: string);
+  to_string(): string;
+  static from_string(keys: string): JsPublicKeyPair;
+  view: string;
+  spend: string;
+}
 export class JsTransfer {
   free(): void;
   constructor(recipient: JsGenericAddress, token_index: number, amount: string, salt: string);
@@ -570,8 +505,9 @@ export class JsTransfer {
 export class JsTransferData {
   private constructor();
   free(): void;
-  sender: string;
+  sender: JsPublicKeyPair;
   transfer: JsTransfer;
+  extra_data: JsExtraData;
 }
 export class JsTransferEntry {
   private constructor();
@@ -583,8 +519,7 @@ export class JsTransferEntry {
 export class JsTransferFeeQuote {
   private constructor();
   free(): void;
-  get beneficiary(): string | undefined;
-  set beneficiary(value: string | null | undefined);
+  beneficiary: string;
   get fee(): JsFee | undefined;
   set fee(value: JsFee | null | undefined);
   get collateral_fee(): JsFee | undefined;
@@ -597,6 +532,15 @@ export class JsTransferHistory {
   history: JsTransferEntry[];
   cursor_response: JsMetaDataCursorResponse;
 }
+export class JsTransferRequest {
+  free(): void;
+  constructor(recipient: string, token_index: number, amount: string, description?: string | null);
+  recipient: string;
+  token_index: number;
+  amount: string;
+  get description(): string | undefined;
+  set description(value: string | null | undefined);
+}
 export class JsTx {
   private constructor();
   free(): void;
@@ -607,9 +551,13 @@ export class JsTxData {
   private constructor();
   free(): void;
   tx: JsTx;
+  tx_index: number;
+  tx_tree_root: string;
   transfers: JsTransfer[];
   transfer_digests: string[];
   transfer_types: string[];
+  recipient_view_pubs: string[];
+  full_extra_data: JsFullExtraData[];
 }
 export class JsTxEntry {
   private constructor();
@@ -698,7 +646,7 @@ export class JsWithdrawalInfo {
 export class JsWithdrawalTransfers {
   private constructor();
   free(): void;
-  transfers: JsTransfer[];
+  transfer_requests: JsTransferRequest[];
   get withdrawal_fee_transfer_index(): number | undefined;
   set withdrawal_fee_transfer_index(value: number | null | undefined);
   get claim_fee_transfer_index(): number | undefined;

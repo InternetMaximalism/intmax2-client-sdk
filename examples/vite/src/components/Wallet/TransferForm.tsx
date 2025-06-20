@@ -3,9 +3,8 @@ import { IntMaxClient, TokenBalance } from 'intmax2-client-sdk'
 import { formatUnits } from 'viem'
 import { LoadingSpinner } from '../../components/Common/LoadingSpinner'
 import { ErrorMessage } from '../../components/Common/ErrorMessage'
+import { PLACEHOLDER_INTMAX_ADDRESS } from '../../lib/constants'
 import { getTokenDecimals } from '../../lib/utils'
-
-const placeHolderIntmaxAddress = '0x2b58f57c811b0c0551bd4347f96b2df47e2ca833fce943df28d3b5b31929ce30'
 
 interface TransferFormProps {
   client: IntMaxClient
@@ -179,7 +178,7 @@ export const TransferForm: React.FC<TransferFormProps> = ({ client }) => {
             name="recipient"
             value={formData.recipient}
             onChange={handleInputChange}
-            placeholder={placeHolderIntmaxAddress}
+            placeholder={PLACEHOLDER_INTMAX_ADDRESS}
             className="form-input"
             disabled={loading}
           />

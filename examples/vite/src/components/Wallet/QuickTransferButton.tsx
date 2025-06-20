@@ -44,7 +44,7 @@ export const QuickTransferButton: React.FC<QuickTransferButtonProps> = ({ client
         {
           amount: "0.00000000001",
           token,
-          address: "0x1264bc1b37258f2e756ed6c827cca4b8830475e69762544603aa3d67f6e8d5b0",
+          address: client.address,
         }
       ])
 
@@ -73,8 +73,8 @@ export const QuickTransferButton: React.FC<QuickTransferButtonProps> = ({ client
           <span>0.00000000001 ETH</span>
         </div>
         <div className="detail-item">
-          <span>Recipient:</span>
-          <span>0x1264bc1b37258f2e756ed6c827cca4b8830475e69762544603aa3d67f6e8d5b0</span>
+          <span>Recipient (yourself):</span>
+          <span>{client.address}</span>
         </div>
         <div className="detail-item">
           <span>Token:</span>

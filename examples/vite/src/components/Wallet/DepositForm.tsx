@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { IntMaxClient, TokenType } from 'intmax2-client-sdk'
 import { LoadingSpinner } from '../../components/Common/LoadingSpinner'
 import { ErrorMessage } from '../../components/Common/ErrorMessage'
+import { PLACEHOLDER_INTMAX_ADDRESS } from '../../lib/constants'
 
 interface DepositFormProps {
   client: IntMaxClient
@@ -127,7 +128,7 @@ export const DepositForm: React.FC<DepositFormProps> = ({ client }) => {
             name="address"
             value={formData.address}
             onChange={handleInputChange}
-            placeholder="INTMAX address"
+            placeholder={PLACEHOLDER_INTMAX_ADDRESS}
             className="form-input"
             disabled={loading}
           />

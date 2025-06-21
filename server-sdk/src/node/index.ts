@@ -74,6 +74,7 @@ import {
   generate_fee_payment_memo,
   generate_intmax_account_from_eth_key,
   generate_withdrawal_transfers,
+  get_balances_without_sync,
   get_user_data,
   JsFeeQuote,
   JsFlatG2,
@@ -94,6 +95,7 @@ import {
   sync_claims,
   sync_withdrawals,
   verify_signature,
+  TokenBalance as WasmTokenBalance,
 } from '../wasm/node';
 
 export class IntMaxNodeClient implements INTMAXClient {
@@ -276,14 +278,23 @@ export class IntMaxNodeClient implements INTMAXClient {
     if (!this.isLoggedIn) {
       throw Error('Not logged in');
     }
-    const userData = await this.#fetchUserData();
+
+    let wasm_balances: WasmTokenBalance[] = [];
+    wasm_balances = await get_balances_without_sync(this.#config, this.#viewKey);
+
+    if (!wasm_balances.length) {
+      const userData = await this.#fetchUserData();
+      wasm_balances = userData.balances;
+    } else {
+      this.#fetchUserData();
+    }
 
     let tokens = this.#tokenFetcher.tokens;
     if (tokens.length === 0) {
       tokens = await this.#tokenFetcher.fetchTokens();
     }
 
-    const nftIds = userData.balances.reduce((acc, tb): number[] => {
+    const nftIds = wasm_balances.reduce((acc, tb): number[] => {
       const token = tokens.find((t) => t.tokenIndex === tb.token_index);
 
       if (!token) {
@@ -308,7 +319,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       ];
     }, [] as Token[]);
 
-    const balances = userData.balances.map((balance): TokenBalance => {
+    const balances = wasm_balances.map((balance): TokenBalance => {
       const token = tokens.find((t) => t.tokenIndex === balance.token_index);
 
       if (!token) {

@@ -97,12 +97,21 @@ const fetchWithdrawalsButton = () => {
   const wrapper = document.createElement('div');
   wrapper.style.marginTop = '10px';
   appDiv.appendChild(wrapper);
+  let nextCursor: bigint | null = null;
 
   const button = document.createElement('button');
   button.innerHTML = 'Fetch Withdrawals';
   button.onclick = async () => {
     button.innerHTML = 'Fetching...';
-    const withdrawals = await client.fetchWithdrawals();
+    const { withdrawals, pagination } = await client.fetchWithdrawals({
+      cursor: nextCursor,
+    });
+    if (pagination.has_more) {
+      nextCursor = pagination.next_cursor;
+      button.innerHTML = `Fetch Withdrawals (more available)`;
+    } else {
+      button.innerHTML = `Fetch Withdrawals`;
+    }
     wrapper.innerHTML = '';
     wrapper.appendChild(button);
 
@@ -127,14 +136,14 @@ const claimWithdrawalsButton = async () => {
   button.innerHTML = 'Claim Withdrawals (Fetching...)';
   wrapper.appendChild(button);
 
-  const withdrawals = await client.fetchWithdrawals();
+  const { withdrawals } = await client.fetchWithdrawals();
   const withdrawalsToClaim = withdrawals.need_claim;
   button.innerHTML = `Claim Withdrawals (${withdrawalsToClaim.length})`;
 
   button.onclick = async () => {
     button.innerHTML = 'Claiming...';
     try {
-      const withdrawals = await client.fetchWithdrawals();
+      const { withdrawals } = await client.fetchWithdrawals();
       const result = await client.claimWithdrawal(withdrawals.need_claim);
       const resultDiv = document.createElement('pre');
       resultDiv.style.marginTop = '10px';
@@ -168,7 +177,7 @@ const createInitButton = () => {
   const button = document.createElement('button');
   button.innerHTML = 'Initialize Client';
   button.onclick = async () => {
-    client = await IntMaxClient.init({ environment: "testnet" });
+    client = await IntMaxClient.init({ environment: 'testnet' });
     createLoginButton();
     button.remove();
   };
@@ -384,7 +393,7 @@ const fetchHistoryButton = () => {
       wrapper.appendChild(historyDiv);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
-      if (message === "User data not found") {
+      if (message === 'User data not found') {
         alert('User data not found. Please fetch token balances first.');
       }
     }

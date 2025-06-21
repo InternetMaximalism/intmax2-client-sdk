@@ -1,9 +1,15 @@
 import { Abi, createPublicClient, http, PublicClient } from 'viem';
 import { mainnet, sepolia } from 'viem/chains';
 
-import { Config, get_withdrawal_info, JsWithdrawalInfo } from '../../wasm/browser/intmax2_wasm_lib';
+import { Config, get_withdrawal_info, JsTimestampCursor, JsWithdrawalInfo } from '../../wasm/browser/intmax2_wasm_lib';
 import { DEVNET_ENV, LiquidityAbi, MAINNET_ENV, TESTNET_ENV } from '../constants';
-import { ContractWithdrawal, IntMaxEnvironment, WithdrawalsStatus } from '../types';
+import {
+  ContractWithdrawal,
+  FetchWithdrawalsResponse,
+  IntMaxEnvironment,
+  PaginationCursor,
+  WithdrawalsStatus,
+} from '../types';
 import { getWithdrawHash } from '../utils';
 
 export class TransactionFetcher {
@@ -24,7 +30,11 @@ export class TransactionFetcher {
     });
   }
 
-  async fetchWithdrawals(config: Config, privateKey: string): Promise<Record<WithdrawalsStatus, ContractWithdrawal[]>> {
+  async fetchWithdrawals(
+    config: Config,
+    privateKey: string,
+    cursor: bigint | null = null,
+  ): Promise<FetchWithdrawalsResponse> {
     const withdrawals = {
       [WithdrawalsStatus.Failed]: [] as ContractWithdrawal[],
       [WithdrawalsStatus.NeedClaim]: [] as ContractWithdrawal[],
@@ -33,8 +43,19 @@ export class TransactionFetcher {
       [WithdrawalsStatus.Success]: [] as ContractWithdrawal[],
     };
     let withdrawalInfo: JsWithdrawalInfo[];
+    let pagination: PaginationCursor = {
+      has_more: false,
+      next_cursor: null,
+      total_count: 0,
+    };
     try {
-      withdrawalInfo = await get_withdrawal_info(config, privateKey);
+      const resp = await get_withdrawal_info(config, privateKey, new JsTimestampCursor(cursor, 'desc', 256));
+      withdrawalInfo = resp.info;
+      pagination = {
+        has_more: resp.cursor_response.has_more,
+        next_cursor: resp.cursor_response.next_cursor ? BigInt(resp.cursor_response.next_cursor) : null,
+        total_count: resp.cursor_response.total_count,
+      };
     } catch (e) {
       console.error(e);
       throw new Error('Failed to fetch withdrawal info');
@@ -74,6 +95,6 @@ export class TransactionFetcher {
       withdrawals[WithdrawalsStatus.NeedClaim] = updatedWithdrawalsToClaim;
     }
 
-    return withdrawals;
+    return { withdrawals, pagination };
   }
 }

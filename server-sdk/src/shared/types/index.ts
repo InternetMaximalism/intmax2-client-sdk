@@ -161,11 +161,19 @@ export interface PrepareDepositTransactionResponse {
   status: TransactionStatus;
 }
 
+export type PaginationCursor = {
+  next_cursor: bigint | null;
+  has_more: boolean;
+  total_count: number;
+};
+
 // Withdrawal
-export type FetchWithdrawalsResponse = Record<WithdrawalsStatus, ContractWithdrawal[]>;
+export type FetchWithdrawalsResponse = {
+  withdrawals: Record<WithdrawalsStatus, ContractWithdrawal[]>;
+  pagination: PaginationCursor;
+};
 export type FetchWithdrawalsRequest = {
-  pubkey: string;
-  signature: [string, string, string, string];
+  cursor?: bigint | null;
 };
 
 export interface ClaimWithdrawalTransactionResponse {

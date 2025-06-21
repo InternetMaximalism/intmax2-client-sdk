@@ -1,9 +1,9 @@
 import { Abi, createPublicClient, http, PublicClient } from 'viem';
 import { mainnet, sepolia } from 'viem/chains';
 
-import { Config, get_withdrawal_info } from '../../wasm/node';
+import { Config, get_withdrawal_info, JsTimestampCursor } from '../../wasm/node';
 import { DEVNET_ENV, LiquidityAbi, MAINNET_ENV, TESTNET_ENV } from '../constants';
-import { ContractWithdrawal, IntMaxEnvironment, WithdrawalsStatus } from '../types';
+import { ContractWithdrawal, FetchWithdrawalsResponse, IntMaxEnvironment, WithdrawalsStatus } from '../types';
 import { getWithdrawHash } from '../utils';
 
 export class TransactionFetcher {
@@ -24,7 +24,11 @@ export class TransactionFetcher {
     });
   }
 
-  async fetchWithdrawals(config: Config, privateKey: string): Promise<Record<WithdrawalsStatus, ContractWithdrawal[]>> {
+  async fetchWithdrawals(
+    config: Config,
+    privateKey: string,
+    cursor: bigint | null = null,
+  ): Promise<FetchWithdrawalsResponse> {
     const withdrawals = {
       [WithdrawalsStatus.Failed]: [] as ContractWithdrawal[],
       [WithdrawalsStatus.NeedClaim]: [] as ContractWithdrawal[],
@@ -33,7 +37,11 @@ export class TransactionFetcher {
       [WithdrawalsStatus.Success]: [] as ContractWithdrawal[],
     };
 
-    const withdrawalInfo = await get_withdrawal_info(config, privateKey);
+    const { info: withdrawalInfo, cursor_response } = await get_withdrawal_info(
+      config,
+      privateKey,
+      new JsTimestampCursor(cursor, 'desc', 256),
+    );
 
     withdrawalInfo.forEach(({ contract_withdrawal, status }) => {
       withdrawals[status as WithdrawalsStatus].push({
@@ -69,6 +77,13 @@ export class TransactionFetcher {
       withdrawals[WithdrawalsStatus.NeedClaim] = updatedWithdrawalsToClaim;
     }
 
-    return withdrawals;
+    return {
+      withdrawals,
+      pagination: {
+        has_more: cursor_response.has_more,
+        next_cursor: cursor_response.next_cursor ? BigInt(cursor_response.next_cursor) : null,
+        total_count: cursor_response.total_count,
+      },
+    };
   }
 }

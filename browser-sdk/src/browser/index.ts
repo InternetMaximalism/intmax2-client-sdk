@@ -27,6 +27,7 @@ import {
   DEVNET_ENV,
   FeeResponse,
   FetchTransactionsRequest,
+  FetchWithdrawalsRequest,
   FetchWithdrawalsResponse,
   generateEntropy,
   getPkFromEntropy,
@@ -685,8 +686,8 @@ export class IntMaxClient implements INTMAXClient {
     };
   }
 
-  async fetchWithdrawals(): Promise<FetchWithdrawalsResponse> {
-    return this.#txFetcher.fetchWithdrawals(this.#config, this.#viewKey);
+  async fetchWithdrawals({ cursor }: FetchWithdrawalsRequest = { cursor: null }): Promise<FetchWithdrawalsResponse> {
+    return this.#txFetcher.fetchWithdrawals(this.#config, this.#viewKey, cursor);
   }
 
   async claimWithdrawal(needClaimWithdrawals: ContractWithdrawal[]): Promise<ClaimWithdrawalTransactionResponse> {

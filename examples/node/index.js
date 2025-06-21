@@ -123,8 +123,23 @@ const main = async () => {
     }
   }
 
-  const withdrawals = await client.fetchWithdrawals();
+  let hasNextPage = true;
+  let withdrawal_cursor = null;
+  let withdrawals = { need_claim: [] };
+  do{
+  const resp= await client.fetchWithdrawals({
+    cursor: withdrawal_cursor,
+  });
+
+  Object.keys(withdrawals).forEach((key) => {
+    withdrawals[key] = [...withdrawals[key], ...resp[key]];
+  })
+
+  hasNextPage = resp.pagination.has_more;
+  withdrawal_cursor = resp.pagination.next_cursor;
+  console.log('Withdrawals pagination:', JSON.stringify(pagination, null, 2));
   console.log('Pending Withdrawals:', JSON.stringify(withdrawals, null, 2));
+  }while (hasNextPage);
 
   if (withdrawals.need_claim.length === 0) {
     console.log('No withdrawals to claim.');

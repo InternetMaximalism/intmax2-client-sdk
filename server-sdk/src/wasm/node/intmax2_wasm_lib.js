@@ -281,28 +281,45 @@ module.exports.generate_fee_payment_memo = function(transfer_requests, withdrawa
 /**
  * @param {Config} config
  * @param {string} view_pair
- * @param {JsDerive} derive
- * @returns {Promise<string>}
+ * @param {JsMetaDataCursor} cursor
+ * @returns {Promise<JsDepositHistory>}
  */
-module.exports.save_derive_path = function(config, view_pair, derive) {
+module.exports.fetch_deposit_history = function(config, view_pair, cursor) {
     _assertClass(config, Config);
     const ptr0 = passStringToWasm0(view_pair, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len0 = WASM_VECTOR_LEN;
-    _assertClass(derive, JsDerive);
-    const ret = wasm.save_derive_path(config.__wbg_ptr, ptr0, len0, derive.__wbg_ptr);
+    _assertClass(cursor, JsMetaDataCursor);
+    const ret = wasm.fetch_deposit_history(config.__wbg_ptr, ptr0, len0, cursor.__wbg_ptr);
     return ret;
 };
 
 /**
  * @param {Config} config
  * @param {string} view_pair
- * @returns {Promise<JsDerive[]>}
+ * @param {JsMetaDataCursor} cursor
+ * @returns {Promise<JsTransferHistory>}
  */
-module.exports.get_derive_path_list = function(config, view_pair) {
+module.exports.fetch_transfer_history = function(config, view_pair, cursor) {
     _assertClass(config, Config);
     const ptr0 = passStringToWasm0(view_pair, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.get_derive_path_list(config.__wbg_ptr, ptr0, len0);
+    _assertClass(cursor, JsMetaDataCursor);
+    const ret = wasm.fetch_transfer_history(config.__wbg_ptr, ptr0, len0, cursor.__wbg_ptr);
+    return ret;
+};
+
+/**
+ * @param {Config} config
+ * @param {string} view_pair
+ * @param {JsMetaDataCursor} cursor
+ * @returns {Promise<JsTxHistory>}
+ */
+module.exports.fetch_tx_history = function(config, view_pair, cursor) {
+    _assertClass(config, Config);
+    const ptr0 = passStringToWasm0(view_pair, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    _assertClass(cursor, JsMetaDataCursor);
+    const ret = wasm.fetch_tx_history(config.__wbg_ptr, ptr0, len0, cursor.__wbg_ptr);
     return ret;
 };
 
@@ -540,26 +557,30 @@ module.exports.get_user_data = function(config, view_pair) {
 /**
  * @param {Config} config
  * @param {string} view_pair
- * @returns {Promise<JsWithdrawalInfo[]>}
+ * @param {JsTimestampCursor} cursor
+ * @returns {Promise<JsWithdrawalInfoResponse>}
  */
-module.exports.get_withdrawal_info = function(config, view_pair) {
+module.exports.get_withdrawal_info = function(config, view_pair, cursor) {
     _assertClass(config, Config);
     const ptr0 = passStringToWasm0(view_pair, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.get_withdrawal_info(config.__wbg_ptr, ptr0, len0);
+    _assertClass(cursor, JsTimestampCursor);
+    const ret = wasm.get_withdrawal_info(config.__wbg_ptr, ptr0, len0, cursor.__wbg_ptr);
     return ret;
 };
 
 /**
  * @param {Config} config
  * @param {string} recipient
- * @returns {Promise<JsWithdrawalInfo[]>}
+ * @param {JsTimestampCursor} cursor
+ * @returns {Promise<JsWithdrawalInfoResponse>}
  */
-module.exports.get_withdrawal_info_by_recipient = function(config, recipient) {
+module.exports.get_withdrawal_info_by_recipient = function(config, recipient, cursor) {
     _assertClass(config, Config);
     const ptr0 = passStringToWasm0(recipient, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.get_withdrawal_info_by_recipient(config.__wbg_ptr, ptr0, len0);
+    _assertClass(cursor, JsTimestampCursor);
+    const ret = wasm.get_withdrawal_info_by_recipient(config.__wbg_ptr, ptr0, len0, cursor.__wbg_ptr);
     return ret;
 };
 
@@ -579,13 +600,15 @@ module.exports.get_mining_list = function(config, view_pair) {
 /**
  * @param {Config} config
  * @param {string} view_pair
- * @returns {Promise<JsClaimInfo[]>}
+ * @param {JsTimestampCursor} cursor
+ * @returns {Promise<JsClaimInfoResponse>}
  */
-module.exports.get_claim_info = function(config, view_pair) {
+module.exports.get_claim_info = function(config, view_pair, cursor) {
     _assertClass(config, Config);
     const ptr0 = passStringToWasm0(view_pair, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.get_claim_info(config.__wbg_ptr, ptr0, len0);
+    _assertClass(cursor, JsTimestampCursor);
+    const ret = wasm.get_claim_info(config.__wbg_ptr, ptr0, len0, cursor.__wbg_ptr);
     return ret;
 };
 
@@ -703,45 +726,28 @@ module.exports.check_validity_prover = function(config) {
 /**
  * @param {Config} config
  * @param {string} view_pair
- * @param {JsMetaDataCursor} cursor
- * @returns {Promise<JsDepositHistory>}
+ * @param {JsDerive} derive
+ * @returns {Promise<string>}
  */
-module.exports.fetch_deposit_history = function(config, view_pair, cursor) {
+module.exports.save_derive_path = function(config, view_pair, derive) {
     _assertClass(config, Config);
     const ptr0 = passStringToWasm0(view_pair, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len0 = WASM_VECTOR_LEN;
-    _assertClass(cursor, JsMetaDataCursor);
-    const ret = wasm.fetch_deposit_history(config.__wbg_ptr, ptr0, len0, cursor.__wbg_ptr);
+    _assertClass(derive, JsDerive);
+    const ret = wasm.save_derive_path(config.__wbg_ptr, ptr0, len0, derive.__wbg_ptr);
     return ret;
 };
 
 /**
  * @param {Config} config
  * @param {string} view_pair
- * @param {JsMetaDataCursor} cursor
- * @returns {Promise<JsTransferHistory>}
+ * @returns {Promise<JsDerive[]>}
  */
-module.exports.fetch_transfer_history = function(config, view_pair, cursor) {
+module.exports.get_derive_path_list = function(config, view_pair) {
     _assertClass(config, Config);
     const ptr0 = passStringToWasm0(view_pair, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len0 = WASM_VECTOR_LEN;
-    _assertClass(cursor, JsMetaDataCursor);
-    const ret = wasm.fetch_transfer_history(config.__wbg_ptr, ptr0, len0, cursor.__wbg_ptr);
-    return ret;
-};
-
-/**
- * @param {Config} config
- * @param {string} view_pair
- * @param {JsMetaDataCursor} cursor
- * @returns {Promise<JsTxHistory>}
- */
-module.exports.fetch_tx_history = function(config, view_pair, cursor) {
-    _assertClass(config, Config);
-    const ptr0 = passStringToWasm0(view_pair, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len0 = WASM_VECTOR_LEN;
-    _assertClass(cursor, JsMetaDataCursor);
-    const ret = wasm.fetch_tx_history(config.__wbg_ptr, ptr0, len0, cursor.__wbg_ptr);
+    const ret = wasm.get_derive_path_list(config.__wbg_ptr, ptr0, len0);
     return ret;
 };
 
@@ -1112,11 +1118,11 @@ function __wbg_adapter_50(arg0, arg1) {
 }
 
 function __wbg_adapter_53(arg0, arg1, arg2) {
-    wasm.closure1863_externref_shim(arg0, arg1, arg2);
+    wasm.closure1869_externref_shim(arg0, arg1, arg2);
 }
 
-function __wbg_adapter_722(arg0, arg1, arg2, arg3) {
-    wasm.closure2184_externref_shim(arg0, arg1, arg2, arg3);
+function __wbg_adapter_752(arg0, arg1, arg2, arg3) {
+    wasm.closure2190_externref_shim(arg0, arg1, arg2, arg3);
 }
 
 const __wbindgen_enum_RequestCredentials = ["omit", "same-origin", "include"];
@@ -1991,7 +1997,7 @@ class JsBlock {
     set prev_block_hash(arg0) {
         const ptr0 = passStringToWasm0(arg0, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
-        wasm.__wbg_set_jsauth_pubkey(this.__wbg_ptr, ptr0, len0);
+        wasm.__wbg_set_jsblock_prev_block_hash(this.__wbg_ptr, ptr0, len0);
     }
     /**
      * @returns {string}
@@ -2043,14 +2049,14 @@ class JsBlock {
      * @returns {bigint}
      */
     get timestamp() {
-        const ret = wasm.__wbg_get_jsauth_expiry(this.__wbg_ptr);
+        const ret = wasm.__wbg_get_jsblock_timestamp(this.__wbg_ptr);
         return BigInt.asUintN(64, ret);
     }
     /**
      * @param {bigint} arg0
      */
     set timestamp(arg0) {
-        wasm.__wbg_set_jsauth_expiry(this.__wbg_ptr, arg0);
+        wasm.__wbg_set_jsblock_timestamp(this.__wbg_ptr, arg0);
     }
     /**
      * @returns {number}
@@ -2256,6 +2262,13 @@ class JsClaimInfo {
         return obj;
     }
 
+    static __unwrap(jsValue) {
+        if (!(jsValue instanceof JsClaimInfo)) {
+            return 0;
+        }
+        return jsValue.__destroy_into_raw();
+    }
+
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
@@ -2347,6 +2360,66 @@ class JsClaimInfo {
     }
 }
 module.exports.JsClaimInfo = JsClaimInfo;
+
+const JsClaimInfoResponseFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_jsclaiminforesponse_free(ptr >>> 0, 1));
+
+class JsClaimInfoResponse {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(JsClaimInfoResponse.prototype);
+        obj.__wbg_ptr = ptr;
+        JsClaimInfoResponseFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        JsClaimInfoResponseFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_jsclaiminforesponse_free(ptr, 0);
+    }
+    /**
+     * @returns {JsClaimInfo[]}
+     */
+    get info() {
+        const ret = wasm.__wbg_get_jsclaiminforesponse_info(this.__wbg_ptr);
+        var v1 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
+        wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+        return v1;
+    }
+    /**
+     * @param {JsClaimInfo[]} arg0
+     */
+    set info(arg0) {
+        const ptr0 = passArrayJsValueToWasm0(arg0, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.__wbg_set_jsclaiminforesponse_info(this.__wbg_ptr, ptr0, len0);
+    }
+    /**
+     * @returns {JsTimestampCursorResponse}
+     */
+    get cursor_response() {
+        const ret = wasm.__wbg_get_jsclaiminforesponse_cursor_response(this.__wbg_ptr);
+        return JsTimestampCursorResponse.__wrap(ret);
+    }
+    /**
+     * @param {JsTimestampCursorResponse} arg0
+     */
+    set cursor_response(arg0) {
+        _assertClass(arg0, JsTimestampCursorResponse);
+        var ptr0 = arg0.__destroy_into_raw();
+        wasm.__wbg_set_jsclaiminforesponse_cursor_response(this.__wbg_ptr, ptr0);
+    }
+}
+module.exports.JsClaimInfoResponse = JsClaimInfoResponse;
 
 const JsContractWithdrawalFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
@@ -4042,14 +4115,14 @@ class JsMetaData {
      * @returns {bigint}
      */
     get timestamp() {
-        const ret = wasm.__wbg_get_jsauth_expiry(this.__wbg_ptr);
+        const ret = wasm.__wbg_get_jsblock_timestamp(this.__wbg_ptr);
         return BigInt.asUintN(64, ret);
     }
     /**
      * @param {bigint} arg0
      */
     set timestamp(arg0) {
-        wasm.__wbg_set_jsauth_expiry(this.__wbg_ptr, arg0);
+        wasm.__wbg_set_jsblock_timestamp(this.__wbg_ptr, arg0);
     }
     /**
      * @returns {string}
@@ -4072,7 +4145,7 @@ class JsMetaData {
     set digest(arg0) {
         const ptr0 = passStringToWasm0(arg0, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
-        wasm.__wbg_set_jsauth_pubkey(this.__wbg_ptr, ptr0, len0);
+        wasm.__wbg_set_jsblock_prev_block_hash(this.__wbg_ptr, ptr0, len0);
     }
 }
 module.exports.JsMetaData = JsMetaData;
@@ -4822,7 +4895,7 @@ class JsPaymentMemoEntry {
     set topic(arg0) {
         const ptr0 = passStringToWasm0(arg0, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
-        wasm.__wbg_set_intmaxaccount_address(this.__wbg_ptr, ptr0, len0);
+        wasm.__wbg_set_jspaymentmemoentry_topic(this.__wbg_ptr, ptr0, len0);
     }
     /**
      * @returns {string}
@@ -4845,7 +4918,7 @@ class JsPaymentMemoEntry {
     set memo(arg0) {
         const ptr0 = passStringToWasm0(arg0, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
-        wasm.__wbg_set_intmaxaccount_view_pair(this.__wbg_ptr, ptr0, len0);
+        wasm.__wbg_set_jspaymentmemoentry_memo(this.__wbg_ptr, ptr0, len0);
     }
 }
 module.exports.JsPaymentMemoEntry = JsPaymentMemoEntry;
@@ -4971,6 +5044,166 @@ class JsPublicKeyPair {
     }
 }
 module.exports.JsPublicKeyPair = JsPublicKeyPair;
+
+const JsTimestampCursorFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_jstimestampcursor_free(ptr >>> 0, 1));
+
+class JsTimestampCursor {
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        JsTimestampCursorFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_jstimestampcursor_free(ptr, 0);
+    }
+    /**
+     * @returns {bigint | undefined}
+     */
+    get cursor() {
+        const ret = wasm.__wbg_get_jstimestampcursor_cursor(this.__wbg_ptr);
+        return ret[0] === 0 ? undefined : BigInt.asUintN(64, ret[1]);
+    }
+    /**
+     * @param {bigint | null} [arg0]
+     */
+    set cursor(arg0) {
+        wasm.__wbg_set_jstimestampcursor_cursor(this.__wbg_ptr, !isLikeNone(arg0), isLikeNone(arg0) ? BigInt(0) : arg0);
+    }
+    /**
+     * @returns {string}
+     */
+    get order() {
+        let deferred1_0;
+        let deferred1_1;
+        try {
+            const ret = wasm.__wbg_get_jstimestampcursor_order(this.__wbg_ptr);
+            deferred1_0 = ret[0];
+            deferred1_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+        }
+    }
+    /**
+     * @param {string} arg0
+     */
+    set order(arg0) {
+        const ptr0 = passStringToWasm0(arg0, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.__wbg_set_jstimestampcursor_order(this.__wbg_ptr, ptr0, len0);
+    }
+    /**
+     * @returns {number | undefined}
+     */
+    get limit() {
+        const ret = wasm.__wbg_get_jstimestampcursor_limit(this.__wbg_ptr);
+        return ret === 0x100000001 ? undefined : ret;
+    }
+    /**
+     * @param {number | null} [arg0]
+     */
+    set limit(arg0) {
+        wasm.__wbg_set_jstimestampcursor_limit(this.__wbg_ptr, isLikeNone(arg0) ? 0x100000001 : (arg0) >>> 0);
+    }
+    /**
+     * @param {bigint | null | undefined} cursor
+     * @param {string} order
+     * @param {number | null} [limit]
+     */
+    constructor(cursor, order, limit) {
+        const ptr0 = passStringToWasm0(order, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.jstimestampcursor_new(!isLikeNone(cursor), isLikeNone(cursor) ? BigInt(0) : cursor, ptr0, len0, isLikeNone(limit) ? 0x100000001 : (limit) >>> 0);
+        this.__wbg_ptr = ret >>> 0;
+        JsTimestampCursorFinalization.register(this, this.__wbg_ptr, this);
+        return this;
+    }
+}
+module.exports.JsTimestampCursor = JsTimestampCursor;
+
+const JsTimestampCursorResponseFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_jstimestampcursorresponse_free(ptr >>> 0, 1));
+
+class JsTimestampCursorResponse {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(JsTimestampCursorResponse.prototype);
+        obj.__wbg_ptr = ptr;
+        JsTimestampCursorResponseFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        JsTimestampCursorResponseFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_jstimestampcursorresponse_free(ptr, 0);
+    }
+    /**
+     * @returns {bigint | undefined}
+     */
+    get next_cursor() {
+        const ret = wasm.__wbg_get_jstimestampcursorresponse_next_cursor(this.__wbg_ptr);
+        return ret[0] === 0 ? undefined : BigInt.asUintN(64, ret[1]);
+    }
+    /**
+     * @param {bigint | null} [arg0]
+     */
+    set next_cursor(arg0) {
+        wasm.__wbg_set_jstimestampcursor_cursor(this.__wbg_ptr, !isLikeNone(arg0), isLikeNone(arg0) ? BigInt(0) : arg0);
+    }
+    /**
+     * @returns {boolean}
+     */
+    get has_more() {
+        const ret = wasm.__wbg_get_jstimestampcursorresponse_has_more(this.__wbg_ptr);
+        return ret !== 0;
+    }
+    /**
+     * @param {boolean} arg0
+     */
+    set has_more(arg0) {
+        wasm.__wbg_set_jstimestampcursorresponse_has_more(this.__wbg_ptr, arg0);
+    }
+    /**
+     * @returns {number}
+     */
+    get total_count() {
+        const ret = wasm.__wbg_get_jstimestampcursorresponse_total_count(this.__wbg_ptr);
+        return ret >>> 0;
+    }
+    /**
+     * @param {number} arg0
+     */
+    set total_count(arg0) {
+        wasm.__wbg_set_jstimestampcursorresponse_total_count(this.__wbg_ptr, arg0);
+    }
+    /**
+     * @param {bigint | null | undefined} next_cursor
+     * @param {boolean} has_more
+     * @param {number} total_count
+     */
+    constructor(next_cursor, has_more, total_count) {
+        const ret = wasm.jstimestampcursorresponse_new(!isLikeNone(next_cursor), isLikeNone(next_cursor) ? BigInt(0) : next_cursor, has_more, total_count);
+        this.__wbg_ptr = ret >>> 0;
+        JsTimestampCursorResponseFinalization.register(this, this.__wbg_ptr, this);
+        return this;
+    }
+}
+module.exports.JsTimestampCursorResponse = JsTimestampCursorResponse;
 
 const JsTransferFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
@@ -6248,7 +6481,7 @@ class JsUserData {
      * @returns {bigint}
      */
     get tx_lpt() {
-        const ret = wasm.__wbg_get_jsdepositinfo_deposit_id(this.__wbg_ptr);
+        const ret = wasm.__wbg_get_jsuserdata_tx_lpt(this.__wbg_ptr);
         return BigInt.asUintN(64, ret);
     }
     /**
@@ -6256,7 +6489,7 @@ class JsUserData {
      * @param {bigint} arg0
      */
     set tx_lpt(arg0) {
-        wasm.__wbg_set_jsdepositinfo_deposit_id(this.__wbg_ptr, arg0);
+        wasm.__wbg_set_jsuserdata_tx_lpt(this.__wbg_ptr, arg0);
     }
     /**
      * The last unix timestamp of processed withdrawals
@@ -6366,6 +6599,13 @@ class JsWithdrawalInfo {
         return obj;
     }
 
+    static __unwrap(jsValue) {
+        if (!(jsValue instanceof JsWithdrawalInfo)) {
+            return 0;
+        }
+        return jsValue.__destroy_into_raw();
+    }
+
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
@@ -6437,6 +6677,66 @@ class JsWithdrawalInfo {
     }
 }
 module.exports.JsWithdrawalInfo = JsWithdrawalInfo;
+
+const JsWithdrawalInfoResponseFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_jswithdrawalinforesponse_free(ptr >>> 0, 1));
+
+class JsWithdrawalInfoResponse {
+
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(JsWithdrawalInfoResponse.prototype);
+        obj.__wbg_ptr = ptr;
+        JsWithdrawalInfoResponseFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        JsWithdrawalInfoResponseFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_jswithdrawalinforesponse_free(ptr, 0);
+    }
+    /**
+     * @returns {JsWithdrawalInfo[]}
+     */
+    get info() {
+        const ret = wasm.__wbg_get_jswithdrawalinforesponse_info(this.__wbg_ptr);
+        var v1 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
+        wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+        return v1;
+    }
+    /**
+     * @param {JsWithdrawalInfo[]} arg0
+     */
+    set info(arg0) {
+        const ptr0 = passArrayJsValueToWasm0(arg0, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.__wbg_set_jswithdrawalinforesponse_info(this.__wbg_ptr, ptr0, len0);
+    }
+    /**
+     * @returns {JsTimestampCursorResponse}
+     */
+    get cursor_response() {
+        const ret = wasm.__wbg_get_jsclaiminforesponse_cursor_response(this.__wbg_ptr);
+        return JsTimestampCursorResponse.__wrap(ret);
+    }
+    /**
+     * @param {JsTimestampCursorResponse} arg0
+     */
+    set cursor_response(arg0) {
+        _assertClass(arg0, JsTimestampCursorResponse);
+        var ptr0 = arg0.__destroy_into_raw();
+        wasm.__wbg_set_jsclaiminforesponse_cursor_response(this.__wbg_ptr, ptr0);
+    }
+}
+module.exports.JsWithdrawalInfoResponse = JsWithdrawalInfoResponse;
 
 const JsWithdrawalTransfersFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
@@ -6870,6 +7170,16 @@ module.exports.__wbg_jsclaiminfo_new = function(arg0) {
     return ret;
 };
 
+module.exports.__wbg_jsclaiminfo_unwrap = function(arg0) {
+    const ret = JsClaimInfo.__unwrap(arg0);
+    return ret;
+};
+
+module.exports.__wbg_jsclaiminforesponse_new = function(arg0) {
+    const ret = JsClaimInfoResponse.__wrap(arg0);
+    return ret;
+};
+
 module.exports.__wbg_jsdepositdata_new = function(arg0) {
     const ret = JsDepositData.__wrap(arg0);
     return ret;
@@ -7040,6 +7350,16 @@ module.exports.__wbg_jswithdrawalinfo_new = function(arg0) {
     return ret;
 };
 
+module.exports.__wbg_jswithdrawalinfo_unwrap = function(arg0) {
+    const ret = JsWithdrawalInfo.__unwrap(arg0);
+    return ret;
+};
+
+module.exports.__wbg_jswithdrawalinforesponse_new = function(arg0) {
+    const ret = JsWithdrawalInfoResponse.__wrap(arg0);
+    return ret;
+};
+
 module.exports.__wbg_jswithdrawaltransfers_new = function(arg0) {
     const ret = JsWithdrawalTransfers.__wrap(arg0);
     return ret;
@@ -7077,7 +7397,7 @@ module.exports.__wbg_new_23a2665fac83c611 = function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_722(a, state0.b, arg0, arg1);
+                return __wbg_adapter_752(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -7346,23 +7666,23 @@ module.exports.__wbindgen_cb_drop = function(arg0) {
     return ret;
 };
 
-module.exports.__wbindgen_closure_wrapper3806 = function(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 1056, __wbg_adapter_44);
+module.exports.__wbindgen_closure_wrapper3869 = function(arg0, arg1, arg2) {
+    const ret = makeMutClosure(arg0, arg1, 1062, __wbg_adapter_44);
     return ret;
 };
 
-module.exports.__wbindgen_closure_wrapper5495 = function(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 1816, __wbg_adapter_47);
+module.exports.__wbindgen_closure_wrapper5559 = function(arg0, arg1, arg2) {
+    const ret = makeMutClosure(arg0, arg1, 1822, __wbg_adapter_47);
     return ret;
 };
 
-module.exports.__wbindgen_closure_wrapper5599 = function(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 1848, __wbg_adapter_50);
+module.exports.__wbindgen_closure_wrapper5663 = function(arg0, arg1, arg2) {
+    const ret = makeMutClosure(arg0, arg1, 1854, __wbg_adapter_50);
     return ret;
 };
 
-module.exports.__wbindgen_closure_wrapper5624 = function(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 1864, __wbg_adapter_53);
+module.exports.__wbindgen_closure_wrapper5688 = function(arg0, arg1, arg2) {
+    const ret = makeMutClosure(arg0, arg1, 1870, __wbg_adapter_53);
     return ret;
 };
 

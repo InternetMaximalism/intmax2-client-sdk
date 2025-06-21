@@ -5,8 +5,9 @@ export function generate_withdrawal_transfers(config: Config, withdrawal_transfe
  * Generate fee payment memo from given transfers and fee transfer indices
  */
 export function generate_fee_payment_memo(transfer_requests: JsTransferRequest[], withdrawal_fee_transfer_index?: number | null, claim_fee_transfer_index?: number | null): JsPaymentMemoEntry[];
-export function save_derive_path(config: Config, view_pair: string, derive: JsDerive): Promise<string>;
-export function get_derive_path_list(config: Config, view_pair: string): Promise<JsDerive[]>;
+export function fetch_deposit_history(config: Config, view_pair: string, cursor: JsMetaDataCursor): Promise<JsDepositHistory>;
+export function fetch_transfer_history(config: Config, view_pair: string, cursor: JsMetaDataCursor): Promise<JsTransferHistory>;
+export function fetch_tx_history(config: Config, view_pair: string, cursor: JsMetaDataCursor): Promise<JsTxHistory>;
 /**
  * Generate a new key pair from the given ethereum private key (32bytes hex string).
  */
@@ -56,10 +57,10 @@ export function sync_claims(config: Config, view_pair: string, recipient: string
  * Get the user's data. It is recommended to sync before calling this function.
  */
 export function get_user_data(config: Config, view_pair: string): Promise<JsUserData>;
-export function get_withdrawal_info(config: Config, view_pair: string): Promise<JsWithdrawalInfo[]>;
-export function get_withdrawal_info_by_recipient(config: Config, recipient: string): Promise<JsWithdrawalInfo[]>;
+export function get_withdrawal_info(config: Config, view_pair: string, cursor: JsTimestampCursor): Promise<JsWithdrawalInfoResponse>;
+export function get_withdrawal_info_by_recipient(config: Config, recipient: string, cursor: JsTimestampCursor): Promise<JsWithdrawalInfoResponse>;
 export function get_mining_list(config: Config, view_pair: string): Promise<JsMining[]>;
-export function get_claim_info(config: Config, view_pair: string): Promise<JsClaimInfo[]>;
+export function get_claim_info(config: Config, view_pair: string, cursor: JsTimestampCursor): Promise<JsClaimInfoResponse>;
 export function quote_transfer_fee(config: Config, block_builder_url: string, pubkey: string, fee_token_index: number): Promise<JsTransferFeeQuote>;
 export function quote_withdrawal_fee(config: Config, withdrawal_token_index: number, fee_token_index: number): Promise<JsFeeQuote>;
 export function quote_claim_fee(config: Config, fee_token_index: number): Promise<JsFeeQuote>;
@@ -68,9 +69,8 @@ export function generate_transfer_receipt(config: Config, view_pair: string, tx_
 export function validate_transfer_receipt(config: Config, view_pair: string, transfer_receipt: string): Promise<JsTransferData>;
 export function get_balances_without_sync(config: Config, view_pair: string): Promise<TokenBalance[]>;
 export function check_validity_prover(config: Config): Promise<void>;
-export function fetch_deposit_history(config: Config, view_pair: string, cursor: JsMetaDataCursor): Promise<JsDepositHistory>;
-export function fetch_transfer_history(config: Config, view_pair: string, cursor: JsMetaDataCursor): Promise<JsTransferHistory>;
-export function fetch_tx_history(config: Config, view_pair: string, cursor: JsMetaDataCursor): Promise<JsTxHistory>;
+export function save_derive_path(config: Config, view_pair: string, derive: JsDerive): Promise<string>;
+export function get_derive_path_list(config: Config, view_pair: string): Promise<JsDerive[]>;
 /**
  * Validate if the given address is a valid Intmax address without checking the network.
  */
@@ -247,6 +247,12 @@ export class JsClaimInfo {
   set submit_claim_proof_tx_hash(value: string | null | undefined);
   get l1_tx_hash(): string | undefined;
   set l1_tx_hash(value: string | null | undefined);
+}
+export class JsClaimInfoResponse {
+  private constructor();
+  free(): void;
+  info: JsClaimInfo[];
+  cursor_response: JsTimestampCursorResponse;
 }
 export class JsContractWithdrawal {
   free(): void;
@@ -493,6 +499,23 @@ export class JsPublicKeyPair {
   view: string;
   spend: string;
 }
+export class JsTimestampCursor {
+  free(): void;
+  constructor(cursor: bigint | null | undefined, order: string, limit?: number | null);
+  get cursor(): bigint | undefined;
+  set cursor(value: bigint | null | undefined);
+  order: string;
+  get limit(): number | undefined;
+  set limit(value: number | null | undefined);
+}
+export class JsTimestampCursorResponse {
+  free(): void;
+  constructor(next_cursor: bigint | null | undefined, has_more: boolean, total_count: number);
+  get next_cursor(): bigint | undefined;
+  set next_cursor(value: bigint | null | undefined);
+  has_more: boolean;
+  total_count: number;
+}
 export class JsTransfer {
   free(): void;
   constructor(recipient: JsGenericAddress, token_index: number, amount: string, salt: string);
@@ -642,6 +665,12 @@ export class JsWithdrawalInfo {
   contract_withdrawal: JsContractWithdrawal;
   get l1_tx_hash(): string | undefined;
   set l1_tx_hash(value: string | null | undefined);
+}
+export class JsWithdrawalInfoResponse {
+  private constructor();
+  free(): void;
+  info: JsWithdrawalInfo[];
+  cursor_response: JsTimestampCursorResponse;
 }
 export class JsWithdrawalTransfers {
   private constructor();

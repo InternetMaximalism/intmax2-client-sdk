@@ -34,7 +34,7 @@ pnpm install intmax2-server-sdk
 export interface INTMAXClient {
   // properties
   isLoggedIn: boolean;
-  address: string; // IntMax public_key
+  address: string; // INTMAX address
   tokenBalances: TokenBalance[] | undefined;
 
   // account
@@ -95,8 +95,8 @@ Here you should sign two message, they will be appeared in the popup window auto
 
 ```javascript
 await intmaxClient.login();
-const address = this.intmaxClient.address; // Public key of the wallet
-const privateKey = this.intmaxClient.getPrivateKey(); // Private key of the wallet. Here you should sign message.
+const address = this.intmaxClient.address; // Your INTMAX address
+const privateKey = this.intmaxClient.getPrivateKey(); // INTMAX private key. Here you should sign message.
 ```
 
 ### Sign message
@@ -183,7 +183,7 @@ if (token) {
 const gas = await intmaxClient.estimateDepositGas({
   amount,
   token,
-  address, // Your public key of the IntMax wallet or any other IntMax wallet public key
+  address, // Your INTMAX address or any other INTMAX address
   isGasEstimation: true,
 });
 
@@ -224,7 +224,7 @@ if (!token) {
 const gas = await intmaxClient.estimateDepositGas({
   amount,
   token,
-  address, // Your public key of the IntMax wallet or any other IntMax wallet public key
+  address, // Your INTMAX address or any other INTMAX address
   isGasEstimation: true,
 });
 
@@ -255,7 +255,7 @@ const token = {
 const gas = await intmaxClient.estimateDepositGas({
   amount,
   token,
-  address, // Your public key of the IntMax wallet or any other IntMax wallet public key
+  address, // Your INTMAX address or any other INTMAX address
   isGasEstimation: true,
 });
 
@@ -285,7 +285,7 @@ const token = balances.find((b) => b.token.tokenIndex === 0).token;
 const withdraw = await intmaxClient.withdraw({
   amount,
   token,
-  address, // Your public key of ETH wallet
+  address, // Your Ethereum address or any other Ethereum address
 });
 // Withdraw response
 // {

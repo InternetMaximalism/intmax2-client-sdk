@@ -136,7 +136,7 @@ const { balances } = await intMaxClient.fetchTokenBalances();
 
 `IntMaxNodeClient` is a core component of the INTMAX SDK that provides seamless interaction with the INTMAX network.
 
-To initialize the client, you need to provide the Ethereum private key `(eth_private_key`) and the Layer 1 RPC URL (`l1_rpc_url`). These are required to sign transactions and connect to the Ethereum network.
+To initialize the client, you need to provide the Ethereum private key (`eth_private_key`) and the Layer 1 RPC URL (`l1_rpc_url`). These are required to sign transactions and connect to the Ethereum network.
 
 ```ts
 import { IntMaxNodeClient } from "intmax2-server-sdk";
@@ -164,8 +164,8 @@ const { balances } = await intMaxClient.fetchTokenBalances();
 This example retrieves the address and private key of the generated INTMAX account.
 
 ```ts
-const address = intMaxClient.address; // Public key of the wallet
-const privateKey = intMaxClient.getPrivateKey(); // Private key of the wallet. Here you should sign message.
+const address = intMaxClient.address; // Your INTMAX address
+const privateKey = intMaxClient.getPrivateKey(); // INTMAX private key. Here you should sign message.
 ```
 
 ### Sign & Verify signature
@@ -236,7 +236,7 @@ if (token) {
 const depositParams = {
   amount: 0.000001, // 0.000001 ETH
   token,
-  address: "0x2e4b60f5680324c8cbf202abdbcf9f913d75629ff9f93bc016afa822665d7322", // recipient INTMAX address
+  address: "T6ubiG36LmNce6uzcJU3h5JR5FWa72jBBLUGmEPx5VXcFtvXnBB3bqice6uzcJU3h5JR5FWa72jBBLUGmEPx5VXcB3prnCZ", // recipient INTMAX address
 };
 
 // Dry-run gas estimation
@@ -277,7 +277,7 @@ if (!token) {
 const depositParams = {
   amount: 0.000001, // 0.000001 USDC
   token,
-  address: "0x2e4b60f5680324c8cbf202abdbcf9f913d75629ff9f93bc016afa822665d7322", // recipient INTMAX address
+  address: "T6ubiG36LmNce6uzcJU3h5JR5FWa72jBBLUGmEPx5VXcFtvXnBB3bqice6uzcJU3h5JR5FWa72jBBLUGmEPx5VXcB3prnCZ", // recipient INTMAX address
 };
 
 // Dry-run gas estimation
@@ -304,7 +304,7 @@ const token = {
 const depositParams = {
   amount: 1, // Amount of the token for erc721 should be 1, for erc1155 can be more than 1
   token,
-  address: "0x2e4b60f5680324c8cbf202abdbcf9f913d75629ff9f93bc016afa822665d7322", // recipient INTMAX address
+  address: "T6ubiG36LmNce6uzcJU3h5JR5FWa72jBBLUGmEPx5VXcFtvXnBB3bqice6uzcJU3h5JR5FWa72jBBLUGmEPx5VXcB3prnCZ", // recipient INTMAX address
 };
 
 // Estimate gas if need to show for user
@@ -329,7 +329,7 @@ const token = balances.find((b) => b.token.tokenIndex === 0).token;
 
 // Withdraw
 const withdrawalResult = await intMaxClient.withdraw({
-  address: "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B", // Your public key of ETH wallet
+  address: "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B", // Your Ethereum address
   token,
   amount: 0.000001, // Amount of the token, for erc721 should be 1, for erc1155 can be more than 1
 });

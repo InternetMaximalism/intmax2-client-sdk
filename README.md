@@ -130,6 +130,12 @@ This example retrieves the balances of the generated INTMAX account.
 const { balances } = await intMaxClient.fetchTokenBalances();
 ```
 
+### Logout
+
+```ts
+await intMaxClient.logout();
+```
+
 ## Usage for Node.js
 
 ### Initialization
@@ -156,6 +162,10 @@ Here is an example of logging in to INTMAX and retrieving balances. Users need t
 await intMaxClient.login();
 const { balances } = await intMaxClient.fetchTokenBalances();
 ```
+
+### Logout
+
+Logout is not required when using the Server SDK, as it does not maintain any user session or authentication state.
 
 ## Usage for both
 
@@ -204,20 +214,26 @@ const nativeToken = tokens.find((token) => token.tokenIndex === 0);
 
 ### Fetch Transaction History
 
-Retrieves deposits, transfers, sent transactions, withdrawals in parallel, then prints the latest entries.
+Retrieves deposits, transfers, transactions, withdrawals in parallel:
+- fetchDeposits - Retrieves deposits received by the wallet
+- fetchTransfers - Retrieves transfers received by the wallet
+- fetchTransactions - Retrieves transactions sent from the wallet
+- fetchWithdrawals - Retrieves withdrawal requests made by the wallet
+
+All returned data is sorted in descending chronological order (newest first).
 
 ```ts
-const [deposits, transfers, sentTxs, withdrawals] = await Promise.all([
+const [receivedDeposits, receivedTransfers, sentTxs, requestedWithdrawals] = await Promise.all([
   client.fetchDeposits({}),
   client.fetchTransfers({}),
   client.fetchTransactions({}),
   client.fetchWithdrawals(),
 ]);
 
-console.log("Deposits:", deposits);
-console.log("Received Transfers:", transfers);
-console.log("Sent Transfers:", sentTxs);
-console.log("Withdrawals:", withdrawals);
+console.log('Received Deposits:', receivedDeposits);
+console.log('Received Transfers:', receivedTransfers);
+console.log('Sent Transfers:', sentTxs);
+console.log('Requested Withdrawals:', requestedWithdrawals);
 ```
 
 ### Deposit Native Token (ETH)
@@ -342,10 +358,4 @@ console.log("Withdrawal result:", withdrawalResult);
 const withdrawals = await intMaxClient.fetchWithdrawals();
 const claim = await intMaxClient.claimWithdrawal(withdrawals.needClaim); // Claim response (should be add additional check for receiver address you can claim withdrawals only for your address)
 console.log("Claim result:", claim);
-```
-
-### Logout
-
-```ts
-await intMaxClient.logout();
 ```

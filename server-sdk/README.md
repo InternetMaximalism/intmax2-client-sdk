@@ -34,7 +34,7 @@ pnpm install intmax2-server-sdk
 export interface INTMAXClient {
   // properties
   isLoggedIn: boolean;
-  address: string; // IntMax public_key
+  address: string; // INTMAX address
   tokenBalances: TokenBalance[] | undefined;
 
   // account
@@ -49,6 +49,7 @@ export interface INTMAXClient {
   fetchTokenBalances: () => Promise<TokenBalancesResponse>;
 
   // transaction
+  fetchTransfers: (_params: FetchTransactionsRequest) => Promise<Transaction[]>;
   fetchTransactions: (params: FetchTransactionsRequest) => Promise<Transaction[]>;
   broadcastTransaction: (
     rawTransfers: BroadcastTransactionRequest[],
@@ -74,102 +75,100 @@ export interface INTMAXClient {
 
 ### Initialization
 
-To initialize the client, you need to provide the Ethereum private key `(eth_private_key`) and the Layer 1 RPC URL (`l1_rpc_url`). These are required to sign transactions and connect to the Ethereum network.
+`IntMaxNodeClient` is a core component of the INTMAX SDK that provides seamless interaction with the INTMAX network.
 
-```javascript
-const { IntmaxNodeClient } = require('intmax2-server-sdk');
+To initialize the client, you need to provide the Ethereum private key (`eth_private_key`) and the Layer 1 RPC URL (`l1_rpc_url`). These are required to sign transactions and connect to the Ethereum network.
+
+```ts
+import { IntMaxNodeClient } from "intmax2-server-sdk";
 
 const intMaxClient = new IntMaxNodeClient({
-  environment: 'testnet', //  'mainnet' | 'testnet'
+  environment: "testnet", //  'mainnet' | 'testnet'
   eth_private_key: process.env.ETH_PRIVATE_KEY,
-  l1_rpc_url: process.env.L1_RPC_URL, // better to paste your own rpc url, by default it will be use public RPC.
+  l1_rpc_url: process.env.L1_RPC_URL,
 });
 ```
 
-### Login to get wallet
+### Login to INTMAX Network & Retrieve Balance
 
-Here you should sign two message, they will be appeared in the popup window automatically.:
+Here is an example of logging in to INTMAX and retrieving balances. Users need to retrieve their balances once before using the SDK functions.
 
-1. Sign the message confirm your ETH wallet address.
-2. Sign the message with challenge string.
-
-```javascript
-await intmaxClient.login();
-const address = this.intmaxClient.address; // Public key of the wallet
-const privateKey = this.intmaxClient.getPrivateKey(); // Private key of the wallet. Here you should sign message.
+```ts
+await intMaxClient.login();
+const { balances } = await intMaxClient.fetchTokenBalances();
 ```
 
-### Sign message
+### Retrieve INTMAX Account Address & Private Key
 
-```javascript
-const message = 'Hello, World!';
-const signature = await intmaxClient.signMessage(message);
+This example retrieves the address and private key of the generated INTMAX account.
+
+```ts
+const address = intMaxClient.address; // Your INTMAX address
+const privateKey = intMaxClient.getPrivateKey(); // INTMAX private key. Here you should sign message.
 ```
 
-### Verify signature
+### Sign & Verify signature
 
-```javascript
-const message = 'Hello, World!';
-const signature = await intmaxClient.signMessage(message);
+```ts
+const message = "Hello, World!";
+const signature = await intMaxClient.signMessage(message);
 
-const isVerified = await intmaxClient.verifySignature(signature, message);
+const isVerified = await intMaxClient.verifySignature(signature, message);
 console.log(isVerified); // true
 
-const isFakeMessageVerify = await intmaxClient.verifySignature(signature, 'Another message');
+const isFakeMessageVerify = await intMaxClient.verifySignature(
+  signature,
+  "Another message"
+);
 console.log(isFakeMessageVerify); // false
-
-const isFakeSignatureVerify = await intmaxClient.verifySignature('Another signature', message);
-console.log(isFakeSignatureVerify); // false
 ```
 
-### Get tokens list
+### List Available Tokens & Retrieve Information for a Specific Token
 
-```javascript
-const tokens = await intmaxClient.getTokensList();
-// tokens: {
-//    contractAddress: string;
-//    decimals?: number;
-//    image?: string;
-//    price: number;
-//    symbol?: string;
-//    tokenIndex: number;
-//    tokenType: TokenType;
-// }[]
-```
+Shows how to get the list of tokens supported by the network.
 
-### Get token balances
+```ts
+const tokens = await intMaxClient.getTokensList();
+console.log("Available tokens:", tokens);
 
-```javascript
-const { balances } = await intmaxClient.fetchTokenBalances();
-// balances: {
-//    token: Token; // Check get tokens list response
-//    amount: bigint;
-// }
+const nativeToken = tokens.find(
+  (t) =>
+    t.contractAddress.toLowerCase() ===
+    "0x0000000000000000000000000000000000000000"
+);
+
+// or use can use tokenIndex
+const nativeToken = tokens.find((token) => token.tokenIndex === 0);
 ```
 
 ### Fetch Transaction History
 
-Retrieves deposits, transfers, sent transactions, withdrawals in parallel, then prints the latest entries.
+Retrieves deposits, transfers, transactions, withdrawals in parallel:
+- fetchDeposits - Retrieves deposits received by the wallet
+- fetchTransfers - Retrieves transfers received by the wallet
+- fetchTransactions - Retrieves transactions sent from the wallet
+- fetchWithdrawals - Retrieves withdrawal requests made by the wallet
+
+All returned data is sorted in descending chronological order (newest first).
 
 ```ts
-const [deposits, transfers, sentTxs, withdrawals] = await Promise.all([
+const [receivedDeposits, receivedTransfers, sentTxs, requestedWithdrawals] = await Promise.all([
   client.fetchDeposits({}),
   client.fetchTransfers({}),
   client.fetchTransactions({}),
   client.fetchWithdrawals(),
 ]);
 
-console.log('Deposits:', deposits);
-console.log('Received Transfers:', transfers);
+console.log('Received Deposits:', receivedDeposits);
+console.log('Received Transfers:', receivedTransfers);
 console.log('Sent Transfers:', sentTxs);
-console.log('Withdrawals:', withdrawals);
+console.log('Requested Withdrawals:', requestedWithdrawals);
 ```
 
 ### Deposit Native Token (ETH)
 
-```javascript
-const amount = 0.1; // Amount of the token
-const tokens = await intmaxClient.getTokensList(); // Get list of the tokens
+```ts
+const tokens = await intMaxClient.getTokensList(); // Get list of the tokens
 let token = tokens.find((token) => token.tokenIndex === 0); // Find token by symbol
 
 if (token) {
@@ -179,39 +178,39 @@ if (token) {
   };
 }
 
-// Estimate gas
-const gas = await intmaxClient.estimateDepositGas({
-  amount,
+const depositParams = {
+  amount: 0.000001, // 0.000001 ETH
   token,
-  address, // Your public key of the IntMax wallet or any other IntMax wallet public key
+  address: "T6ubiG36LmNce6uzcJU3h5JR5FWa72jBBLUGmEPx5VXcFtvXnBB3bqice6uzcJU3h5JR5FWa72jBBLUGmEPx5VXcB3prnCZ", // recipient INTMAX address
+};
+
+// Dry-run gas estimation
+const gas = await intMaxClient.estimateDepositGas({
+  ...depositParams,
   isGasEstimation: true,
 });
+console.log("Estimated gas:", gas);
 
-// Deposit
-const deposit = await intmaxClient.deposit({
-  amount,
-  token,
-  address,
-});
-// Deposit response
-// {
-//  txHash: `0x${string}`;
-//  status: TransactionStatus;
-// }
+// Execute the deposit
+const depositResult = await intMaxClient.deposit(depositParams);
+console.log("Deposit result:", depositResult);
+console.log("Transaction Hash:", depositResult.txHash);
 ```
+
+The final txHash obtained can be searched on [SepoliaScan](https://sepolia.etherscan.io/).
 
 ### Deposit ERC20
 
-```javascript
-const amount = 0.1; // Amount of the token
-const tokens = await intmaxClient.getTokensList(); // Get list of the tokens
-let token = tokens.find((token) => token.tokenIndex === 0); // Find token by symbol
+```ts
+const contractAddress = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"; // ERC20 address
+const tokens = await intMaxClient.getTokensList(); // Get list of the tokens
+let token = tokens.find((token) => token.contractAddress === contractAddress); // Find token by symbol
 
 if (!token) {
   token = {
-    decimals: 18, // Decimals of the token
+    decimals: 6, // Decimals of the token
     tokenType: TokenType.ERC20,
-    contractAddress: '0x....', // Your Token address if not exist on token list
+    contractAddress, // Your Token address if not exist on token list
   };
 } else {
   token = {
@@ -220,89 +219,74 @@ if (!token) {
   };
 }
 
-// Estimate gas if need to show for user
-const gas = await intmaxClient.estimateDepositGas({
-  amount,
+const depositParams = {
+  amount: 0.000001, // 0.000001 USDC
   token,
-  address, // Your public key of the IntMax wallet or any other IntMax wallet public key
+  address: "T6ubiG36LmNce6uzcJU3h5JR5FWa72jBBLUGmEPx5VXcFtvXnBB3bqice6uzcJU3h5JR5FWa72jBBLUGmEPx5VXcB3prnCZ", // recipient INTMAX address
+};
+
+// Dry-run gas estimation
+const gas = await intMaxClient.estimateDepositGas({
+  ...depositParams,
   isGasEstimation: true,
 });
 
-// Deposit
-const deposit = await intmaxClient.deposit({
-  amount,
-  token,
-  address,
-});
-// Deposit response
-// {
-//  txHash: `0x${string}`;
-//  status: TransactionStatus;
-// }
+// Execute the deposit
+const depositResult = await intMaxClient.deposit(depositParams);
+console.log("Deposit result:", depositResult);
+console.log("Transaction Hash:", depositResult.txHash);
 ```
 
 ### Deposit ERC721 / ERC1155
 
-```javascript
-const amount = 1; // Amount of the token for erc721 should be 1, for erc1155 can be more than 1
+```ts
 const token = {
-  tokenIndex: 1, // Nft id in contract
+  tokenIndex: 1, // NFT id in contract
   tokenType: TokenType.ERC721, // or TokenType.ERC1155
-  contractAddress: '0x....', // Your Token address if not exist on token list
+  contractAddress: "0x....", // Your Token address if not exist on token list
+};
+
+const depositParams = {
+  amount: 1, // Amount of the token for erc721 should be 1, for erc1155 can be more than 1
+  token,
+  address: "T6ubiG36LmNce6uzcJU3h5JR5FWa72jBBLUGmEPx5VXcFtvXnBB3bqice6uzcJU3h5JR5FWa72jBBLUGmEPx5VXcB3prnCZ", // recipient INTMAX address
 };
 
 // Estimate gas if need to show for user
-const gas = await intmaxClient.estimateDepositGas({
-  amount,
-  token,
-  address, // Your public key of the IntMax wallet or any other IntMax wallet public key
+const gas = await intMaxClient.estimateDepositGas({
+  ...depositParams,
   isGasEstimation: true,
 });
 
 // Deposit
-const deposit = await intmaxClient.deposit({
-  amount,
-  token,
-  address,
-});
-// Deposit response
-// {
-//  txHash: `0x${string}`;
-//  status: TransactionStatus;
-// }
+const depositResult = await intMaxClient.deposit(depositParams);
+console.log("Deposit result:", depositResult);
+console.log("Transaction Hash:", depositResult.txHash);
 ```
 
 ### Withdraw
 
-```javascript
-const amount = 0.1; // Amount of the token, for erc721 should be 1, for erc1155 can be more than 1
-const { balances } = await intmaxClient.fetchTokenBalances(); // fetch token balances
+```ts
+const { balances } = await intMaxClient.fetchTokenBalances(); // fetch token balances
 
 // You can change filtration by tokenIndex or tokenAddress
 const token = balances.find((b) => b.token.tokenIndex === 0).token;
 
 // Withdraw
-const withdraw = await intmaxClient.withdraw({
-  amount,
+const withdrawalResult = await intMaxClient.withdraw({
+  address: "0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B", // Your Ethereum address
   token,
-  address, // Your public key of ETH wallet
+  amount: 0.000001, // Amount of the token, for erc721 should be 1, for erc1155 can be more than 1
 });
-// Withdraw response
-// {
-//   txTreeRoot: string;
-//   transferDigests: string[];
-// }
+console.log("Withdrawal result:", withdrawalResult);
 ```
 
 ### Claim withdrawals
 
-```javascript
-const withdrawals = await intmaxClient.fetchWithdrawals(); // Record<WithdrawalsStatus, ContractWithdrawal[]>
-const claim = await intmaxClient.claimWithdrawal(withdrawals.needClaim); // Claim response (should be add additional check for receiver address you can claim withdrawals only for your address)
-// {
-//   txHash: `0x${string}`;
-//   status: TransactionStatus;
-// }
+```ts
+const withdrawals = await intMaxClient.fetchWithdrawals();
+const claim = await intMaxClient.claimWithdrawal(withdrawals.needClaim); // Claim response (should be add additional check for receiver address you can claim withdrawals only for your address)
+console.log("Claim result:", claim);
 ```
 
 ### Logout

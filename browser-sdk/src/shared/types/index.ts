@@ -168,8 +168,7 @@ export interface PrepareDepositTransactionResponse {
 // Withdrawal
 export type FetchWithdrawalsResponse = Record<WithdrawalsStatus, ContractWithdrawal[]>;
 export type FetchWithdrawalsRequest = {
-  pubkey: string;
-  signature: [string, string, string, string];
+  cursor?: bigint | null;
 };
 
 export interface ClaimWithdrawalTransactionResponse {
@@ -237,7 +236,7 @@ export interface INTMAXClient {
   fetchDeposits: (params: FetchTransactionsRequest) => Promise<(Transaction | null)[]>;
 
   // withdrawal
-  fetchWithdrawals: (params: FetchWithdrawalsRequest) => Promise<FetchWithdrawalsResponse>;
+  fetchWithdrawals: (params?: FetchWithdrawalsRequest) => Promise<FetchWithdrawalsResponse>;
   withdraw: (params: WithdrawRequest) => Promise<WithdrawalResponse>;
   claimWithdrawal: (params: ContractWithdrawal[]) => Promise<ClaimWithdrawalTransactionResponse>;
 

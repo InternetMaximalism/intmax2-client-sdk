@@ -1,7 +1,7 @@
 import { Abi, createPublicClient, http, PublicClient } from 'viem';
 import { mainnet, sepolia } from 'viem/chains';
 
-import { Config, get_withdrawal_info, JsWithdrawalInfo } from '../../wasm/browser/intmax2_wasm_lib';
+import { Config, get_withdrawal_info, JsTimestampCursor, JsWithdrawalInfo, JsWithdrawalInfoResponse } from '../../wasm/browser/intmax2_wasm_lib';
 import { DEVNET_ENV, LiquidityAbi, MAINNET_ENV, TESTNET_ENV } from '../constants';
 import { ContractWithdrawal, IntMaxEnvironment, WithdrawalsStatus } from '../types';
 import { getWithdrawHash } from '../utils';
@@ -24,7 +24,23 @@ export class TransactionFetcher {
     });
   }
 
-  async fetchWithdrawals(config: Config, privateKey: string): Promise<Record<WithdrawalsStatus, ContractWithdrawal[]>> {
+  async #getWithdrawalInfo(
+    config: Config,
+    privateKey: string,
+    cursor: bigint | null = null,
+  ): Promise<JsWithdrawalInfoResponse> {
+    return get_withdrawal_info(
+      config,
+      privateKey,
+      new JsTimestampCursor(cursor, "desc", 256),
+    );
+  }
+
+  async fetchWithdrawals(
+    config: Config,
+    privateKey: string,
+    cursor: bigint | null = null,
+  ): Promise<Record<WithdrawalsStatus, ContractWithdrawal[]>> {
     const withdrawals = {
       [WithdrawalsStatus.Failed]: [] as ContractWithdrawal[],
       [WithdrawalsStatus.NeedClaim]: [] as ContractWithdrawal[],
@@ -32,15 +48,19 @@ export class TransactionFetcher {
       [WithdrawalsStatus.Requested]: [] as ContractWithdrawal[],
       [WithdrawalsStatus.Success]: [] as ContractWithdrawal[],
     };
-    let withdrawalInfo: JsWithdrawalInfo[];
+    let withdrawalInfo: JsWithdrawalInfoResponse;
     try {
-      withdrawalInfo = await get_withdrawal_info(config, privateKey);
+      withdrawalInfo = await this.#getWithdrawalInfo(
+        config,
+        privateKey,
+        cursor,
+      );
     } catch (e) {
       console.error(e);
       throw new Error('Failed to fetch withdrawal info');
     }
 
-    withdrawalInfo.forEach(({ contract_withdrawal, status }) => {
+    withdrawalInfo.info.forEach(({ contract_withdrawal, status }) => {
       withdrawals[status as WithdrawalsStatus].push({
         recipient: contract_withdrawal.recipient as `0x${string}`,
         nullifier: contract_withdrawal.nullifier as `0x${string}`,

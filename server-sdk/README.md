@@ -60,7 +60,7 @@ export interface INTMAXClient {
   deposit: (params: PrepareDepositTransactionRequest) => Promise<PrepareDepositTransactionResponse>;
 
   // withdrawal
-  fetchWithdrawals: (params: FetchWithdrawalsRequest) => Promise<FetchWithdrawalsResponse>;
+  fetchWithdrawals: (params?: FetchWithdrawalsRequest) => Promise<FetchWithdrawalsResponse>;
   withdraw: (params: WithdrawRequest) => Promise<WithdrawalResponse>;
   claimWithdrawal: (params: ContractWithdrawal[]) => Promise<ClaimWithdrawalTransactionResponse>;
 

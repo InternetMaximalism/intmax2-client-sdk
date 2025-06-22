@@ -85,7 +85,7 @@ export interface INTMAXClient {
 
   // withdrawal
   fetchWithdrawals: (
-    params: FetchWithdrawalsRequest
+    params?: FetchWithdrawalsRequest
   ) => Promise<FetchWithdrawalsResponse>;
   withdraw: (params: WithdrawRequest) => Promise<WithdrawalResponse>;
   claimWithdrawal: (

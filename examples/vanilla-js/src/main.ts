@@ -177,7 +177,7 @@ const createInitButton = () => {
   const button = document.createElement('button');
   button.innerHTML = 'Initialize Client';
   button.onclick = async () => {
-    client = await IntMaxClient.init({ environment: 'testnet' });
+    client = await IntMaxClient.init({ environment: 'devnet' });
     createLoginButton();
     button.remove();
   };

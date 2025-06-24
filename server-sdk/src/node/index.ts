@@ -99,6 +99,8 @@ import {
 } from '../wasm/node';
 
 export class IntMaxNodeClient implements INTMAXClient {
+  #intervalId: number | null | NodeJS.Timeout = null;
+  #isSyncInProgress: boolean = false;
   readonly #config: Config;
   readonly #tokenFetcher: TokenFetcher;
   readonly #indexerFetcher: IndexerFetcher;
@@ -148,6 +150,9 @@ export class IntMaxNodeClient implements INTMAXClient {
     this.#tokenFetcher = new TokenFetcher(environment);
     this.#indexerFetcher = new IndexerFetcher(environment);
     this.#predicateFetcher = new PredicateFetcher(environment);
+
+    //run sync job
+    this.#startPeriodicUserDataUpdate(30_000);
   }
 
   private validateConstructorParams({ environment, eth_private_key, l1_rpc_url }: ConstructorNodeParams) {
@@ -850,7 +855,13 @@ export class IntMaxNodeClient implements INTMAXClient {
     this.#viewKey = keySet.view_pair;
   }
 
-  async #fetchUserData(): Promise<JsUserData> {
+  async #syncUserData() {
+    if (this.#isSyncInProgress) {
+      return;
+    }
+    console.info('user_data_sync start');
+    this.#isSyncInProgress = true;
+
     const prevFetchData = this.#cacheMap.get('user_data_fetch');
     const prevFetchDateObj = prevFetchData?.find(
       (data: { fetchDate: number; address: string }) => data?.address?.toLowerCase() === this.address.toLowerCase(),
@@ -860,15 +871,10 @@ export class IntMaxNodeClient implements INTMAXClient {
       const prevFetchDate = prevFetchDateObj.fetchDate;
       const currentDate = new Date().getTime();
       const diff = currentDate - prevFetchDate;
-      if (diff < 180_000 && this.#userData) {
-        console.info('Skipping user data fetch');
-        return this.#userData;
-      } else if (diff < 180_000) {
-        console.info('Fetching user data without sync');
-        const userdata = await get_user_data(this.#config, this.#viewKey);
-        this.#userData = userdata;
-
-        return userdata;
+      if (diff < 180_000) {
+        this.#isSyncInProgress = false;
+        console.info('user_data_sync done');
+        return;
       }
     }
 
@@ -884,6 +890,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       console.info('Synced account balance proof');
 
       // sync withdrawals
+      console.info('Start sync withdrawals');
       await retryWithAttempts(
         () => {
           return sync_withdrawals(this.#config, this.#viewKey, 0);
@@ -896,8 +903,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       console.info('Failed to sync account balance proof', e);
     }
 
-    const userData = await get_user_data(this.#config, this.#viewKey);
-    this.#userData = userData;
+    this.#userData = await get_user_data(this.#config, this.#viewKey);
 
     const prevFetchDataArr =
       prevFetchData?.filter(
@@ -908,8 +914,37 @@ export class IntMaxNodeClient implements INTMAXClient {
       address: this.address,
     });
     this.#cacheMap.set('user_data_fetch', prevFetchDataArr);
+    this.#isSyncInProgress = false;
+    console.info('user_data_sync done');
+  }
 
-    return userData;
+  async #fetchUserData(): Promise<JsUserData> {
+    const prevFetchData = this.#cacheMap.get('user_data_fetch');
+    const prevFetchDateObj = prevFetchData?.find(
+      (data: { fetchDate: number; address: string }) => data?.address?.toLowerCase() === this.address.toLowerCase(),
+    );
+
+    let userdata: JsUserData;
+    if (prevFetchDateObj && prevFetchDateObj.address.toLowerCase() === this.address.toLowerCase()) {
+      const prevFetchDate = prevFetchDateObj.fetchDate;
+      const currentDate = new Date().getTime();
+      const diff = currentDate - prevFetchDate;
+      if (diff < 180_000 && this.#userData) {
+        console.info('Skipping user data fetch');
+        return this.#userData;
+      } else if (diff < 180_000) {
+        console.info('Fetching user data without sync');
+        userdata = await get_user_data(this.#config, this.#viewKey);
+        this.#userData = userdata;
+
+        return userdata;
+      }
+    }
+
+    userdata = await get_user_data(this.#config, this.#viewKey);
+    this.#syncUserData();
+
+    return userdata;
   }
 
   async #prepareDepositToken({ token, isGasEstimation, amount, address }: PrepareEstimateDepositTransactionRequest) {
@@ -1218,5 +1253,16 @@ export class IntMaxNodeClient implements INTMAXClient {
       maxPriorityFeePerGas,
       maxFeePerGas,
     };
+  }
+
+  #startPeriodicUserDataUpdate(interval: number) {
+    if (this.#intervalId) {
+      clearInterval(this.#intervalId);
+    }
+    this.#intervalId = setInterval(async () => {
+      if (this.isLoggedIn && this.#viewKey) {
+        await this.#syncUserData();
+      }
+    }, interval);
   }
 }

@@ -158,6 +158,7 @@ const getWalletProviderType = (): string => {
 };
 
 export class IntMaxClient implements INTMAXClient {
+  readonly #environment: IntMaxEnvironment;
   readonly #config: Config;
   readonly #tokenFetcher: TokenFetcher;
   readonly #indexerFetcher: IndexerFetcher;
@@ -195,6 +196,7 @@ export class IntMaxClient implements INTMAXClient {
       transport: http(),
     });
 
+    this.#environment = environment;
     this.#urls = environment === 'mainnet' ? MAINNET_ENV : environment === 'testnet' ? TESTNET_ENV : DEVNET_ENV;
 
     this.#vaultHttpClient = axiosClientInit({
@@ -214,6 +216,7 @@ export class IntMaxClient implements INTMAXClient {
   }
 
   static async init({ environment }: ConstructorParams): Promise<IntMaxClient> {
+    console.log(`Initializing INTMAX Client for ${environment} environment...`);
     try {
       const bytes = await fetch(wasmBytes).then((response) => {
         return response.arrayBuffer();
@@ -866,6 +869,20 @@ export class IntMaxClient implements INTMAXClient {
     const [address] = await this.#walletClient.getAddresses();
     const resp = await this.#vaultHttpClient.get<{}, WalletMetaResponse>(`/wallet/meta/${address}`);
 
+
+    let isLegacy = false;
+    if (this.#environment !== 'mainnet') {
+      const resp = await this.#vaultHttpClient.get<
+        {},
+        {
+          meta: {
+            isLegacy: boolean;
+          };
+        }
+      >(`/wallet/meta/${address}`);
+      isLegacy = resp.meta.isLegacy;
+    }
+
     const keySet = await generate_intmax_account_from_eth_key(this.#config.network, hdKey, resp.meta.isLegacy);
 
     this.address = keySet.address;
@@ -954,7 +971,7 @@ export class IntMaxClient implements INTMAXClient {
     const salt = isGasEstimation
       ? randomBytesHex(16)
       : await this.#depositToAccount({
-          amountInDecimals,
+        amountInDecimals,
           depositor: accounts[0],
           pubkey: address,
           tokenIndex: token.tokenIndex,

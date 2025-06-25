@@ -3,10 +3,12 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const main = async () => {
+  const environment = process.env.ENVIRONMENT || 'testnet';
+
   // Initialize client
   console.log('Initializing client...');
   const client = new IntMaxNodeClient({
-    environment: 'testnet',
+    environment,
     eth_private_key: process.env.ETH_PRIVATE_KEY,
     l1_rpc_url: process.env.L1_RPC_URL,
   });
@@ -126,20 +128,18 @@ const main = async () => {
   let hasNextPage = true;
   let withdrawal_cursor = null;
   let withdrawals = { need_claim: [] };
-  do{
-  const resp= await client.fetchWithdrawals({
-    cursor: withdrawal_cursor,
-  });
+  do {
+    const resp = await client.fetchWithdrawals({
+      cursor: withdrawal_cursor,
+    });
 
-  Object.keys(withdrawals).forEach((key) => {
-    withdrawals[key] = [...withdrawals[key], ...resp[key]];
-  })
+    Object.keys(withdrawals).forEach((key) => {
+      withdrawals[key] = [...withdrawals[key], ...resp.withdrawals[key]];
+    });
 
-  hasNextPage = resp.pagination.has_more;
-  withdrawal_cursor = resp.pagination.next_cursor;
-  console.log('Withdrawals pagination:', JSON.stringify(pagination, null, 2));
-  console.log('Pending Withdrawals:', JSON.stringify(withdrawals, null, 2));
-  }while (hasNextPage);
+    hasNextPage = resp.pagination.has_more;
+    withdrawal_cursor = resp.pagination.next_cursor;
+  } while (hasNextPage);
 
   if (withdrawals.need_claim.length === 0) {
     console.log('No withdrawals to claim.');

@@ -49,7 +49,6 @@ import {
   SDKUrls,
   SignMessageResponse,
   sleep,
-  spendFundsMessage,
   TESTNET_ENV,
   Token,
   TokenBalance,
@@ -159,6 +158,8 @@ const getWalletProviderType = (): string => {
 
 export class IntMaxClient implements INTMAXClient {
   readonly #environment: IntMaxEnvironment;
+  #intervalId: number | null | NodeJS.Timeout = null;
+  #isSyncInProgress: boolean = false;
   readonly #config: Config;
   readonly #tokenFetcher: TokenFetcher;
   readonly #indexerFetcher: IndexerFetcher;
@@ -213,6 +214,9 @@ export class IntMaxClient implements INTMAXClient {
     this.#tokenFetcher = new TokenFetcher(environment);
     this.#indexerFetcher = new IndexerFetcher(environment);
     this.#predicateFetcher = new PredicateFetcher(environment);
+
+    //run sync job
+    this.#startPeriodicUserDataUpdate(30_000);
   }
 
   static async init({ environment }: ConstructorParams): Promise<IntMaxClient> {
@@ -893,7 +897,13 @@ export class IntMaxClient implements INTMAXClient {
     this.#viewKey = keySet.view_pair;
   }
 
-  async #fetchUserData(): Promise<JsUserData> {
+  async #syncUserData() {
+    if (this.#isSyncInProgress) {
+      return;
+    }
+    console.info('user_data_sync start');
+    this.#isSyncInProgress = true;
+
     const prevFetchData = localStorageManager.getItem<
       {
         fetchDate: number;
@@ -906,15 +916,10 @@ export class IntMaxClient implements INTMAXClient {
       const prevFetchDate = prevFetchDateObj.fetchDate;
       const currentDate = new Date().getTime();
       const diff = currentDate - prevFetchDate;
-      if (diff < 180_000 && this.#userData) {
-        console.info('Skipping user data fetch');
-        return this.#userData;
-      } else if (diff < 180_000) {
-        console.info('Fetching user data without sync');
-        const userdata = await get_user_data(this.#config, this.#viewKey);
-        this.#userData = userdata;
-
-        return userdata;
+      if (diff < 180_000) {
+        this.#isSyncInProgress = false;
+        console.info('user_data_sync done');
+        return;
       }
     }
 
@@ -930,6 +935,7 @@ export class IntMaxClient implements INTMAXClient {
       console.info('Synced account balance proof');
 
       // sync withdrawals
+      console.info('Start sync withdrawals');
       await retryWithAttempts(
         () => {
           return sync_withdrawals(this.#config, this.#viewKey, 0);
@@ -939,11 +945,10 @@ export class IntMaxClient implements INTMAXClient {
       );
       console.info('Synced withdrawals');
     } catch (e) {
-      console.info('Failed to sync account balance proof', e);
+      console.info('Failed to sync withdrawals', e);
     }
 
-    const userData = await get_user_data(this.#config, this.#viewKey);
-    this.#userData = userData;
+    this.#userData = await get_user_data(this.#config, this.#viewKey);
 
     const prevFetchDataArr =
       prevFetchData?.filter((data) => data.address.toLowerCase() !== this.address?.toLowerCase()) ?? [];
@@ -952,8 +957,38 @@ export class IntMaxClient implements INTMAXClient {
       address: this.address,
     });
     localStorageManager.setItem('user_data_fetch', prevFetchDataArr);
+    this.#isSyncInProgress = false;
+    console.info('user_data_sync done');
+  }
 
-    return userData;
+  async #fetchUserData(): Promise<JsUserData> {
+    const prevFetchData = localStorageManager.getItem<
+      {
+        fetchDate: number;
+        address: string;
+      }[]
+    >('user_data_fetch');
+    const prevFetchDateObj = prevFetchData?.find((data) => data.address.toLowerCase() === this.address.toLowerCase());
+
+    let userdata: JsUserData;
+    if (prevFetchDateObj && prevFetchDateObj.address.toLowerCase() === this.address.toLowerCase()) {
+      const prevFetchDate = prevFetchDateObj.fetchDate;
+      const currentDate = new Date().getTime();
+      const diff = currentDate - prevFetchDate;
+      if (diff < 180_000 && this.#userData) {
+        console.info('Skipping user data fetch');
+        return this.#userData;
+      } else if (diff < 180_000) {
+        console.info('Fetching user data without sync');
+        userdata = await get_user_data(this.#config, this.#viewKey);
+        this.#userData = userdata;
+        return userdata;
+      }
+    }
+    userdata = await get_user_data(this.#config, this.#viewKey);
+    this.#syncUserData();
+
+    return userdata;
   }
 
   async #prepareDepositToken({ token, isGasEstimation, amount, address }: PrepareEstimateDepositTransactionRequest) {
@@ -972,13 +1007,13 @@ export class IntMaxClient implements INTMAXClient {
     const salt = isGasEstimation
       ? randomBytesHex(16)
       : await this.#depositToAccount({
-          amountInDecimals,
-          depositor: accounts[0],
-          pubkey: address,
-          tokenIndex: token.tokenIndex,
-          token_address: token.contractAddress as `0x${string}`,
-          token_type: token.tokenType,
-        });
+        amountInDecimals,
+        depositor: accounts[0],
+        pubkey: address,
+        tokenIndex: token.tokenIndex,
+        token_address: token.contractAddress as `0x${string}`,
+        token_type: token.tokenType,
+      });
 
     const predicateBody = this.#predicateFetcher.generateBody({
       recipientSaltHash: salt,
@@ -1187,25 +1222,14 @@ export class IntMaxClient implements INTMAXClient {
     }
   }
 
-  async #signConfimationFundsMessage(amount: string, miningAddress: string) {
-    await this.#walletClient.requestAddresses();
-
-    const [address] = await this.#walletClient.getAddresses();
-    const signature = await this.#walletClient.signMessage({
-      account: address,
-      message: spendFundsMessage(amount, miningAddress),
-    });
-
-    const verified = await this.#publicClient.verifyMessage({
-      address,
-      message: spendFundsMessage(amount, miningAddress),
-      signature,
-    });
-
-    if (!verified) {
-      throw new Error('Signature verification failed');
+  #startPeriodicUserDataUpdate(interval: number) {
+    if (this.#intervalId) {
+      clearInterval(this.#intervalId);
     }
-
-    return verified;
+    this.#intervalId = setInterval(async () => {
+      if (this.isLoggedIn && this.#viewKey) {
+        await this.#syncUserData();
+      }
+    }, interval);
   }
 }

@@ -324,7 +324,7 @@ const createWithdrawForm = async () => {
     submitButton.disabled = true;
 
     const address = addressInput.value;
-    const amount = Number(amountInput.value);
+    const amount = amountInput.value;
     const tokenInputValue = selectToken.value;
     if (balances?.length === 0) {
       throw new Error('No balances');

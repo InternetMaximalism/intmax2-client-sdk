@@ -216,7 +216,6 @@ export class IntMaxClient implements INTMAXClient {
   }
 
   static async init({ environment }: ConstructorParams): Promise<IntMaxClient> {
-    console.log(`Initializing INTMAX Client for ${environment} environment...`);
     try {
       const bytes = await fetch(wasmBytes).then((response) => {
         return response.arrayBuffer();
@@ -867,8 +866,10 @@ export class IntMaxClient implements INTMAXClient {
     }
 
     const [address] = await this.#walletClient.getAddresses();
-    const resp = await this.#vaultHttpClient.get<{}, WalletMetaResponse>(`/wallet/meta/${address}`);
 
+    if (!isAddress(address)) {
+      throw new Error('Invalid address');
+    }
 
     let isLegacy = false;
     if (this.#environment !== 'mainnet') {
@@ -883,7 +884,7 @@ export class IntMaxClient implements INTMAXClient {
       isLegacy = resp.meta.isLegacy;
     }
 
-    const keySet = await generate_intmax_account_from_eth_key(this.#config.network, hdKey, resp.meta.isLegacy);
+    const keySet = await generate_intmax_account_from_eth_key(this.#config.network, hdKey, isLegacy);
 
     this.address = keySet.address;
     this.#privateKey = keySet.key_pair;
@@ -971,7 +972,7 @@ export class IntMaxClient implements INTMAXClient {
     const salt = isGasEstimation
       ? randomBytesHex(16)
       : await this.#depositToAccount({
-        amountInDecimals,
+          amountInDecimals,
           depositor: accounts[0],
           pubkey: address,
           tokenIndex: token.tokenIndex,
@@ -979,29 +980,26 @@ export class IntMaxClient implements INTMAXClient {
           token_type: token.tokenType,
         });
 
-    let amlPermission: `0x${string}` = '0x';
-    if (!isGasEstimation) {
-      const predicateBody = this.#predicateFetcher.generateBody({
-        recipientSaltHash: salt,
-        tokenType: token.tokenType,
-        amountInWei: amountInDecimals,
-        tokenAddress: token.contractAddress,
-        tokenId: token.tokenIndex,
-      });
-      const [from] = await this.#walletClient.getAddresses();
-      const predicateMessage = await this.#predicateFetcher.fetchPredicateSignature({
-        data: predicateBody,
-        from: from as `0x${string}`,
-        to: this.#urls.predicate_contract_address as `0x${string}`,
-        msg_value: token.tokenType === TokenType.NATIVE ? amountInDecimals.toString() : '0',
-      });
+    const predicateBody = this.#predicateFetcher.generateBody({
+      recipientSaltHash: salt,
+      tokenType: token.tokenType,
+      amountInWei: amountInDecimals,
+      tokenAddress: token.contractAddress,
+      tokenId: token.tokenIndex,
+    });
+    const [from] = await this.#walletClient.getAddresses();
+    const predicateMessage = await this.#predicateFetcher.fetchPredicateSignature({
+      data: predicateBody,
+      from: from as `0x${string}`,
+      to: this.#urls.predicate_contract_address as `0x${string}`,
+      msg_value: token.tokenType === TokenType.NATIVE ? amountInDecimals.toString() : '0',
+    });
 
-      if (!predicateMessage.is_compliant) {
-        throw new Error('AML check failed');
-      }
-
-      amlPermission = this.#predicateFetcher.encodePredicateSignature(predicateMessage);
+    if (!predicateMessage.is_compliant) {
+      throw new Error('AML check failed');
     }
+
+    const amlPermission = this.#predicateFetcher.encodePredicateSignature(predicateMessage);
 
     return this.#prepareTransaction({
       recipientSaltHash: salt,

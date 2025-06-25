@@ -941,28 +941,25 @@ export class IntMaxNodeClient implements INTMAXClient {
           token_address: token.contractAddress as `0x${string}`,
         });
 
-    let amlPermission: `0x${string}` = '0x';
-    if (!isGasEstimation) {
-      const predicateBody = this.#predicateFetcher.generateBody({
-        recipientSaltHash: salt,
-        tokenType: token.tokenType,
-        amountInWei: amountInDecimals,
-        tokenAddress: token.contractAddress,
-        tokenId: token.tokenIndex,
-      });
-      const predicateMessage = await this.#predicateFetcher.fetchPredicateSignature({
-        data: predicateBody,
-        from: this.#ethAccount.address as `0x${string}`,
-        to: this.#urls.predicate_contract_address as `0x${string}`,
-        msg_value: token.tokenType === TokenType.NATIVE ? amountInDecimals.toString() : '0',
-      });
+    const predicateBody = this.#predicateFetcher.generateBody({
+      recipientSaltHash: salt,
+      tokenType: token.tokenType,
+      amountInWei: amountInDecimals,
+      tokenAddress: token.contractAddress,
+      tokenId: token.tokenIndex,
+    });
+    const predicateMessage = await this.#predicateFetcher.fetchPredicateSignature({
+      data: predicateBody,
+      from: this.#ethAccount.address as `0x${string}`,
+      to: this.#urls.predicate_contract_address as `0x${string}`,
+      msg_value: token.tokenType === TokenType.NATIVE ? amountInDecimals.toString() : '0',
+    });
 
-      if (!predicateMessage.is_compliant) {
-        throw new Error('AML check failed');
-      }
-
-      amlPermission = this.#predicateFetcher.encodePredicateSignature(predicateMessage);
+    if (!predicateMessage.is_compliant) {
+      throw new Error('AML check failed');
     }
+
+    const amlPermission = this.#predicateFetcher.encodePredicateSignature(predicateMessage);
 
     return this.#prepareTransaction({
       recipientSaltHash: salt,

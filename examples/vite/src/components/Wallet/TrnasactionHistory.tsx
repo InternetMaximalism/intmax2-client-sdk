@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { FetchWithdrawalsResponse, IntMaxClient, Transaction } from 'intmax2-client-sdk'
+import { ContractWithdrawal, IntMaxClient, Transaction, WithdrawalsStatus } from 'intmax2-client-sdk'
 import { LoadingSpinner } from '../../components/Common/LoadingSpinner'
 import { ErrorMessage } from '../../components/Common/ErrorMessage'
 
@@ -15,7 +15,7 @@ interface HistoryData {
 
 export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ client }) => {
   const [history, setHistory] = useState<HistoryData | null>(null)
-  const [withdrawals, setWithdrawals] = useState<FetchWithdrawalsResponse | null>(null)
+  const [withdrawals, setWithdrawals] = useState<Record<WithdrawalsStatus, ContractWithdrawal[]> | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'history' | 'withdrawals'>('history')
@@ -54,7 +54,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ client }
       setLoading(true)
       setError(null)
       const withdrawalData = await client.fetchWithdrawals()
-      setWithdrawals(withdrawalData)
+      setWithdrawals(withdrawalData.withdrawals ?? null)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch withdrawals'
       setError(errorMessage)
@@ -191,7 +191,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ client }
                 disabled={loading}
                 className="btn btn-success"
               >
-                {loading ? 'Claiming...' : `Claim ${withdrawals.need_claim.length} Withdrawals`}
+                {loading ? 'Claiming...' : `Claim ${withdrawals.need_claim.length } Withdrawals`}
               </button>
             )}
           </div>

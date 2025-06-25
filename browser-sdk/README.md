@@ -158,7 +158,7 @@ const [deposits, transfers, sentTxs, withdrawals] = await Promise.all([
 console.log('Deposits:', deposits);
 console.log('Received Transfers:', transfers);
 console.log('Sent Transfers:', sentTxs);
-console.log('Withdrawals:', withdrawals);
+console.log('Withdrawals:', withdrawals.withdrawals);
 ```
 
 ### Deposit Native Token (ETH)

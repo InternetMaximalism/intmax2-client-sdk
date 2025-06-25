@@ -97,7 +97,7 @@ export const WithdrawForm: React.FC<WithdrawFormProps> = ({ client }) => {
       setSuccess(null)
 
       const withdraw = await client.withdraw({
-        amount: Number(formData.amount),
+        amount: formData.amount,
         token: selectedBalance.token,
         address: formData.address as `0x${string}`,
       })

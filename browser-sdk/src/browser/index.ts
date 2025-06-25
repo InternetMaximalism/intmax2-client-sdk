@@ -27,6 +27,7 @@ import {
   DEVNET_ENV,
   FeeResponse,
   FetchTransactionsRequest,
+  FetchTransactionsResponse,
   FetchWithdrawalsRequest,
   FetchWithdrawalsResponse,
   generateEntropy,
@@ -62,7 +63,6 @@ import {
   uint8ToBase64,
   WaitForTransactionConfirmationRequest,
   WaitForTransactionConfirmationResponse,
-  WalletMetaResponse,
   wasmTxToTx,
   WithdrawalResponse,
   WithdrawRequest,
@@ -82,6 +82,7 @@ import {
   initSync,
   JsFeeQuote,
   JsFlatG2,
+  JsMetaData,
   JsMetaDataCursor,
   JsTransferRequest,
   JsTxRequestMemo,
@@ -538,75 +539,115 @@ export class IntMaxClient implements INTMAXClient {
   }
 
   // Send/Withdrawals
-  async fetchTransactions(_params: FetchTransactionsRequest): Promise<Transaction[]> {
+  async fetchTransactions(
+    { cursor, limit }: FetchTransactionsRequest = { cursor: null, limit: 256 },
+  ): Promise<FetchTransactionsResponse> {
     this.#checkAllowanceToExecuteMethod();
+    if (limit && limit > 256) {
+      throw new Error('Limit cannot be greater than 256');
+    }
 
-    const data = await fetch_tx_history(this.#config, this.#viewKey, new JsMetaDataCursor(null, 'desc'));
+    const data = await fetch_tx_history(this.#config, this.#viewKey, new JsMetaDataCursor(cursor, 'desc', limit));
 
-    return data.history
-      .map((tx) => {
-        return wasmTxToTx(
-          this.#config,
-          {
-            data: tx.data,
-            meta: tx.meta,
-            status: tx.status,
-            txType: TransactionType.Send,
-            free: tx.free,
-          },
-          this.#tokenFetcher.tokens,
-          this.address,
-        );
-      })
-      .filter(Boolean) as Transaction[];
+    return {
+      pagination: {
+        next_cursor: data.cursor_response.next_cursor ?? null,
+        has_more: data.cursor_response.has_more,
+        total_count: data.cursor_response.total_count,
+      },
+      items: data.history
+        .map((tx) => {
+          return wasmTxToTx(
+            this.#config,
+            {
+              data: tx.data,
+              meta: tx.meta,
+              status: tx.status,
+              txType: TransactionType.Send,
+              free: tx.free,
+            },
+            this.#tokenFetcher.tokens,
+            this.address,
+          );
+        })
+        .filter(Boolean) as Transaction[],
+    };
   }
 
   // Receive
-  async fetchTransfers(_params: FetchTransactionsRequest): Promise<Transaction[]> {
+  async fetchTransfers(
+    { cursor, limit }: FetchTransactionsRequest = { cursor: null, limit: 256 },
+  ): Promise<FetchTransactionsResponse> {
     this.#checkAllowanceToExecuteMethod();
+    if (limit && limit > 256) {
+      throw new Error('Limit cannot be greater than 256');
+    }
 
-    const data = await fetch_transfer_history(this.#config, this.#viewKey, new JsMetaDataCursor(null, 'desc'));
+    const data = await fetch_transfer_history(this.#config, this.#viewKey, new JsMetaDataCursor(cursor, 'desc', limit));
 
-    return data.history
-      .map((tx) => {
-        return wasmTxToTx(
-          this.#config,
-          {
-            data: tx.data,
-            meta: tx.meta,
-            status: tx.status,
-            txType: TransactionType.Receive,
-            free: tx.free,
-          },
-          this.#tokenFetcher.tokens,
-          this.address,
-        );
-      })
-      .filter(Boolean) as Transaction[];
+    return {
+      pagination: {
+        next_cursor: data.cursor_response.next_cursor ?? null,
+        has_more: data.cursor_response.has_more,
+        total_count: data.cursor_response.total_count,
+      },
+      items: data.history
+        .map((tx) => {
+          return wasmTxToTx(
+            this.#config,
+            {
+              data: tx.data,
+              meta: tx.meta,
+              status: tx.status,
+              txType: TransactionType.Receive,
+              free: tx.free,
+            },
+            this.#tokenFetcher.tokens,
+            this.address,
+          );
+        })
+        .filter(Boolean) as Transaction[],
+    };
   }
 
   // Deposit
-  async fetchDeposits(_params: FetchTransactionsRequest): Promise<Transaction[]> {
+  async fetchDeposits(
+    { cursor, limit }: FetchTransactionsRequest = { cursor: null, limit: 256 },
+  ): Promise<FetchTransactionsResponse> {
     this.#checkAllowanceToExecuteMethod();
+    if (limit && limit > 256) {
+      throw new Error('Limit cannot be greater than 256');
+    }
 
-    const data = await fetch_deposit_history(this.#config, this.#viewKey, new JsMetaDataCursor(null, 'desc'));
+    const data = await fetch_deposit_history(
+      this.#config,
+      this.#viewKey,
+      new JsMetaDataCursor(cursor as JsMetaData, 'desc'),
+    );
 
-    return data.history
-      .map((tx) => {
-        return wasmTxToTx(
-          this.#config,
-          {
-            data: tx.data,
-            meta: tx.meta,
-            status: tx.status,
-            txType: TransactionType.Deposit,
-            free: tx.free,
-          },
-          this.#tokenFetcher.tokens,
-          this.address,
-        );
-      })
-      .filter(Boolean) as Transaction[];
+    return {
+      pagination: {
+        next_cursor: data.cursor_response.next_cursor ?? null,
+        has_more: data.cursor_response.has_more,
+        total_count: data.cursor_response.total_count,
+      },
+      items: data.history
+        .map((tx) => {
+          return wasmTxToTx(
+            this.#config,
+            {
+              data: tx.data,
+              meta: tx.meta,
+              status: tx.status,
+              txType: TransactionType.Deposit,
+              free: tx.free,
+            },
+            this.#tokenFetcher.tokens,
+            this.address,
+          );
+        })
+        .filter(Boolean) as Transaction[],
+    };
   }
 
   async withdraw({ amount, address, token, claim_beneficiary }: WithdrawRequest): Promise<WithdrawalResponse> {
@@ -1007,13 +1048,13 @@ export class IntMaxClient implements INTMAXClient {
     const salt = isGasEstimation
       ? randomBytesHex(16)
       : await this.#depositToAccount({
-        amountInDecimals,
-        depositor: accounts[0],
-        pubkey: address,
-        tokenIndex: token.tokenIndex,
-        token_address: token.contractAddress as `0x${string}`,
-        token_type: token.tokenType,
-      });
+          amountInDecimals,
+          depositor: accounts[0],
+          pubkey: address,
+          tokenIndex: token.tokenIndex,
+          token_address: token.contractAddress as `0x${string}`,
+          token_type: token.tokenType,
+        });
 
     const predicateBody = this.#predicateFetcher.generateBody({
       recipientSaltHash: salt,

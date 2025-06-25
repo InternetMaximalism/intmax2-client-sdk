@@ -1,13 +1,48 @@
 /* tslint:disable */
 /* eslint-disable */
-export function generate_withdrawal_transfers(config: Config, withdrawal_transfer_request: JsTransferRequest, fee_token_index: number, with_claim_fee: boolean): Promise<JsWithdrawalTransfers>;
-/**
- * Generate fee payment memo from given transfers and fee transfer indices
- */
-export function generate_fee_payment_memo(transfer_requests: JsTransferRequest[], withdrawal_fee_transfer_index?: number | null, claim_fee_transfer_index?: number | null): JsPaymentMemoEntry[];
 export function fetch_deposit_history(config: Config, view_pair: string, cursor: JsMetaDataCursor): Promise<JsDepositHistory>;
 export function fetch_transfer_history(config: Config, view_pair: string, cursor: JsMetaDataCursor): Promise<JsTransferHistory>;
 export function fetch_tx_history(config: Config, view_pair: string, cursor: JsMetaDataCursor): Promise<JsTxHistory>;
+/**
+ * Validate if the given address is a valid Intmax address without checking the network.
+ */
+export function is_valid_intmax_address(address: string): boolean;
+/**
+ * Extracts auxiliary information from an Intmax address string, returning an `AddressAuxInfo`
+ * which contains the optional payment ID (if present) and the network as a string.
+ */
+export function extract_address_aux_info(address: string): AddressAuxInfo;
+/**
+ * Generate integrated address from a standard address and a payment ID.
+ */
+export function generate_integrated_address(address: string, payment_id: string): string;
+export function get_intmax_address_from_public_pair(network: string, public_key_pair: JsPublicKeyPair): string;
+/**
+ * Decrypt the deposit data.
+ */
+export function decrypt_deposit_data(view_pair: string, data: Uint8Array): Promise<JsDepositData>;
+/**
+ * Decrypt the transfer data. This is also used to decrypt the withdrawal data.
+ */
+export function decrypt_transfer_data(view_pair: string, data: Uint8Array): Promise<JsTransferData>;
+/**
+ * Decrypt the tx data.
+ */
+export function decrypt_tx_data(view_pair: string, data: Uint8Array): Promise<JsTxData>;
+export function generate_auth_for_store_vault(view_pair: string, use_s3: boolean): Promise<JsAuth>;
+export function fetch_encrypted_data(config: Config, auth: JsAuth, cursor: JsMetaDataCursor): Promise<JsEncryptedData[]>;
+export function get_account_info(config: Config, public_key: string): Promise<JsAccountInfo>;
+export function get_deposit_info(config: Config, pubkey_salt_hash: string): Promise<JsDepositInfo | undefined>;
+export function sign_message(private_key: string, message: Uint8Array): Promise<JsFlatG2>;
+export function verify_signature(signature: JsFlatG2, public_key: string, message: Uint8Array): Promise<boolean>;
+export function calc_simple_aggregated_pubkey(signers: string[]): string;
+export function encrypt_message(pubkey: string, data: Uint8Array): Uint8Array;
+export function decrypt_bls_interaction_step1(client_key: string, encrypted_data: Uint8Array): JsMultiEciesStep1Response;
+export function decrypt_bls_interaction_step2(server_key: string, step1_response: JsMultiEciesStep1Response): JsMultiEciesStep2Response;
+export function decrypt_bls_interaction_step3(client_key: string, step1_response: JsMultiEciesStep1Response, step2_response: JsMultiEciesStep2Response): JsMultiEciesStep3Response;
+export function multi_signature_interaction_step1(client_private_key: string, message: Uint8Array): JsMultisigStep1Response;
+export function multi_signature_interaction_step2(server_private_key: string, step1_response: JsMultisigStep1Response): JsMultisigStep2Response;
+export function multi_signature_interaction_step3(client_private_key: string, step1_response: JsMultisigStep1Response, step2_response: JsMultisigStep2Response): JsMultisigStep3Response;
 /**
  * Generate a new key pair from the given ethereum private key (32bytes hex string).
  */
@@ -71,46 +106,11 @@ export function get_balances_without_sync(config: Config, view_pair: string): Pr
 export function check_validity_prover(config: Config): Promise<void>;
 export function save_derive_path(config: Config, view_pair: string, derive: JsDerive): Promise<string>;
 export function get_derive_path_list(config: Config, view_pair: string): Promise<JsDerive[]>;
+export function generate_withdrawal_transfers(config: Config, withdrawal_transfer_request: JsTransferRequest, fee_token_index: number, with_claim_fee: boolean): Promise<JsWithdrawalTransfers>;
 /**
- * Validate if the given address is a valid Intmax address without checking the network.
+ * Generate fee payment memo from given transfers and fee transfer indices
  */
-export function is_valid_intmax_address(address: string): boolean;
-/**
- * Extracts auxiliary information from an Intmax address string, returning an `AddressAuxInfo`
- * which contains the optional payment ID (if present) and the network as a string.
- */
-export function extract_address_aux_info(address: string): AddressAuxInfo;
-/**
- * Generate integrated address from a standard address and a payment ID.
- */
-export function generate_integrated_address(address: string, payment_id: string): string;
-export function get_intmax_address_from_public_pair(network: string, public_key_pair: JsPublicKeyPair): string;
-/**
- * Decrypt the deposit data.
- */
-export function decrypt_deposit_data(view_pair: string, data: Uint8Array): Promise<JsDepositData>;
-/**
- * Decrypt the transfer data. This is also used to decrypt the withdrawal data.
- */
-export function decrypt_transfer_data(view_pair: string, data: Uint8Array): Promise<JsTransferData>;
-/**
- * Decrypt the tx data.
- */
-export function decrypt_tx_data(view_pair: string, data: Uint8Array): Promise<JsTxData>;
-export function generate_auth_for_store_vault(view_pair: string, use_s3: boolean): Promise<JsAuth>;
-export function fetch_encrypted_data(config: Config, auth: JsAuth, cursor: JsMetaDataCursor): Promise<JsEncryptedData[]>;
-export function get_account_info(config: Config, public_key: string): Promise<JsAccountInfo>;
-export function get_deposit_info(config: Config, pubkey_salt_hash: string): Promise<JsDepositInfo | undefined>;
-export function sign_message(private_key: string, message: Uint8Array): Promise<JsFlatG2>;
-export function verify_signature(signature: JsFlatG2, public_key: string, message: Uint8Array): Promise<boolean>;
-export function calc_simple_aggregated_pubkey(signers: string[]): string;
-export function encrypt_message(pubkey: string, data: Uint8Array): Uint8Array;
-export function decrypt_bls_interaction_step1(client_key: string, encrypted_data: Uint8Array): JsMultiEciesStep1Response;
-export function decrypt_bls_interaction_step2(server_key: string, step1_response: JsMultiEciesStep1Response): JsMultiEciesStep2Response;
-export function decrypt_bls_interaction_step3(client_key: string, step1_response: JsMultiEciesStep1Response, step2_response: JsMultiEciesStep2Response): JsMultiEciesStep3Response;
-export function multi_signature_interaction_step1(client_private_key: string, message: Uint8Array): JsMultisigStep1Response;
-export function multi_signature_interaction_step2(server_private_key: string, step1_response: JsMultisigStep1Response): JsMultisigStep2Response;
-export function multi_signature_interaction_step3(client_private_key: string, step1_response: JsMultisigStep1Response, step2_response: JsMultisigStep2Response): JsMultisigStep3Response;
+export function generate_fee_payment_memo(transfer_requests: JsTransferRequest[], withdrawal_fee_transfer_index?: number | null, claim_fee_transfer_index?: number | null): JsPaymentMemoEntry[];
 export class AddressAuxInfo {
   private constructor();
   free(): void;
@@ -548,6 +548,7 @@ export class JsTransferFeeQuote {
   get collateral_fee(): JsFee | undefined;
   set collateral_fee(value: JsFee | null | undefined);
   block_builder_address: string;
+  is_registration_block: boolean;
 }
 export class JsTransferHistory {
   private constructor();

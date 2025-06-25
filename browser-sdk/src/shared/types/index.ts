@@ -216,7 +216,7 @@ export interface ConstructorNodeParams extends ConstructorParams {
 export interface INTMAXClient {
   // properties
   isLoggedIn: boolean;
-  address: string; // IntMax public_key
+  address: string; // IntMax address
   tokenBalances: TokenBalance[] | undefined;
 
   // account

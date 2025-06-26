@@ -15,7 +15,7 @@ import {
   WriteContractParameters,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { mainnet, sepolia } from 'viem/chains';
+import { sepolia } from 'viem/chains';
 
 import {
   axiosClientInit,
@@ -124,6 +124,10 @@ export class IntMaxNodeClient implements INTMAXClient {
   tokenBalances: TokenBalance[] = [];
 
   constructor(params: ConstructorNodeParams) {
+    if (params.environment === 'mainnet') {
+      throw new Error('Mainnet is not supported yet');
+    }
+
     this.validateConstructorParams(params);
     const { environment, eth_private_key, l1_rpc_url } = params;
 
@@ -131,21 +135,28 @@ export class IntMaxNodeClient implements INTMAXClient {
     this.#ethAccount = privateKeyToAccount(eth_private_key);
 
     this.#publicClient = createPublicClient({
-      chain: environment === 'mainnet' ? mainnet : sepolia,
+      // chain: environment === 'mainnet' ? mainnet : sepolia,
+      chain: sepolia,
       transport: l1_rpc_url ? http(l1_rpc_url) : http(),
     });
 
+    // this.#vaultHttpClient = axiosClientInit({
+    //   baseURL:
+    //     environment === 'mainnet'
+    //       ? MAINNET_ENV.key_vault_url
+    //       : environment === 'testnet'
+    //         ? TESTNET_ENV.key_vault_url
+    //         : DEVNET_ENV.key_vault_url,
+    // });
     this.#vaultHttpClient = axiosClientInit({
-      baseURL:
-        environment === 'mainnet'
-          ? MAINNET_ENV.key_vault_url
-          : environment === 'testnet'
-            ? TESTNET_ENV.key_vault_url
-            : DEVNET_ENV.key_vault_url,
+      baseURL: environment === 'testnet'
+        ? TESTNET_ENV.key_vault_url
+        : DEVNET_ENV.key_vault_url,
     });
 
     this.#environment = environment;
-    this.#urls = environment === 'mainnet' ? MAINNET_ENV : environment === 'testnet' ? TESTNET_ENV : DEVNET_ENV;
+    // this.#urls = environment === 'mainnet' ? MAINNET_ENV : environment === 'testnet' ? TESTNET_ENV : DEVNET_ENV;
+    this.#urls = environment === 'testnet' ? TESTNET_ENV : DEVNET_ENV;
 
     this.#config = this.#generateConfig(environment);
     this.#txFetcher = new TransactionFetcher(environment);

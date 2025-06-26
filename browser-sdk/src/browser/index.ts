@@ -15,7 +15,7 @@ import {
   WalletClient,
   WriteContractParameters,
 } from 'viem';
-import { mainnet, sepolia } from 'viem/chains';
+import { sepolia } from 'viem/chains';
 
 import {
   axiosClientInit,
@@ -62,7 +62,6 @@ import {
   uint8ToBase64,
   WaitForTransactionConfirmationRequest,
   WaitForTransactionConfirmationResponse,
-  WalletMetaResponse,
   wasmTxToTx,
   WithdrawalResponse,
   WithdrawRequest,
@@ -181,32 +180,41 @@ export class IntMaxClient implements INTMAXClient {
   tokenBalances: TokenBalance[] = [];
 
   constructor({ async_params, environment }: ConstructorParams) {
+    if (environment === 'mainnet') {
+      throw new Error('Mainnet is not supported yet');
+    }
+
     if (typeof async_params === 'undefined') {
       throw new Error('Cannot be called directly');
     }
     initSync(async_params);
 
     this.#walletClient = createWalletClient({
-      chain: environment === 'mainnet' ? mainnet : sepolia,
+      chain: sepolia,
       transport: custom(window.ethereum!),
     });
     this.#walletProviderType = getWalletProviderType();
 
     this.#publicClient = createPublicClient({
-      chain: environment === 'mainnet' ? mainnet : sepolia,
+      chain: sepolia,
       transport: http(),
     });
 
     this.#environment = environment;
-    this.#urls = environment === 'mainnet' ? MAINNET_ENV : environment === 'testnet' ? TESTNET_ENV : DEVNET_ENV;
+    this.#urls = environment === 'testnet' ? TESTNET_ENV : DEVNET_ENV;
 
+    // this.#vaultHttpClient = axiosClientInit({
+    //   baseURL:
+    //     environment === 'mainnet'
+    //       ? MAINNET_ENV.key_vault_url
+    //       : environment === 'testnet'
+    //         ? TESTNET_ENV.key_vault_url
+    //         : DEVNET_ENV.key_vault_url,
+    // });
     this.#vaultHttpClient = axiosClientInit({
-      baseURL:
-        environment === 'mainnet'
-          ? MAINNET_ENV.key_vault_url
-          : environment === 'testnet'
-            ? TESTNET_ENV.key_vault_url
-            : DEVNET_ENV.key_vault_url,
+      baseURL: environment === 'testnet'
+        ? TESTNET_ENV.key_vault_url
+        : DEVNET_ENV.key_vault_url,
     });
 
     this.#config = this.#generateConfig(environment);

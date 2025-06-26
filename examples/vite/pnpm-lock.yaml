@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       intmax2-client-sdk:
-        specifier: ^1.2.6
-        version: 1.2.6(typescript@5.8.3)
+        specifier: file:../../browser-sdk
+        version: file:../../browser-sdk(typescript@5.8.3)
       react:
         specifier: ^19.1.0
         version: 19.1.0
@@ -946,8 +946,8 @@ packages:
   inherits@2.0.3:
     resolution: {integrity: sha512-x00IRNXNy63jwGkJmzPigoySHbaqpNuzKbBOmzK+g2OdZpQ9w+sxCN+VSB3ja7IAge2OP2qpfxTjeNcyjmW1uw==}
 
-  intmax2-client-sdk@1.2.6:
-    resolution: {integrity: sha512-gjc/BjUSIaQvQTTh5z8qca4Kveeo3wPn99FoSjuIlfawMIwtQaDsw1UVMngiUadawDpfvNGtHrx2YNZNWIdpRA==}
+  intmax2-client-sdk@file:../../browser-sdk:
+    resolution: {directory: ../../browser-sdk, type: directory}
     engines: {node: '>=18'}
 
   is-extglob@2.1.1:
@@ -2158,7 +2158,7 @@ snapshots:
 
   inherits@2.0.3: {}
 
-  intmax2-client-sdk@1.2.6(typescript@5.8.3):
+  intmax2-client-sdk@file:../../browser-sdk(typescript@5.8.3):
     dependencies:
       '@scure/bip32': 1.7.0
       '@scure/bip39': 1.6.0

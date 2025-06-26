@@ -21,6 +21,7 @@ import {
   axiosClientInit,
   BroadcastTransactionRequest,
   BroadcastTransactionResponse,
+  checkIsValidBlockBuilderFee,
   ClaimWithdrawalTransactionResponse,
   ConstructorParams,
   ContractWithdrawal,
@@ -84,6 +85,7 @@ import {
   JsFlatG2,
   JsMetaData,
   JsMetaDataCursor,
+  JsTransferFeeQuote,
   JsTransferRequest,
   JsTxRequestMemo,
   JsTxResult,
@@ -483,6 +485,12 @@ export class IntMaxClient implements INTMAXClient {
       if (!fee) {
         throw new Error('Failed to quote transfer fee');
       }
+      if (fee.fee) {
+        if (!checkIsValidBlockBuilderFee(fee.fee, fee.is_registration_block)) {
+          await this.#indexerFetcher.fetchBlockBuilderUrl();
+          throw new Error('Invalid fee from block builder. Try again...');
+        }
+      }
 
       let withdrawalTransfers: JsWithdrawalTransfers | undefined;
 
@@ -846,7 +854,15 @@ export class IntMaxClient implements INTMAXClient {
       await this.#indexerFetcher.getBlockBuilderUrl(),
       this.#spendPub as string,
       0,
-    )) as JsFeeQuote;
+    )) as JsTransferFeeQuote;
+
+    if (transferFee.fee) {
+      if (!checkIsValidBlockBuilderFee(transferFee.fee, transferFee.is_registration_block)) {
+        await this.#indexerFetcher.fetchBlockBuilderUrl();
+        throw new Error('Invalid fee from block builder. Try again...');
+      }
+    }
+
     return {
       beneficiary: transferFee.beneficiary,
       fee: transferFee.fee,

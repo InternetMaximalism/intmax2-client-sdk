@@ -4,14 +4,21 @@ import { DEVNET_ENV, MAINNET_ENV, TESTNET_ENV } from '../constants';
 import { BlockBuilderResponse, Fee, IntMaxEnvironment } from '../types';
 import { axiosClientInit } from '../utils';
 
+export const REGISTRATION_FEE_THRESHOLD: bigint = 2500000000000n; // 2,500 Gwei
+export const NON_REGISTRATION_FEE_THRESHOLD: bigint = 2500000000000n; // 2,500 Gwei
+
+export const checkIsValidBlockBuilderFee = (fee: Fee, isRegistrationBlock: boolean): boolean => {
+  return BigInt(fee.amount) <= (isRegistrationBlock ? REGISTRATION_FEE_THRESHOLD : NON_REGISTRATION_FEE_THRESHOLD);
+};
+
 const checkIsFeeInfoValid = (nonRegistrationFee: Fee[], registrationFee: Fee[]): boolean => {
   const ethRegistrationFee = registrationFee.find((fee) => fee.token_index === 0);
   const ethNonRegistrationFee = nonRegistrationFee.find((fee) => fee.token_index === 0);
   if (!ethRegistrationFee || !ethNonRegistrationFee) {
     return false;
   }
-  const isEthRegistrationFeeValid = BigInt(ethRegistrationFee.amount) <= 2500000000000n; // 2,500 Gwei
-  const isEthNonRegistrationFeeValid = BigInt(ethNonRegistrationFee.amount) <= 2500000000000n; // 2,500 Gwei
+  const isEthRegistrationFeeValid = checkIsValidBlockBuilderFee(ethRegistrationFee, true);
+  const isEthNonRegistrationFeeValid = checkIsValidBlockBuilderFee(ethNonRegistrationFee, false);
 
   return isEthRegistrationFeeValid && isEthNonRegistrationFeeValid;
 };

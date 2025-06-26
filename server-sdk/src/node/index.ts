@@ -21,6 +21,7 @@ import {
   axiosClientInit,
   BroadcastTransactionRequest,
   BroadcastTransactionResponse,
+  checkIsValidBlockBuilderFee,
   ClaimWithdrawalTransactionResponse,
   ConstructorNodeParams,
   ContractWithdrawal,
@@ -81,6 +82,7 @@ import {
   JsFlatG2,
   JsMetaData,
   JsMetaDataCursor,
+  JsTransferFeeQuote,
   JsTransferRequest,
   JsTxRequestMemo,
   JsTxResult,
@@ -151,9 +153,7 @@ export class IntMaxNodeClient implements INTMAXClient {
     //         : DEVNET_ENV.key_vault_url,
     // });
     this.#vaultHttpClient = axiosClientInit({
-      baseURL: environment === 'testnet'
-        ? TESTNET_ENV.key_vault_url
-        : DEVNET_ENV.key_vault_url,
+      baseURL: environment === 'testnet' ? TESTNET_ENV.key_vault_url : DEVNET_ENV.key_vault_url,
     });
 
     this.#environment = environment;
@@ -410,6 +410,12 @@ export class IntMaxNodeClient implements INTMAXClient {
 
       if (!fee) {
         throw new Error('Failed to quote transfer fee');
+      }
+      if (fee.fee) {
+        if (!checkIsValidBlockBuilderFee(fee.fee, fee.is_registration_block)) {
+          await this.#indexerFetcher.fetchBlockBuilderUrl();
+          throw new Error('Invalid fee from block builder. Try again...');
+        }
       }
 
       let withdrawalTransfers: JsWithdrawalTransfers | undefined;
@@ -821,7 +827,15 @@ export class IntMaxNodeClient implements INTMAXClient {
       await this.#indexerFetcher.getBlockBuilderUrl(),
       this.#spendPub as string,
       0,
-    )) as JsFeeQuote;
+    )) as JsTransferFeeQuote;
+
+    if (transferFee.fee) {
+      if (!checkIsValidBlockBuilderFee(transferFee.fee, transferFee.is_registration_block)) {
+        await this.#indexerFetcher.fetchBlockBuilderUrl();
+        throw new Error('Invalid fee from block builder. Try again...');
+      }
+    }
+
     return {
       beneficiary: transferFee.beneficiary,
       fee: transferFee.fee,

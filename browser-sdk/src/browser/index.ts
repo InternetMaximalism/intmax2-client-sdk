@@ -180,13 +180,13 @@ export class IntMaxClient implements INTMAXClient {
   tokenBalances: TokenBalance[] = [];
 
   constructor({ async_params, environment }: ConstructorParams) {
+    if (typeof async_params === 'undefined') {
+      throw new Error('Cannot be called directly');
+    }
     if (environment === 'mainnet') {
       throw new Error('Mainnet is not supported yet');
     }
 
-    if (typeof async_params === 'undefined') {
-      throw new Error('Cannot be called directly');
-    }
     initSync(async_params);
 
     this.#walletClient = createWalletClient({
@@ -212,9 +212,7 @@ export class IntMaxClient implements INTMAXClient {
     //         : DEVNET_ENV.key_vault_url,
     // });
     this.#vaultHttpClient = axiosClientInit({
-      baseURL: environment === 'testnet'
-        ? TESTNET_ENV.key_vault_url
-        : DEVNET_ENV.key_vault_url,
+      baseURL: environment === 'testnet' ? TESTNET_ENV.key_vault_url : DEVNET_ENV.key_vault_url,
     });
 
     this.#config = this.#generateConfig(environment);
@@ -1015,13 +1013,13 @@ export class IntMaxClient implements INTMAXClient {
     const salt = isGasEstimation
       ? randomBytesHex(16)
       : await this.#depositToAccount({
-        amountInDecimals,
-        depositor: accounts[0],
-        pubkey: address,
-        tokenIndex: token.tokenIndex,
-        token_address: token.contractAddress as `0x${string}`,
-        token_type: token.tokenType,
-      });
+          amountInDecimals,
+          depositor: accounts[0],
+          pubkey: address,
+          tokenIndex: token.tokenIndex,
+          token_address: token.contractAddress as `0x${string}`,
+          token_type: token.tokenType,
+        });
 
     const predicateBody = this.#predicateFetcher.generateBody({
       recipientSaltHash: salt,

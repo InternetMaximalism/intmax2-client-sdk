@@ -308,7 +308,7 @@ export interface IntMaxTxBroadcast {
   depositor?: `0x${string}`;
 }
 
-interface Fee {
+export interface Fee {
   amount: string;
   token_index: number;
 }

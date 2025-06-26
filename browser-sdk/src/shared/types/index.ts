@@ -1,17 +1,15 @@
 // General
 
-export interface FetchItemsRequest<T> {
-  page?: number;
-  pageSize?: number;
-  sortBy?: keyof T;
-  sortOrder?: 'asc' | 'desc';
+import { JsMetaData } from '../../wasm/browser/intmax2_wasm_lib';
+
+export interface FetchItemsRequest {
+  cursor: JsMetaData | null;
+  limit?: number;
 }
 
 export interface FetchItemsResponse<T> {
   items: T[];
-  currentPage: number;
-  totalPages: number;
-  totalCount: number;
+  pagination: PaginationCursor;
 }
 
 export enum TokenType {
@@ -94,7 +92,7 @@ export interface Transaction {
   txType: TransactionType;
   tokenAddress?: string;
 }
-export type FetchTransactionsRequest = FetchItemsRequest<Transaction>;
+export type FetchTransactionsRequest = FetchItemsRequest;
 export type FetchTransactionsResponse = FetchItemsResponse<Transaction>;
 
 export interface BroadcastTransactionRequest {
@@ -166,7 +164,7 @@ export interface PrepareDepositTransactionResponse {
 }
 
 export type PaginationCursor = {
-  next_cursor: bigint | null;
+  next_cursor: bigint | null | JsMetaData;
   has_more: boolean;
   total_count: number;
 };
@@ -231,7 +229,7 @@ export interface INTMAXClient {
   fetchTokenBalances: () => Promise<TokenBalancesResponse>;
 
   // transaction
-  fetchTransactions: (params: FetchTransactionsRequest) => Promise<Transaction[]>;
+  fetchTransactions: (params: FetchTransactionsRequest | undefined) => Promise<FetchTransactionsResponse>;
   broadcastTransaction: (
     rawTransfers: BroadcastTransactionRequest[],
     isWithdrawal: boolean,
@@ -240,9 +238,12 @@ export interface INTMAXClient {
     params: WaitForTransactionConfirmationRequest,
   ) => Promise<WaitForTransactionConfirmationResponse>;
 
+  //receiveTxs
+  fetchTransfers: (params: FetchTransactionsRequest | undefined) => Promise<FetchTransactionsResponse>;
+
   // deposit
   deposit: (params: PrepareDepositTransactionRequest) => Promise<PrepareDepositTransactionResponse>;
-  fetchDeposits: (params: FetchTransactionsRequest) => Promise<(Transaction | null)[]>;
+  fetchDeposits: (params: FetchTransactionsRequest | undefined) => Promise<FetchTransactionsResponse>;
 
   // withdrawal
   fetchWithdrawals: (params?: FetchWithdrawalsRequest) => Promise<FetchWithdrawalsResponse>;

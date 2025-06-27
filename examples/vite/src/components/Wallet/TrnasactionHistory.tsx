@@ -24,13 +24,19 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ client }
     try {
       setLoading(true)
       setError(null)
-      
-      const [deposits, receiveTransfers, sendTransfers] = await Promise.all([
-        client.fetchDeposits({}),
-        client.fetchTransfers({}),
-        client.fetchTransactions({}),
-      ])
-      
+
+      const [depositsData,transfersData, txData] = await Promise.allSettled([
+        client.fetchDeposits(),
+        client.fetchTransfers(),
+        client.fetchTransactions(),
+      ]);
+
+      const deposits = depositsData.status === 'fulfilled' ? depositsData.value.items : []
+      const receiveTransfers = transfersData.status === 'fulfilled' ? transfersData.value.items : []
+      const sendTransfers = transfersData.status === 'fulfilled' ? txData.value.items : []
+
+
+
       setHistory({
         deposits,
         receiveTransfers,
@@ -66,13 +72,13 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ client }
 
   const claimWithdrawals = async () => {
     if (!withdrawals || withdrawals.need_claim.length === 0) return
-    
+
     try {
       setLoading(true)
       setError(null)
       const result = await client.claimWithdrawal(withdrawals.need_claim)
       console.log('Claim result:', result)
-      
+
       // Refresh withdrawals after claiming
       await fetchWithdrawals()
     } catch (err) {
@@ -101,13 +107,13 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ client }
       <div className="history-header">
         <h3>Transaction History</h3>
         <div className="tab-buttons">
-          <button 
+          <button
             onClick={() => setActiveTab('history')}
             className={`btn btn-sm ${activeTab === 'history' ? 'btn-primary' : 'btn-secondary'}`}
           >
             History
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('withdrawals')}
             className={`btn btn-sm ${activeTab === 'withdrawals' ? 'btn-primary' : 'btn-secondary'}`}
           >
@@ -118,24 +124,24 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ client }
 
       {activeTab === 'history' && (
         <div className="history-tab">
-          <button 
-            onClick={fetchHistory} 
+          <button
+            onClick={fetchHistory}
             disabled={loading}
             className="btn btn-primary"
           >
             {loading ? 'Fetching...' : 'Fetch Transaction History'}
           </button>
-          
+
           {loading && <LoadingSpinner size="small" text="Fetching history..." />}
           {error && <ErrorMessage message={error} />}
-          
+
           {history && (
             <div className="history-sections">
               <div className="history-section">
                 <h4>Deposits ({history.deposits.length})</h4>
                 <div className="transactions-list">
                   {history.deposits.length > 0 ? (
-                    history.deposits.map((deposit, index) => 
+                    history.deposits.map((deposit, index) =>
                       renderTransactionItem(deposit, index, 'Deposit')
                     )
                   ) : (
@@ -143,12 +149,12 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ client }
                   )}
                 </div>
               </div>
-              
+
               <div className="history-section">
                 <h4>Received Transfers ({history.receiveTransfers.length})</h4>
                 <div className="transactions-list">
                   {history.receiveTransfers.length > 0 ? (
-                    history.receiveTransfers.map((transfer, index) => 
+                    history.receiveTransfers.map((transfer, index) =>
                       renderTransactionItem(transfer, index, 'Received')
                     )
                   ) : (
@@ -156,12 +162,12 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ client }
                   )}
                 </div>
               </div>
-              
+
               <div className="history-section">
                 <h4>Sent Transfers ({history.sendTransfers.length})</h4>
                 <div className="transactions-list">
                   {history.sendTransfers.length > 0 ? (
-                    history.sendTransfers.map((transfer, index) => 
+                    history.sendTransfers.map((transfer, index) =>
                       renderTransactionItem(transfer, index, 'Sent')
                     )
                   ) : (
@@ -177,17 +183,17 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ client }
       {activeTab === 'withdrawals' && (
         <div className="withdrawals-tab">
           <div className="withdrawals-actions">
-            <button 
-              onClick={fetchWithdrawals} 
+            <button
+              onClick={fetchWithdrawals}
               disabled={loading}
               className="btn btn-primary"
             >
               {loading ? 'Fetching...' : 'Fetch Withdrawals'}
             </button>
-            
+
             {withdrawals && withdrawals.need_claim.length > 0 && (
-              <button 
-                onClick={claimWithdrawals} 
+              <button
+                onClick={claimWithdrawals}
                 disabled={loading}
                 className="btn btn-success"
               >
@@ -195,10 +201,10 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ client }
               </button>
             )}
           </div>
-          
+
           {loading && <LoadingSpinner size="small" text="Processing..." />}
           {error && <ErrorMessage message={error} />}
-          
+
           {withdrawals && (
             <div className="withdrawals-data">
               <div className="withdrawal-section">
@@ -211,7 +217,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ client }
                   <p className="no-withdrawals">No pending withdrawals</p>
                 )}
               </div>
-              
+
               <div className="withdrawal-section">
                 <h4>All Withdrawals</h4>
                 <pre className="withdrawal-data">

@@ -177,7 +177,7 @@ const createInitButton = () => {
   const button = document.createElement('button');
   button.innerHTML = 'Initialize Client';
   button.onclick = async () => {
-    client = await IntMaxClient.init({ environment: 'testnet' });
+    client = await IntMaxClient.init({ environment: 'devnet' });
     createLoginButton();
     button.remove();
   };
@@ -376,7 +376,7 @@ const fetchHistoryButton = () => {
     button.innerHTML = 'Fetching...';
 
     try {
-      const promises = [client.fetchDeposits({}), client.fetchTransfers({}), client.fetchTransactions({})];
+      const promises = [client.fetchDeposits(), client.fetchTransfers(), client.fetchTransactions()];
       const [deposits, receiveTxs, send] = await Promise.all(promises);
 
       const history = {

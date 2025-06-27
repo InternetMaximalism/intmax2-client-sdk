@@ -1043,34 +1043,6 @@ export function check_validity_prover(config) {
 
 /**
  * @param {Config} config
- * @param {string} view_pair
- * @param {JsDerive} derive
- * @returns {Promise<string>}
- */
-export function save_derive_path(config, view_pair, derive) {
-    _assertClass(config, Config);
-    const ptr0 = passStringToWasm0(view_pair, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len0 = WASM_VECTOR_LEN;
-    _assertClass(derive, JsDerive);
-    const ret = wasm.save_derive_path(config.__wbg_ptr, ptr0, len0, derive.__wbg_ptr);
-    return ret;
-}
-
-/**
- * @param {Config} config
- * @param {string} view_pair
- * @returns {Promise<JsDerive[]>}
- */
-export function get_derive_path_list(config, view_pair) {
-    _assertClass(config, Config);
-    const ptr0 = passStringToWasm0(view_pair, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.get_derive_path_list(config.__wbg_ptr, ptr0, len0);
-    return ret;
-}
-
-/**
- * @param {Config} config
  * @param {JsTransferRequest} withdrawal_transfer_request
  * @param {number} fee_token_index
  * @param {boolean} with_claim_fee
@@ -1102,6 +1074,34 @@ export function generate_fee_payment_memo(transfer_requests, withdrawal_fee_tran
     return v2;
 }
 
+/**
+ * @param {Config} config
+ * @param {string} view_pair
+ * @param {JsDerive} derive
+ * @returns {Promise<string>}
+ */
+export function save_derive_path(config, view_pair, derive) {
+    _assertClass(config, Config);
+    const ptr0 = passStringToWasm0(view_pair, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    _assertClass(derive, JsDerive);
+    const ret = wasm.save_derive_path(config.__wbg_ptr, ptr0, len0, derive.__wbg_ptr);
+    return ret;
+}
+
+/**
+ * @param {Config} config
+ * @param {string} view_pair
+ * @returns {Promise<JsDerive[]>}
+ */
+export function get_derive_path_list(config, view_pair) {
+    _assertClass(config, Config);
+    const ptr0 = passStringToWasm0(view_pair, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.get_derive_path_list(config.__wbg_ptr, ptr0, len0);
+    return ret;
+}
+
 function __wbg_adapter_44(arg0, arg1) {
     wasm._dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h7b1ee111f31eaefa(arg0, arg1);
 }
@@ -1115,11 +1115,11 @@ function __wbg_adapter_50(arg0, arg1) {
 }
 
 function __wbg_adapter_53(arg0, arg1, arg2) {
-    wasm.closure1863_externref_shim(arg0, arg1, arg2);
+    wasm.closure1862_externref_shim(arg0, arg1, arg2);
 }
 
 function __wbg_adapter_754(arg0, arg1, arg2, arg3) {
-    wasm.closure2184_externref_shim(arg0, arg1, arg2, arg3);
+    wasm.closure2183_externref_shim(arg0, arg1, arg2, arg3);
 }
 
 const __wbindgen_enum_RequestCredentials = ["omit", "same-origin", "include"];
@@ -7522,20 +7522,20 @@ function __wbg_get_imports() {
         const ret = false;
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper3897 = function(arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 1063, __wbg_adapter_44);
+    imports.wbg.__wbindgen_closure_wrapper3867 = function(arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 1062, __wbg_adapter_44);
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper5580 = function(arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 1816, __wbg_adapter_47);
+    imports.wbg.__wbindgen_closure_wrapper5550 = function(arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 1815, __wbg_adapter_47);
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper5684 = function(arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 1848, __wbg_adapter_50);
+    imports.wbg.__wbindgen_closure_wrapper5654 = function(arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 1847, __wbg_adapter_50);
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper5709 = function(arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 1864, __wbg_adapter_53);
+    imports.wbg.__wbindgen_closure_wrapper5679 = function(arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 1863, __wbg_adapter_53);
         return ret;
     };
     imports.wbg.__wbindgen_debug_string = function(arg0, arg1) {

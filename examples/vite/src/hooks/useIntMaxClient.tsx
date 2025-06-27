@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import { IntMaxClient } from 'intmax2-client-sdk'
+import { IntMaxClient } from '../../../../browser-sdk'
 
 export const useIntMaxClient = () => {
   const [client, setClient] = useState<IntMaxClient | null>(null)
@@ -13,11 +13,12 @@ export const useIntMaxClient = () => {
       setError(null)
 
       const environment = import.meta.env.VITE_INTMAX_ENV || 'testnet'
-      
-      const newClient = await IntMaxClient.init({ 
+      console.log(`Initializing IntMaxClient with environment: ${environment}`);
+
+      const newClient = await IntMaxClient.init({
         environment: environment as 'testnet' | 'mainnet'
       })
-      
+
       setClient(newClient)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to initialize client'
@@ -33,7 +34,7 @@ export const useIntMaxClient = () => {
       setError('Client not initialized')
       return
     }
-    
+
     try {
       setLoading(true)
       setError(null)
@@ -50,7 +51,7 @@ export const useIntMaxClient = () => {
 
   const logout = useCallback(async () => {
     if (!client) return
-    
+
     try {
       setLoading(true)
       await client.logout()

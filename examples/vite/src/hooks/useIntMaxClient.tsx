@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import { IntMaxClient } from '../../../../browser-sdk'
+import { IntMaxClient } from 'intmax2-client-sdk'
 
 export const useIntMaxClient = () => {
   const [client, setClient] = useState<IntMaxClient | null>(null)

@@ -104,13 +104,13 @@ export function generate_transfer_receipt(config: Config, view_pair: string, tx_
 export function validate_transfer_receipt(config: Config, view_pair: string, transfer_receipt: string): Promise<JsTransferData>;
 export function get_balances_without_sync(config: Config, view_pair: string): Promise<TokenBalance[]>;
 export function check_validity_prover(config: Config): Promise<void>;
+export function save_derive_path(config: Config, view_pair: string, derive: JsDerive): Promise<string>;
+export function get_derive_path_list(config: Config, view_pair: string): Promise<JsDerive[]>;
 export function generate_withdrawal_transfers(config: Config, withdrawal_transfer_request: JsTransferRequest, fee_token_index: number, with_claim_fee: boolean): Promise<JsWithdrawalTransfers>;
 /**
  * Generate fee payment memo from given transfers and fee transfer indices
  */
 export function generate_fee_payment_memo(transfer_requests: JsTransferRequest[], withdrawal_fee_transfer_index?: number | null, claim_fee_transfer_index?: number | null): JsPaymentMemoEntry[];
-export function save_derive_path(config: Config, view_pair: string, derive: JsDerive): Promise<string>;
-export function get_derive_path_list(config: Config, view_pair: string): Promise<JsDerive[]>;
 export class AddressAuxInfo {
   private constructor();
   free(): void;
@@ -1169,8 +1169,6 @@ export interface InitOutput {
   readonly check_validity_prover: (a: number) => any;
   readonly __wbg_get_jswithdrawalinforesponse_cursor_response: (a: number) => number;
   readonly __wbg_set_jswithdrawalinforesponse_cursor_response: (a: number, b: number) => void;
-  readonly generate_withdrawal_transfers: (a: number, b: number, c: number, d: number) => any;
-  readonly generate_fee_payment_memo: (a: number, b: number, c: number, d: number) => [number, number, number, number];
   readonly __wbg_jspaymentmemoentry_free: (a: number, b: number) => void;
   readonly __wbg_get_jspaymentmemoentry_transfer_index: (a: number) => number;
   readonly __wbg_set_jspaymentmemoentry_transfer_index: (a: number, b: number) => void;
@@ -1260,6 +1258,8 @@ export interface InitOutput {
   readonly __wbg_get_config_private_zkp_server_retry_interval: (a: number) => [number, bigint];
   readonly __wbg_set_config_private_zkp_server_retry_interval: (a: number, b: number, c: bigint) => void;
   readonly config_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: bigint, l: bigint, m: number, n: bigint, o: bigint, p: bigint, q: number, r: number, s: number, t: number, u: number, v: number, w: number, x: number, y: number, z: number, a1: number, b1: number, c1: number, d1: number, e1: bigint) => number;
+  readonly generate_withdrawal_transfers: (a: number, b: number, c: number, d: number) => any;
+  readonly generate_fee_payment_memo: (a: number, b: number, c: number, d: number) => [number, number, number, number];
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_exn_store: (a: number) => void;

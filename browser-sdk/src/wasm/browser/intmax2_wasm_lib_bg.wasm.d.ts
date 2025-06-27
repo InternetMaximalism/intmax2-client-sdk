@@ -459,8 +459,6 @@ export const get_balances_without_sync: (a: number, b: number, c: number) => any
 export const check_validity_prover: (a: number) => any;
 export const __wbg_get_jswithdrawalinforesponse_cursor_response: (a: number) => number;
 export const __wbg_set_jswithdrawalinforesponse_cursor_response: (a: number, b: number) => void;
-export const generate_withdrawal_transfers: (a: number, b: number, c: number, d: number) => any;
-export const generate_fee_payment_memo: (a: number, b: number, c: number, d: number) => [number, number, number, number];
 export const __wbg_jspaymentmemoentry_free: (a: number, b: number) => void;
 export const __wbg_get_jspaymentmemoentry_transfer_index: (a: number) => number;
 export const __wbg_set_jspaymentmemoentry_transfer_index: (a: number, b: number) => void;
@@ -550,6 +548,8 @@ export const __wbg_set_config_private_zkp_server_max_retires: (a: number, b: num
 export const __wbg_get_config_private_zkp_server_retry_interval: (a: number) => [number, bigint];
 export const __wbg_set_config_private_zkp_server_retry_interval: (a: number, b: number, c: bigint) => void;
 export const config_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: bigint, l: bigint, m: number, n: bigint, o: bigint, p: bigint, q: number, r: number, s: number, t: number, u: number, v: number, w: number, x: number, y: number, z: number, a1: number, b1: number, c1: number, d1: number, e1: bigint) => number;
+export const generate_withdrawal_transfers: (a: number, b: number, c: number, d: number) => any;
+export const generate_fee_payment_memo: (a: number, b: number, c: number, d: number) => [number, number, number, number];
 export const __wbindgen_malloc: (a: number, b: number) => number;
 export const __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
 export const __wbindgen_exn_store: (a: number) => void;

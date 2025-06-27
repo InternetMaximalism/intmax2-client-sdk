@@ -1043,6 +1043,34 @@ export function check_validity_prover(config) {
 
 /**
  * @param {Config} config
+ * @param {string} view_pair
+ * @param {JsDerive} derive
+ * @returns {Promise<string>}
+ */
+export function save_derive_path(config, view_pair, derive) {
+    _assertClass(config, Config);
+    const ptr0 = passStringToWasm0(view_pair, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    _assertClass(derive, JsDerive);
+    const ret = wasm.save_derive_path(config.__wbg_ptr, ptr0, len0, derive.__wbg_ptr);
+    return ret;
+}
+
+/**
+ * @param {Config} config
+ * @param {string} view_pair
+ * @returns {Promise<JsDerive[]>}
+ */
+export function get_derive_path_list(config, view_pair) {
+    _assertClass(config, Config);
+    const ptr0 = passStringToWasm0(view_pair, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.get_derive_path_list(config.__wbg_ptr, ptr0, len0);
+    return ret;
+}
+
+/**
+ * @param {Config} config
  * @param {JsTransferRequest} withdrawal_transfer_request
  * @param {number} fee_token_index
  * @param {boolean} with_claim_fee
@@ -1072,34 +1100,6 @@ export function generate_fee_payment_memo(transfer_requests, withdrawal_fee_tran
     var v2 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
     wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
     return v2;
-}
-
-/**
- * @param {Config} config
- * @param {string} view_pair
- * @param {JsDerive} derive
- * @returns {Promise<string>}
- */
-export function save_derive_path(config, view_pair, derive) {
-    _assertClass(config, Config);
-    const ptr0 = passStringToWasm0(view_pair, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len0 = WASM_VECTOR_LEN;
-    _assertClass(derive, JsDerive);
-    const ret = wasm.save_derive_path(config.__wbg_ptr, ptr0, len0, derive.__wbg_ptr);
-    return ret;
-}
-
-/**
- * @param {Config} config
- * @param {string} view_pair
- * @returns {Promise<JsDerive[]>}
- */
-export function get_derive_path_list(config, view_pair) {
-    _assertClass(config, Config);
-    const ptr0 = passStringToWasm0(view_pair, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.get_derive_path_list(config.__wbg_ptr, ptr0, len0);
-    return ret;
 }
 
 function __wbg_adapter_44(arg0, arg1) {
@@ -7522,19 +7522,19 @@ function __wbg_get_imports() {
         const ret = false;
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper3867 = function(arg0, arg1, arg2) {
+    imports.wbg.__wbindgen_closure_wrapper3866 = function(arg0, arg1, arg2) {
         const ret = makeMutClosure(arg0, arg1, 1062, __wbg_adapter_44);
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper5550 = function(arg0, arg1, arg2) {
+    imports.wbg.__wbindgen_closure_wrapper5549 = function(arg0, arg1, arg2) {
         const ret = makeMutClosure(arg0, arg1, 1815, __wbg_adapter_47);
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper5654 = function(arg0, arg1, arg2) {
+    imports.wbg.__wbindgen_closure_wrapper5653 = function(arg0, arg1, arg2) {
         const ret = makeMutClosure(arg0, arg1, 1847, __wbg_adapter_50);
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper5679 = function(arg0, arg1, arg2) {
+    imports.wbg.__wbindgen_closure_wrapper5678 = function(arg0, arg1, arg2) {
         const ret = makeMutClosure(arg0, arg1, 1863, __wbg_adapter_53);
         return ret;
     };

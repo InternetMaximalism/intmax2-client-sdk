@@ -33,9 +33,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ client }
 
       const deposits = depositsData.status === 'fulfilled' ? depositsData.value.items : []
       const receiveTransfers = transfersData.status === 'fulfilled' ? transfersData.value.items : []
-      const sendTransfers = transfersData.status === 'fulfilled' ? txData.value.items : []
-
-
+      const sendTransfers = txData.status === 'fulfilled' ? txData.value.items : []
 
       setHistory({
         deposits,

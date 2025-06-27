@@ -92,8 +92,25 @@ const main = async () => {
       address: client.address, // Transfer to self
     },
   ];
-  const transferResult = await client.broadcastTransaction(transfers);
-  console.log('Transfer result:', JSON.stringify(transferResult, null, 2));
+  while (true) {
+    try {
+      const transferResult = await client.broadcastTransaction(transfers);
+      console.log('Transfer result:', JSON.stringify(transferResult, null, 2));
+      break;
+    } catch (error) {
+      console.warn('Withdrawal error:', error);
+
+      const expectedErrorMessage = [
+        'Pending tx error',
+        'Failed to send tx request',
+        'prev_digest mismatch with stored digest',
+      ];
+      if (expectedErrorMessage.some((errorMessage) => error.message.includes(errorMessage))) {
+        console.log('Retrying withdrawal in 5 seconds...');
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      }
+    }
+  }
 
   // The user needs to pay `withdrawalFeeAmount` of tokens corresponding to the `withdrawalFeeToken`.
   const withdrawalFee = await client.getWithdrawalFee(token);
@@ -102,7 +119,18 @@ const main = async () => {
   console.log('Withdrawal Fee Token Index:', withdrawalFeeToken);
   console.log('Withdrawal Fee Amount:', withdrawalFeeAmount);
 
-  await client.fetchTokenBalances();
+  while (true) {
+    try {
+      await client.fetchTokenBalances();
+      break;
+    } catch (error) {
+      const expectedErrorMessage = ['Pending tx error'];
+      if (expectedErrorMessage.some((errorMessage) => error.message.includes(errorMessage))) {
+        console.log('Retrying balance fetching in 5 seconds...');
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      }
+    }
+  }
 
   console.log('Withdraw ETH...');
   while (true) {

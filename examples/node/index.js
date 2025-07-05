@@ -98,7 +98,7 @@ const main = async () => {
       console.log('Transfer result:', JSON.stringify(transferResult, null, 2));
       break;
     } catch (error) {
-      console.warn('Withdrawal error:', error);
+      console.warn('Transfer error:', error);
 
       const expectedErrorMessage = [
         'Pending tx error',
@@ -106,7 +106,7 @@ const main = async () => {
         'prev_digest mismatch with stored digest',
       ];
       if (expectedErrorMessage.some((errorMessage) => error.message.includes(errorMessage))) {
-        console.log('Retrying withdrawal in 5 seconds...');
+        console.log('Retrying transfer in 5 seconds...');
         await new Promise((resolve) => setTimeout(resolve, 5000));
       }
     }

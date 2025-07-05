@@ -48,9 +48,9 @@ const main = async () => {
     client.fetchTransactions({}),
   ]);
   console.log('\nTransaction History:');
-  console.log('Latest deposits:', deposits[0]);
-  console.log('Latest received transfers:', receiveTransfers[0]);
-  console.log('Latest sent transfers:', sendTxs[0]);
+  console.log('Latest deposits:', deposits.items[0]);
+  console.log('Latest received transfers:', receiveTransfers.items[0]);
+  console.log('Latest sent transfers:', sendTxs.items[0]);
 
   const token = {
     tokenType: TokenType.NATIVE,

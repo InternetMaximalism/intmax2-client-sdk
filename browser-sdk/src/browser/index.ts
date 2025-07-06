@@ -40,7 +40,6 @@ import {
   LiquidityAbi,
   localStorageManager,
   LoginResponse,
-  MAINNET_ENV,
   networkMessage,
   PredicateFetcher,
   PrepareDepositTransactionRequest,
@@ -183,7 +182,7 @@ export class IntMaxClient implements INTMAXClient {
   address: string = '';
   tokenBalances: TokenBalance[] = [];
 
-  constructor({ async_params, environment }: ConstructorParams) {
+  constructor({ async_params, environment, urls }: ConstructorParams) {
     if (typeof async_params === 'undefined') {
       throw new Error('Cannot be called directly');
     }
@@ -205,7 +204,13 @@ export class IntMaxClient implements INTMAXClient {
     });
 
     this.#environment = environment;
-    this.#urls = environment === 'testnet' ? TESTNET_ENV : DEVNET_ENV;
+    const defaultUrls = environment === 'testnet' ? TESTNET_ENV : DEVNET_ENV;
+
+    // Merge default URLs with provided URLs
+    this.#urls = {
+      ...defaultUrls,
+      ...urls,
+    };
 
     // this.#vaultHttpClient = axiosClientInit({
     //   baseURL:
@@ -229,12 +234,12 @@ export class IntMaxClient implements INTMAXClient {
     this.#startPeriodicUserDataUpdate(30_000);
   }
 
-  static async init({ environment }: ConstructorParams): Promise<IntMaxClient> {
+  static async init({ environment, urls }: ConstructorParams): Promise<IntMaxClient> {
     try {
       const bytes = await fetch(wasmBytes).then((response) => {
         return response.arrayBuffer();
       });
-      return new IntMaxClient({ async_params: bytes, environment });
+      return new IntMaxClient({ async_params: bytes, environment, urls });
     } catch (e) {
       console.error(e);
       throw new Error('Failed to load wasm');
@@ -891,7 +896,7 @@ export class IntMaxClient implements INTMAXClient {
 
   // PRIVATE METHODS
   #generateConfig(env: IntMaxEnvironment): Config {
-    const urls = env === 'mainnet' ? MAINNET_ENV : env === 'testnet' ? TESTNET_ENV : DEVNET_ENV;
+    const urls = this.#urls;
 
     const isFasterMining = env === 'devnet';
     return new Config(
@@ -913,7 +918,7 @@ export class IntMaxClient implements INTMAXClient {
       urls.rpc_url_l2, // L2 RPC URL
       urls.rollup_contract, // Rollup Contract Address
       urls.withdrawal_contract_address, // Withdrawal Contract Address
-      true, // use_private_zkp_server
+      urls.use_private_zkp_server ?? true, // use_private_zkp_server
       true, // use_s3
       120, // private_zkp_server_max_retries
       5n, // private_zkp_server_retry_interval

@@ -177,13 +177,7 @@ const createInitButton = () => {
   const button = document.createElement('button');
   button.innerHTML = 'Initialize Client';
   button.onclick = async () => {
-    client = await IntMaxClient.init({
-      environment: 'testnet',
-      urls: {
-        balance_prover_url: 'http://localhost:9001',
-        use_private_zkp_server: false,
-      }
-    });
+    client = await IntMaxClient.init({ environment: 'testnet' });
     createLoginButton();
     button.remove();
   };

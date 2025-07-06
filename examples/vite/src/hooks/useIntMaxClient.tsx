@@ -17,10 +17,10 @@ export const useIntMaxClient = () => {
 
       const newClient = await IntMaxClient.init({
         environment: environment as 'testnet',
-        urls: {
+        urls: import.meta.env.VITE_BALANCE_PROVER_URL ? {
           balance_prover_url: import.meta.env.VITE_BALANCE_PROVER_URL,
           use_private_zkp_server: false,
-        }
+        } : undefined,
       })
 
       setClient(newClient)

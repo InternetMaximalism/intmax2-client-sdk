@@ -11,10 +11,12 @@ const main = async () => {
     environment,
     eth_private_key: process.env.ETH_PRIVATE_KEY,
     l1_rpc_url: process.env.L1_RPC_URL,
-    urls: {
-      balance_prover_url: 'http://localhost:9001',
-      use_private_zkp_server: false,
-    },
+    urls: process.env.BALANCE_PROVER_URL
+      ? {
+          balance_prover_url: process.env.BALANCE_PROVER_URL,
+          use_private_zkp_server: false,
+        }
+      : undefined,
   });
 
   // Login
@@ -52,9 +54,9 @@ const main = async () => {
     client.fetchTransactions({}),
   ]);
   console.log('\nTransaction History:');
-  console.log('Latest deposits:', deposits[0]);
-  console.log('Latest received transfers:', receiveTransfers[0]);
-  console.log('Latest sent transfers:', sendTxs[0]);
+  console.log('Latest deposits:', deposits.items[0]);
+  console.log('Latest received transfers:', receiveTransfers.items[0]);
+  console.log('Latest sent transfers:', sendTxs.items[0]);
 
   const token = {
     tokenType: TokenType.NATIVE,

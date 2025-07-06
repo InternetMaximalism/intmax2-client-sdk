@@ -79,7 +79,13 @@ export interface INTMAXClient {
 ```ts
 import { IntMaxClient } from "intmax2-client-sdk";
 
-const intMaxClient = IntMaxClient.init({ environment: "testnet" });
+const intMaxClient = IntMaxClient.init({
+  environment: "testnet",
+  urls: {
+    balance_prover_url: "http://localhost:9001",
+    use_private_zkp_server: false, // When using the balance prover locally on localhost, set `use_private_zkp_server` to false.
+  }, // (Optional) URL of the balance prover service
+});
 ```
 
 ### Login to INTMAX Network

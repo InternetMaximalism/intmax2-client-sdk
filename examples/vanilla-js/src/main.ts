@@ -97,7 +97,7 @@ const fetchWithdrawalsButton = () => {
   const wrapper = document.createElement('div');
   wrapper.style.marginTop = '10px';
   appDiv.appendChild(wrapper);
-  let nextCursor: bigint | null = null;
+  let nextCursor: any = null;
 
   const button = document.createElement('button');
   button.innerHTML = 'Fetch Withdrawals';
@@ -177,7 +177,7 @@ const createInitButton = () => {
   const button = document.createElement('button');
   button.innerHTML = 'Initialize Client';
   button.onclick = async () => {
-    client = await IntMaxClient.init({ environment: 'devnet' });
+    client = await IntMaxClient.init({ environment: 'testnet' });
     createLoginButton();
     button.remove();
   };

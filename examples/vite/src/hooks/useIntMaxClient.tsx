@@ -16,7 +16,11 @@ export const useIntMaxClient = () => {
       console.log(`Initializing IntMaxClient with environment: ${environment}`);
 
       const newClient = await IntMaxClient.init({
-        environment: environment as 'testnet' | 'mainnet'
+        environment: environment as 'testnet',
+        urls: import.meta.env.VITE_BALANCE_PROVER_URL ? {
+          balance_prover_url: import.meta.env.VITE_BALANCE_PROVER_URL,
+          use_private_zkp_server: false,
+        } : undefined,
       })
 
       setClient(newClient)

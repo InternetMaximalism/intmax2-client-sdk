@@ -82,6 +82,22 @@ import { IntMaxClient } from "intmax2-client-sdk";
 const intMaxClient = IntMaxClient.init({ environment: "testnet" });
 ```
 
+To use the private ZKP server hosted at `http://localhost:9001`, you can use the following code:
+
+```ts
+import { IntMaxClient } from "intmax2-client-sdk";
+
+const intMaxClient = IntMaxClient.init({
+  environment: "testnet",
+  urls: {
+    balance_prover_url: "http://localhost:9001",
+    use_private_zkp_server: false, // When using the balance prover locally on localhost, set `use_private_zkp_server` to false.
+  },
+});
+```
+
+To set up a local Balance Prover instance, please see [Tips: How to Run a Local Balance Prover](../README.md#tips-how-to-run-a-local-balance-prover)
+
 ### Login to INTMAX Network
 
 Here is an example of logging in to INTMAX. Users need to login once before using the SDK functions.

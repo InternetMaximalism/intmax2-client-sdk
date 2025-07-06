@@ -206,6 +206,7 @@ export interface ConstructorParams {
 export interface ConstructorNodeParams extends ConstructorParams {
   eth_private_key: `0x${string}`;
   l1_rpc_url?: string;
+  urls?: UrlConfig;
 }
 
 export interface INTMAXClient {
@@ -275,6 +276,12 @@ export interface SDKUrls {
   withdrawal_aggregator_url: string;
   withdrawal_contract_address: string;
   predicate_contract_address: string;
+  use_private_zkp_server?: boolean;
+}
+
+export type UrlConfig = {
+  balance_prover_url?: string;
+  use_private_zkp_server?: boolean;
 }
 
 export interface MetadataItem {

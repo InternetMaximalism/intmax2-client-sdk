@@ -204,6 +204,7 @@ export type IntMaxEnvironment = 'testnet' | 'mainnet' | 'devnet';
 export interface ConstructorParams {
   environment: IntMaxEnvironment;
   async_params?: ArrayBuffer;
+  urls?: UrlConfig;
 }
 
 export interface ConstructorNodeParams extends ConstructorParams {
@@ -279,6 +280,12 @@ export interface SDKUrls {
   withdrawal_aggregator_url: string;
   withdrawal_contract_address: string;
   predicate_contract_address: string;
+  use_private_zkp_server?: boolean;
+}
+
+export type UrlConfig = {
+  balance_prover_url?: string;
+  use_private_zkp_server?: boolean;
 }
 
 export interface MetadataItem {

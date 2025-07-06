@@ -39,7 +39,6 @@ import {
   IntMaxEnvironment,
   IntMaxTxBroadcast,
   LiquidityAbi,
-  MAINNET_ENV,
   networkMessage,
   PredicateFetcher,
   PrepareDepositTransactionRequest,
@@ -158,7 +157,11 @@ export class IntMaxNodeClient implements INTMAXClient {
 
     this.#environment = environment;
     // this.#urls = environment === 'mainnet' ? MAINNET_ENV : environment === 'testnet' ? TESTNET_ENV : DEVNET_ENV;
-    this.#urls = environment === 'testnet' ? TESTNET_ENV : DEVNET_ENV;
+    const defaultUrls = environment === 'testnet' ? TESTNET_ENV : DEVNET_ENV;
+    this.#urls = {
+      ...defaultUrls,
+      ...params.urls,
+    }
 
     this.#config = this.#generateConfig(environment);
     this.#txFetcher = new TransactionFetcher(environment);
@@ -864,7 +867,7 @@ export class IntMaxNodeClient implements INTMAXClient {
 
   // PRIVATE METHODS
   #generateConfig(env: IntMaxEnvironment): Config {
-    const urls = env === 'mainnet' ? MAINNET_ENV : env === 'testnet' ? TESTNET_ENV : DEVNET_ENV;
+    const urls = this.#urls;
 
     const isFasterMining = env === 'devnet';
     return new Config(
@@ -886,7 +889,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       urls.rpc_url_l2, // L2 RPC URL
       urls.rollup_contract, // Rollup Contract Address
       urls.withdrawal_contract_address, // Withdrawal Contract Address
-      true, // use_private_zkp_server
+      urls.use_private_zkp_server ?? true, // use_private_zkp_server
       true, // use_s3
       120, // private_zkp_server_max_retries
       5n, // private_zkp_server_retry_interval

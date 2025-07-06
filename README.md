@@ -166,7 +166,7 @@ To initialize the client, you need to provide the Ethereum private key (`eth_pri
 import { IntMaxNodeClient } from "intmax2-server-sdk";
 
 const intMaxClient = new IntMaxNodeClient({
-  environment: "testnet", //  'mainnet' | 'testnet'
+  environment: "testnet",
   eth_private_key: process.env.ETH_PRIVATE_KEY,
   l1_rpc_url: process.env.L1_RPC_URL,
 });
@@ -178,7 +178,7 @@ To use the private ZKP server hosted at `http://localhost:9001`, you can use the
 import { IntMaxNodeClient } from "intmax2-server-sdk";
 
 const intMaxClient = new IntMaxNodeClient({
-  environment: "testnet", //  'mainnet' | 'testnet'
+  environment: "testnet",
   eth_private_key: process.env.ETH_PRIVATE_KEY,
   l1_rpc_url: process.env.L1_RPC_URL,
   urls: {

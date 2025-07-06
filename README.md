@@ -109,12 +109,20 @@ export interface INTMAXClient {
 ```ts
 import { IntMaxClient } from "intmax2-client-sdk";
 
+const intMaxClient = IntMaxClient.init({ environment: "testnet" });
+```
+
+To use the private ZKP server hosted at `http://localhost:9001`, you can use the following code:
+
+```ts
+import { IntMaxClient } from "intmax2-client-sdk";
+
 const intMaxClient = IntMaxClient.init({
   environment: "testnet",
   urls: {
     balance_prover_url: "http://localhost:9001",
     use_private_zkp_server: false, // When using the balance prover locally on localhost, set `use_private_zkp_server` to false.
-  }, // (Optional) URL of the balance prover service
+  },
 });
 ```
 
@@ -159,10 +167,22 @@ const intMaxClient = new IntMaxNodeClient({
   environment: "testnet", //  'mainnet' | 'testnet'
   eth_private_key: process.env.ETH_PRIVATE_KEY,
   l1_rpc_url: process.env.L1_RPC_URL,
+});
+```
+
+To use the private ZKP server hosted at `http://localhost:9001`, you can use the following code:
+
+```ts
+import { IntMaxNodeClient } from "intmax2-server-sdk";
+
+const intMaxClient = new IntMaxNodeClient({
+  environment: "testnet", //  'mainnet' | 'testnet'
+  eth_private_key: process.env.ETH_PRIVATE_KEY,
+  l1_rpc_url: process.env.L1_RPC_URL,
   urls: {
     balance_prover_url: "http://localhost:9001",
     use_private_zkp_server: false, // When using the balance prover locally on localhost, set `use_private_zkp_server` to false.
-  }, // (Optional) URL of the balance prover service
+  },
 });
 ```
 
@@ -375,4 +395,40 @@ console.log("Withdrawal result:", withdrawalResult);
 const withdrawals = await intMaxClient.fetchWithdrawals();
 const claim = await intMaxClient.claimWithdrawal(withdrawals.needClaim); // Claim response (should be add additional check for receiver address you can claim withdrawals only for your address)
 console.log("Claim result:", claim);
+```
+
+## Tips: How to Run a Local Balance Prover
+
+You can set up a local Balance Prover instance and send requests to it.
+
+### 1. Clone the Repository
+
+Clone the `intmax2` repository (branch `dev`) from GitHub to your local environment.
+
+```bash
+git clone git@github.com:InternetMaximalism/intmax2.git -b dev
+```
+
+### 2. Navigate to the Balance Prover Directory
+
+Move into the `balance-prover` directory within the cloned repository.
+
+```bash
+cd intmax2/balance-prover
+```
+
+### 3. Prepare Environment Configuration
+
+Create an environment configuration file `.env` based on the provided `.example.env` template.
+
+```bash
+cp -n .example.env .env
+```
+
+### 4. Start the Balance Prover
+
+Run the Balance Prover in release mode (`-r`) using Cargo.
+
+```bash
+cargo run -r
 ```

@@ -105,6 +105,8 @@ const intMaxClient = new IntMaxNodeClient({
 });
 ```
 
+To set up a local Balance Prover instance, please see [Tips: How to Run a Local Balance Prover](../README.md#tips-how-to-run-a-local-balance-prover)
+
 ### Login to INTMAX Network & Retrieve Balance
 
 Here is an example of logging in to INTMAX and retrieving balances. Users need to retrieve their balances once before using the SDK functions.

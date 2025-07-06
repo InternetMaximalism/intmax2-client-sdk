@@ -126,6 +126,8 @@ const intMaxClient = IntMaxClient.init({
 });
 ```
 
+To set up a local Balance Prover instance, please see [Tips: How to Run a Local Balance Prover](./README.md#tips-how-to-run-a-local-balance-prover)
+
 ### Login to INTMAX Network
 
 Here is an example of logging in to INTMAX. Users need to login once before using the SDK functions.
@@ -185,6 +187,8 @@ const intMaxClient = new IntMaxNodeClient({
   },
 });
 ```
+
+To set up a local Balance Prover instance, please see [Tips: How to Run a Local Balance Prover](./README.md#tips-how-to-run-a-local-balance-prover)
 
 ### Login to INTMAX Network & Retrieve Balance
 

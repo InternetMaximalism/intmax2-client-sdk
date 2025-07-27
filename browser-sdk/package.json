@@ -42,7 +42,7 @@
   "dependencies": {
     "@scure/bip32": "^1.7.0",
     "@scure/bip39": "^1.6.0",
-    "axios": "^1.10.0",
+    "axios": "^1.11.0",
     "viem": "^2.31.3"
   },
   "devDependencies": {

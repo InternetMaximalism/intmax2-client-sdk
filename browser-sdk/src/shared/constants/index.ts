@@ -27,7 +27,7 @@ export const MAINNET_ENV: SDKUrls = {
   //
   rpc_url_l1: 'https://api.rpc.intmax.io?network=ethereum',
   rpc_url_l2: 'https://api.rpc.intmax.io?network=scroll',
-  key_vault_url: 'https://api.keyvault.intmax.io/functions/v1/keyvault/external',
+  key_vault_url: 'https://api.keyvault.intmax.io/v1/external',
   tokens_url: 'https://api.token.intmax.io/v1',
 };
 
@@ -48,7 +48,7 @@ export const TESTNET_ENV: SDKUrls = {
   //
   rpc_url_l1: 'https://sepolia.gateway.tenderly.co',
   rpc_url_l2: 'https://sepolia-rpc.scroll.io',
-  key_vault_url: 'https://slxcnfhgxpfokwtathje.supabase.co/functions/v1/keyvault/external',
+  key_vault_url: 'https://stage.api.keyvault.intmax.io/v1/external',
   tokens_url: 'https://stage.api.token.intmax.io/v1',
 };
 
@@ -69,6 +69,6 @@ export const DEVNET_ENV: SDKUrls = {
   //
   rpc_url_l1: 'https://sepolia.gateway.tenderly.co',
   rpc_url_l2: 'https://sepolia-rpc.scroll.io',
-  key_vault_url: 'https://oimhddprvflxjsumnmmg.supabase.co/functions/v1/keyvault',
+  key_vault_url: 'https://dev.api.keyvault.intmax.xyz/v1/external',
   tokens_url: 'https://dev.api.token.intmax.xyz/v1',
 };

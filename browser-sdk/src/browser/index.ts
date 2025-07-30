@@ -97,13 +97,13 @@ import {
   quote_withdrawal_fee,
   send_tx_request,
   sign_message,
-  sync,
   sync_claims,
   sync_withdrawals,
   verify_signature,
   TokenBalance as WasmTokenBalance,
 } from '../wasm/browser/intmax2_wasm_lib';
 import wasmBytes from '../wasm/browser/intmax2_wasm_lib_bg.wasm?url';
+import SyncWorker from '../workers/sync.worker.ts?worker';
 
 const whiteListedKeys = [
   'isCoinbaseWallet',
@@ -158,6 +158,10 @@ const getWalletProviderType = (): string => {
   return walletProviderName;
 };
 
+//TODO:
+// - create workers for sync user data
+// - update logic to terminate worker
+
 export class IntMaxClient implements INTMAXClient {
   readonly #environment: IntMaxEnvironment;
   #intervalId: number | null | NodeJS.Timeout = null;
@@ -177,6 +181,8 @@ export class IntMaxClient implements INTMAXClient {
   #spendPub: string = '';
   #viewKey: string = '';
   #userData: JsUserData | undefined;
+  #userDataWorker: Worker | undefined;
+  #broadcastInProgress: boolean = false;
 
   isLoggedIn: boolean = false;
   address: string = '';
@@ -447,6 +453,7 @@ export class IntMaxClient implements INTMAXClient {
     if (!this.isLoggedIn) {
       throw Error('Not logged in');
     }
+    this.#broadcastInProgress = true;
 
     const transfers = rawTransfers.map((transfer) => {
       let amount = `${transfer.amount}`;
@@ -480,30 +487,37 @@ export class IntMaxClient implements INTMAXClient {
       viewPair = this.#viewKey;
     } catch (e) {
       console.error(e);
+      this.#broadcastInProgress = false;
       throw Error('No private key found');
     }
+    this.#terminateSyncUserData();
 
     let memo: JsTxRequestMemo;
     try {
-      const fee = await quote_transfer_fee(this.#config, await this.#indexerFetcher.getBlockBuilderUrl(), pubKey, 0);
+      const fee = await this.#getTransferFee();
 
       if (!fee) {
+        this.#broadcastInProgress = false;
         throw new Error('Failed to quote transfer fee');
-      }
-      if (fee.fee) {
-        if (!checkIsValidBlockBuilderFee(fee.fee, fee.is_registration_block)) {
-          await this.#indexerFetcher.fetchBlockBuilderUrl();
-          throw new Error('Invalid fee from block builder. Try again...');
-        }
       }
 
       let withdrawalTransfers: JsWithdrawalTransfers | undefined;
 
       if (isWithdrawal) {
-        withdrawalTransfers = await generate_withdrawal_transfers(this.#config, transfers[0], 0, true);
+        try {
+          withdrawalTransfers = await generate_withdrawal_transfers(this.#config, transfers[0], 0, true);
+        } catch (e) {
+          console.error(e);
+          this.#broadcastInProgress = false;
+          throw new Error('Failed to generate withdrawal');
+        }
       }
 
-      await await_tx_sendable(this.#config, viewPair, transfers, fee);
+      try {
+        await await_tx_sendable(this.#config, viewPair, transfers, fee);
+      } catch (e) {
+        console.error(e);
+      }
 
       // send the tx request
       memo = await send_tx_request(
@@ -520,12 +534,14 @@ export class IntMaxClient implements INTMAXClient {
       );
 
       if (!memo) {
+        this.#broadcastInProgress = false;
         throw new Error('Failed to send tx request');
       }
 
       memo.tx();
     } catch (e) {
       console.error(e);
+      this.#broadcastInProgress = false;
       throw new Error('Failed to send tx request');
     }
 
@@ -535,6 +551,7 @@ export class IntMaxClient implements INTMAXClient {
       await this.#indexerFetcher.fetchBlockBuilderUrl();
     } catch (e) {
       console.error(e);
+      this.#broadcastInProgress = false;
       throw new Error('Failed to finalize tx');
     }
 
@@ -545,12 +562,16 @@ export class IntMaxClient implements INTMAXClient {
           await sync_claims(this.#config, viewPair, rawTransfers[0].claim_beneficiary, 0);
         } catch (e) {
           console.error(e);
+          this.#broadcastInProgress = false;
           throw e;
         }
       }
       await sleep(40000);
       await retryWithAttempts(async () => await sync_withdrawals(this.#config, viewPair, 0), 1000, 5);
+      this.#broadcastInProgress = false;
     }
+
+    this.#broadcastInProgress = false;
 
     return {
       txTreeRoot: tx.tx_tree_root,
@@ -854,18 +875,10 @@ export class IntMaxClient implements INTMAXClient {
   }
 
   async getTransferFee(): Promise<FeeResponse> {
-    const transferFee = (await quote_transfer_fee(
-      this.#config,
-      await this.#indexerFetcher.getBlockBuilderUrl(),
-      this.#spendPub as string,
-      0,
-    )) as JsTransferFeeQuote;
+    const transferFee = await this.#getTransferFee();
 
-    if (transferFee.fee) {
-      if (!checkIsValidBlockBuilderFee(transferFee.fee, transferFee.is_registration_block)) {
-        await this.#indexerFetcher.fetchBlockBuilderUrl();
-        throw new Error('Invalid fee from block builder. Try again...');
-      }
+    if (!transferFee) {
+      throw new Error('Failed to quote transfer fee');
     }
 
     return {
@@ -925,6 +938,44 @@ export class IntMaxClient implements INTMAXClient {
     );
   }
 
+  async #getTransferFee(): Promise<JsTransferFeeQuote | undefined> {
+    let fee: JsTransferFeeQuote | undefined;
+    let attempts = 0;
+    const maxAttempts = 3;
+    let urlBlockBuilderUrl = await this.#indexerFetcher.getBlockBuilderUrl();
+
+    while (attempts < maxAttempts) {
+      try {
+        if (!urlBlockBuilderUrl) {
+          const blockBuilderResponse = await this.#indexerFetcher.fetchBlockBuilderUrls();
+          const randomIndex = Math.floor((blockBuilderResponse?.length ?? 0) * Math.random());
+          if (blockBuilderResponse?.length) {
+            urlBlockBuilderUrl = blockBuilderResponse[randomIndex].url;
+          }
+        }
+        fee = await quote_transfer_fee(this.#config, urlBlockBuilderUrl, this.#spendPub, 0);
+
+        if (fee && fee.fee && !fee.collateral_fee && checkIsValidBlockBuilderFee(fee.fee, fee.is_registration_block)) {
+          break;
+        }
+        fee = undefined;
+      } catch (error) {
+        console.error(`Attempt ${attempts + 1} failed:`, error);
+      }
+
+      attempts++;
+      if (attempts < maxAttempts) {
+        const blockBuilderResponse = await this.#indexerFetcher.fetchBlockBuilderUrls();
+        const randomIndex = Math.floor((blockBuilderResponse?.length ?? 0) * Math.random());
+        if (blockBuilderResponse?.length) {
+          urlBlockBuilderUrl = blockBuilderResponse[randomIndex].url;
+        }
+      }
+    }
+
+    return fee;
+  }
+
   #checkAllowanceToExecuteMethod() {
     if (!this.isLoggedIn && !this.address) {
       throw Error('Not logged in');
@@ -966,12 +1017,91 @@ export class IntMaxClient implements INTMAXClient {
     this.#viewKey = keySet.view_pair;
   }
 
-  async #syncUserData() {
+  #terminateSyncUserData() {
+    if (this.#userDataWorker) {
+      console.info('Terminating worker...');
+      this.#userDataWorker.terminate();
+      this.#userDataWorker = undefined;
+      this.#isSyncInProgress = false;
+    }
+  }
+
+  async #restartSyncUserData() {
+    console.info('Restarting worker...');
+    this.#terminateSyncUserData();
+
+    setTimeout(() => {
+      this.#startSyncUserData();
+    }, 100);
+  }
+
+  #createSyncUserDataWorker() {
+    // Create a new worker instance
+    this.#userDataWorker = new SyncWorker();
+    if (!this.#userDataWorker) {
+      throw Error('No sync user data worker');
+    }
+
+    this.#userDataWorker.onmessage = async (event: {
+      data: {
+        data: JsUserData;
+        type: 'user_data' | 'error';
+        shouldSaveTime: boolean;
+        viewPair: string;
+      };
+    }) => {
+      console.info('Worker message execution received:', event.data);
+
+      switch (event.data.type) {
+        case 'user_data':
+          this.#userData = event.data.data;
+          if (event.data.shouldSaveTime) {
+            const prevFetchData = localStorageManager.getItem<
+              {
+                fetchDate: number;
+                address: string;
+              }[]
+            >('userDataFetch');
+            const [address] = await this.#walletClient.getAddresses();
+            const prevFetchDataArr =
+              prevFetchData?.filter((data) => data.address?.toLowerCase() !== address.toLowerCase()) ?? [];
+            prevFetchDataArr.push({
+              fetchDate: Date.now(),
+              address: address as string,
+            });
+            localStorageManager.setItem('userDataFetch', prevFetchDataArr);
+
+            const items = localStorageManager.getItem<string[]>('sync_withdrawal');
+            if (items) {
+              const filteredItems = items.filter((item) => item.toLowerCase() !== event.data.viewPair.toLowerCase());
+              localStorageManager.setItem('sync_withdrawal', filteredItems);
+            }
+          }
+
+          break;
+        case 'error':
+          break;
+      }
+      this.#isSyncInProgress = false;
+    };
+
+    this.#userDataWorker.onerror = (error) => {
+      console.error('Worker error:', error);
+      this.#isSyncInProgress = false;
+    };
+
+    this.#userDataWorker.onmessageerror = (error) => {
+      console.error('Worker message error:', error);
+    };
+  }
+
+  async #startSyncUserData() {
     if (this.#isSyncInProgress) {
       return;
     }
     console.info('user_data_sync start');
     this.#isSyncInProgress = true;
+    const shouldSync = true;
 
     const prevFetchData = localStorageManager.getItem<
       {
@@ -979,55 +1109,52 @@ export class IntMaxClient implements INTMAXClient {
         address: string;
       }[]
     >('user_data_fetch');
-    const prevFetchDateObj = prevFetchData?.find((data) => data.address.toLowerCase() === this.address.toLowerCase());
+    const [address] = await this.#walletClient.getAddresses();
+    const prevFetchDateObj = prevFetchData?.find((data) => data.address.toLowerCase() === address.toLowerCase());
 
-    if (prevFetchDateObj && prevFetchDateObj.address.toLowerCase() === this.address.toLowerCase()) {
+    if (prevFetchDateObj && prevFetchDateObj.address.toLowerCase() === address.toLowerCase()) {
       const prevFetchDate = prevFetchDateObj.fetchDate;
       const currentDate = new Date().getTime();
       const diff = currentDate - prevFetchDate;
       if (diff < 180_000) {
         this.#isSyncInProgress = false;
-        console.info('user_data_sync done');
-        return;
       }
     }
-
-    try {
-      // sync the account's balance proof
-      await retryWithAttempts(
-        () => {
-          return sync(this.#config, this.#viewKey);
-        },
-        10000,
-        5,
-      );
-      console.info('Synced account balance proof');
-
-      // sync withdrawals
-      console.info('Start sync withdrawals');
-      await retryWithAttempts(
-        () => {
-          return sync_withdrawals(this.#config, this.#viewKey, 0);
-        },
-        10000,
-        5,
-      );
-      console.info('Synced withdrawals');
-    } catch (e) {
-      console.info('Failed to sync withdrawals', e);
+    if (!this.#userDataWorker) {
+      this.#createSyncUserDataWorker();
     }
 
-    this.#userData = await get_user_data(this.#config, this.#viewKey);
-
-    const prevFetchDataArr =
-      prevFetchData?.filter((data) => data.address.toLowerCase() !== this.address?.toLowerCase()) ?? [];
-    prevFetchDataArr.push({
-      fetchDate: Date.now(),
-      address: this.address,
+    this.#userDataWorker?.postMessage({
+      type: 'start_sync',
+      data: {
+        viewPair: this.#viewKey,
+        shouldSync,
+        configArgs: {
+          network: this.#config.network.toLowerCase(),
+          store_vault_server_url: this.#config.store_vault_server_url,
+          balance_prover_url: this.#config.balance_prover_url,
+          validity_prover_url: this.#config.validity_prover_url,
+          withdrawal_server_url: this.#config.withdrawal_server_url,
+          deposit_timeout: this.#config.tx_timeout,
+          tx_timeout: this.#config.tx_timeout,
+          // --------------------
+          is_faster_mining: this.#config.is_faster_mining,
+          block_builder_query_wait_time: this.#config.block_builder_query_wait_time,
+          block_builder_query_interval: this.#config.block_builder_query_interval,
+          block_builder_query_limit: this.#config.block_builder_query_limit,
+          // ----------------------
+          l1_rpc_url: this.#config.l1_rpc_url,
+          liquidity_contract_address: this.#config.liquidity_contract_address,
+          l2_rpc_url: this.#config.l2_rpc_url,
+          rollup_contract_address: this.#config.rollup_contract_address,
+          withdrawal_contract_address: this.#config.withdrawal_contract_address,
+          use_private_zkp_server: this.#config.use_private_zkp_server,
+          use_s3: this.#config.use_s3,
+          private_zkp_server_max_retires: this.#config.private_zkp_server_max_retires,
+          private_zkp_server_retry_interval: this.#config.private_zkp_server_retry_interval,
+        },
+      },
     });
-    localStorageManager.setItem('user_data_fetch', prevFetchDataArr);
-    this.#isSyncInProgress = false;
-    console.info('user_data_sync done');
   }
 
   async #fetchUserData(): Promise<JsUserData> {
@@ -1055,7 +1182,6 @@ export class IntMaxClient implements INTMAXClient {
       }
     }
     userdata = await get_user_data(this.#config, this.#viewKey);
-    this.#syncUserData();
 
     return userdata;
   }
@@ -1296,8 +1422,8 @@ export class IntMaxClient implements INTMAXClient {
       clearInterval(this.#intervalId);
     }
     this.#intervalId = setInterval(async () => {
-      if (this.isLoggedIn && this.#viewKey) {
-        await this.#syncUserData();
+      if (this.isLoggedIn && this.#viewKey && !this.#broadcastInProgress) {
+        await this.#restartSyncUserData();
       }
     }, interval);
   }

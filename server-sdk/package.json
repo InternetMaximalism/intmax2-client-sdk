@@ -1,6 +1,6 @@
 {
   "name": "intmax2-server-sdk",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "description": "Server SDK for INTMAX2",
   "type": "commonjs",
   "main": "dist/index.js",

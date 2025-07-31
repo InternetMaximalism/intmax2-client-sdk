@@ -1,3 +1,5 @@
+import { Worker } from 'worker_threads';
+
 import { AxiosInstance } from 'axios';
 import {
   Abi,
@@ -121,6 +123,8 @@ export class IntMaxNodeClient implements INTMAXClient {
   #spendPub: string = '';
   #viewKey: string = '';
   #userData: JsUserData | undefined;
+  #broadcastInProgress: boolean = false;
+  #userDataWorker: Worker | undefined;
 
   isLoggedIn: boolean = false;
   address: string = '';
@@ -161,7 +165,7 @@ export class IntMaxNodeClient implements INTMAXClient {
     this.#urls = {
       ...defaultUrls,
       ...params.urls,
-    }
+    };
 
     this.#config = this.#generateConfig(environment);
     this.#txFetcher = new TransactionFetcher(environment);
@@ -371,6 +375,7 @@ export class IntMaxNodeClient implements INTMAXClient {
     if (!this.isLoggedIn) {
       throw Error('Not logged in');
     }
+    this.#broadcastInProgress = true;
 
     const transfers = rawTransfers.map((transfer) => {
       let amount = `${transfer.amount}`;
@@ -380,6 +385,7 @@ export class IntMaxNodeClient implements INTMAXClient {
 
       if (isWithdrawal) {
         if (!isAddress(transfer.address)) {
+          this.#broadcastInProgress = false;
           throw Error('Invalid address to withdraw');
         }
 
@@ -387,6 +393,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       }
 
       if (!isWithdrawal && isAddress(transfer.address)) {
+        this.#broadcastInProgress = false;
         throw Error('Invalid address to transfer');
       }
 
@@ -394,13 +401,11 @@ export class IntMaxNodeClient implements INTMAXClient {
     });
 
     let privateKey = '';
-    let pubKey = this.#spendPub;
     let viewPair = this.#viewKey;
 
     try {
       await this.getPrivateKey();
       privateKey = this.#privateKey;
-      pubKey = this.#spendPub;
       viewPair = this.#viewKey;
     } catch (e) {
       console.error(e);
@@ -409,16 +414,11 @@ export class IntMaxNodeClient implements INTMAXClient {
 
     let memo: JsTxRequestMemo;
     try {
-      const fee = await quote_transfer_fee(this.#config, await this.#indexerFetcher.getBlockBuilderUrl(), pubKey, 0);
+      const fee = await this.#getTransferFee();
 
       if (!fee) {
+        this.#broadcastInProgress = false;
         throw new Error('Failed to quote transfer fee');
-      }
-      if (fee.fee) {
-        if (!checkIsValidBlockBuilderFee(fee.fee, fee.is_registration_block)) {
-          await this.#indexerFetcher.fetchBlockBuilderUrl();
-          throw new Error('Invalid fee from block builder. Try again...');
-        }
       }
 
       let withdrawalTransfers: JsWithdrawalTransfers | undefined;
@@ -427,7 +427,11 @@ export class IntMaxNodeClient implements INTMAXClient {
         withdrawalTransfers = await generate_withdrawal_transfers(this.#config, transfers[0], 0, true);
       }
 
-      await await_tx_sendable(this.#config, viewPair, transfers, fee);
+      try {
+        await await_tx_sendable(this.#config, viewPair, transfers, fee);
+      } catch (e) {
+        console.error(e);
+      }
 
       // send the tx request
       memo = await send_tx_request(
@@ -444,12 +448,14 @@ export class IntMaxNodeClient implements INTMAXClient {
       );
 
       if (!memo) {
+        this.#broadcastInProgress = false;
         throw new Error('Failed to send tx request');
       }
 
       memo.tx();
     } catch (e) {
       console.error(e);
+      this.#broadcastInProgress = false;
       throw new Error('Failed to send tx request');
     }
 
@@ -459,6 +465,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       await this.#indexerFetcher.fetchBlockBuilderUrl();
     } catch (e) {
       console.error(e);
+      this.#broadcastInProgress = false;
       throw new Error('Failed to finalize tx');
     }
 
@@ -825,18 +832,10 @@ export class IntMaxNodeClient implements INTMAXClient {
   }
 
   async getTransferFee(): Promise<FeeResponse> {
-    const transferFee = (await quote_transfer_fee(
-      this.#config,
-      await this.#indexerFetcher.getBlockBuilderUrl(),
-      this.#spendPub as string,
-      0,
-    )) as JsTransferFeeQuote;
+    const transferFee = await this.#getTransferFee();
 
-    if (transferFee.fee) {
-      if (!checkIsValidBlockBuilderFee(transferFee.fee, transferFee.is_registration_block)) {
-        await this.#indexerFetcher.fetchBlockBuilderUrl();
-        throw new Error('Invalid fee from block builder. Try again...');
-      }
+    if (!transferFee) {
+      throw new Error('Failed to quote transfer fee');
     }
 
     return {
@@ -1018,7 +1017,6 @@ export class IntMaxNodeClient implements INTMAXClient {
     }
 
     userdata = await get_user_data(this.#config, this.#viewKey);
-    this.#syncUserData();
 
     return userdata;
   }
@@ -1328,13 +1326,209 @@ export class IntMaxNodeClient implements INTMAXClient {
     };
   }
 
+  async #getTransferFee(): Promise<JsTransferFeeQuote | undefined> {
+    let fee: JsTransferFeeQuote | undefined;
+    let attempts = 0;
+    const maxAttempts = 3;
+    let urlBlockBuilderUrl = await this.#indexerFetcher.getBlockBuilderUrl();
+
+    while (attempts < maxAttempts) {
+      try {
+        if (!urlBlockBuilderUrl) {
+          const blockBuilderResponse = await this.#indexerFetcher.fetchBlockBuilderUrls();
+          const randomIndex = Math.floor((blockBuilderResponse?.length ?? 0) * Math.random());
+          if (blockBuilderResponse?.length) {
+            urlBlockBuilderUrl = blockBuilderResponse[randomIndex].url;
+          }
+        }
+        fee = await quote_transfer_fee(this.#config, urlBlockBuilderUrl, this.#spendPub, 0);
+
+        if (fee && fee.fee && !fee.collateral_fee && checkIsValidBlockBuilderFee(fee.fee, fee.is_registration_block)) {
+          break;
+        }
+        fee = undefined;
+      } catch (error) {
+        console.error(`Attempt ${attempts + 1} failed:`, error);
+      }
+
+      attempts++;
+      if (attempts < maxAttempts) {
+        const blockBuilderResponse = await this.#indexerFetcher.fetchBlockBuilderUrls();
+        const randomIndex = Math.floor((blockBuilderResponse?.length ?? 0) * Math.random());
+        if (blockBuilderResponse?.length) {
+          urlBlockBuilderUrl = blockBuilderResponse[randomIndex].url;
+        }
+      }
+    }
+    this.#indexerFetcher.setBlockBuilderUrl(urlBlockBuilderUrl);
+
+    return fee;
+  }
+
+  #terminateSyncUserData() {
+    if (this.#userDataWorker) {
+      console.info('Terminating worker...');
+      this.#userDataWorker.terminate();
+      this.#userDataWorker = undefined;
+      this.#isSyncInProgress = false;
+    }
+  }
+
+  async #restartSyncUserData() {
+    console.info('Restarting worker...');
+    this.#terminateSyncUserData();
+
+    setTimeout(() => {
+      this.#startSyncUserData();
+    }, 100);
+  }
+
+  #createSyncUserDataWorker() {
+    try {
+      this.#userDataWorker = new Worker(require.resolve('./sync.worker.js'));
+    } catch (error) {
+      console.error('Failed to create worker:', error);
+      // Fallback to sync operation
+      this.#userDataWorker = undefined;
+      return;
+    }
+
+    if (!this.#userDataWorker) {
+      throw Error('No sync user data worker');
+    }
+
+    this.#userDataWorker.on(
+      'message',
+      async (data: { data: JsUserData; type: 'user_data' | 'error'; shouldSaveTime: boolean; viewPair: string }) => {
+        console.info('Worker message execution received:', data);
+
+        switch (data.type) {
+          case 'user_data':
+            this.#userData = data.data;
+            if (data.shouldSaveTime) {
+              const prevFetchData = this.#cacheMap.get('user_data_fetch') as
+                | {
+                    fetchDate: number;
+                    address: string;
+                  }[]
+                | undefined;
+              const address = this.address;
+              const prevFetchDataArr =
+                prevFetchData?.filter((data) => data.address?.toLowerCase() !== address.toLowerCase()) ?? [];
+              prevFetchDataArr.push({
+                fetchDate: Date.now(),
+                address: address as string,
+              });
+              this.#cacheMap.set('user_data_fetch', prevFetchDataArr);
+
+              const items = this.#cacheMap.get('sync_withdrawal') as string[] | undefined;
+              if (items) {
+                const filteredItems = items.filter((item) => item.toLowerCase() !== data.viewPair.toLowerCase());
+                this.#cacheMap.set('sync_withdrawal', filteredItems);
+              }
+            }
+
+            break;
+          case 'error':
+            break;
+        }
+        this.#isSyncInProgress = false;
+      },
+    );
+
+    this.#userDataWorker.on('error', (error) => {
+      console.error('Worker error:', error);
+      this.#isSyncInProgress = false;
+    });
+
+    this.#userDataWorker.on('messageerror', (error) => {
+      console.error('Worker message error:', error);
+    });
+  }
+
+  async #startSyncUserData() {
+    if (this.#isSyncInProgress) {
+      return;
+    }
+    console.info('user_data_sync start');
+    this.#isSyncInProgress = true;
+    const shouldSync = true;
+
+    const prevFetchData = this.#cacheMap.get('user_data_fetch') as
+      | {
+          fetchDate: number;
+          address: string;
+        }[]
+      | undefined;
+    const address = this.address;
+    const prevFetchDateObj = prevFetchData?.find((data) => data.address.toLowerCase() === address.toLowerCase());
+
+    if (prevFetchDateObj && prevFetchDateObj.address.toLowerCase() === address.toLowerCase()) {
+      const prevFetchDate = prevFetchDateObj.fetchDate;
+      const currentDate = new Date().getTime();
+      const diff = currentDate - prevFetchDate;
+      if (diff < 180_000) {
+        this.#isSyncInProgress = false;
+        return;
+      }
+    }
+
+    if (!this.#userDataWorker) {
+      this.#createSyncUserDataWorker();
+    }
+
+    // If worker creation failed, fallback to sync operation
+    if (!this.#userDataWorker) {
+      console.warn('Worker not available, falling back to sync operation');
+      try {
+        await this.#syncUserData();
+      } catch (error) {
+        console.error('Sync operation failed:', error);
+        this.#isSyncInProgress = false;
+      }
+      return;
+    }
+
+    this.#userDataWorker.postMessage({
+      type: 'start_sync',
+      data: {
+        viewPair: this.#viewKey,
+        shouldSync,
+        configArgs: {
+          network: this.#config.network.toLowerCase(),
+          store_vault_server_url: this.#config.store_vault_server_url,
+          balance_prover_url: this.#config.balance_prover_url,
+          validity_prover_url: this.#config.validity_prover_url,
+          withdrawal_server_url: this.#config.withdrawal_server_url,
+          deposit_timeout: this.#config.tx_timeout,
+          tx_timeout: this.#config.tx_timeout,
+          // --------------------
+          is_faster_mining: this.#config.is_faster_mining,
+          block_builder_query_wait_time: this.#config.block_builder_query_wait_time,
+          block_builder_query_interval: this.#config.block_builder_query_interval,
+          block_builder_query_limit: this.#config.block_builder_query_limit,
+          // ----------------------
+          l1_rpc_url: this.#config.l1_rpc_url,
+          liquidity_contract_address: this.#config.liquidity_contract_address,
+          l2_rpc_url: this.#config.l2_rpc_url,
+          rollup_contract_address: this.#config.rollup_contract_address,
+          withdrawal_contract_address: this.#config.withdrawal_contract_address,
+          use_private_zkp_server: this.#config.use_private_zkp_server,
+          use_s3: this.#config.use_s3,
+          private_zkp_server_max_retires: this.#config.private_zkp_server_max_retires,
+          private_zkp_server_retry_interval: this.#config.private_zkp_server_retry_interval,
+        },
+      },
+    });
+  }
+
   #startPeriodicUserDataUpdate(interval: number) {
     if (this.#intervalId) {
       clearInterval(this.#intervalId);
     }
     this.#intervalId = setInterval(async () => {
-      if (this.isLoggedIn && this.#viewKey) {
-        await this.#syncUserData();
+      if (this.isLoggedIn && this.#viewKey && !this.#broadcastInProgress) {
+        await this.#restartSyncUserData();
       }
     }, interval);
   }

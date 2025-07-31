@@ -67,6 +67,20 @@ export class IndexerFetcher {
     });
   }
 
+  setBlockBuilderUrl(url: string): void {
+    if (!url) {
+      throw new Error('Block builder URL cannot be empty');
+    }
+
+    try {
+      new URL(url);
+      this.#url = url;
+    } catch (error) {
+      console.error('Invalid Block Builder URL format:', error);
+      throw new Error('Invalid Block Builder URL format');
+    }
+  }
+
   async getBlockBuilderUrl(): Promise<string> {
     if (this.#url) {
       return this.#url;

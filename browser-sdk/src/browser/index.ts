@@ -158,10 +158,6 @@ const getWalletProviderType = (): string => {
   return walletProviderName;
 };
 
-//TODO:
-// - create workers for sync user data
-// - update logic to terminate worker
-
 export class IntMaxClient implements INTMAXClient {
   readonly #environment: IntMaxEnvironment;
   #intervalId: number | null | NodeJS.Timeout = null;
@@ -463,6 +459,7 @@ export class IntMaxClient implements INTMAXClient {
 
       if (isWithdrawal) {
         if (!isAddress(transfer.address)) {
+          this.#broadcastInProgress = false;
           throw Error('Invalid address to withdraw');
         }
 
@@ -470,6 +467,7 @@ export class IntMaxClient implements INTMAXClient {
       }
 
       if (!isWithdrawal && isAddress(transfer.address)) {
+        this.#broadcastInProgress = false;
         throw Error('Invalid address to transfer');
       }
 
@@ -477,13 +475,11 @@ export class IntMaxClient implements INTMAXClient {
     });
 
     let privateKey = '';
-    let pubKey = this.#spendPub;
     let viewPair = this.#viewKey;
 
     try {
       await this.getPrivateKey();
       privateKey = this.#privateKey;
-      pubKey = this.#spendPub;
       viewPair = this.#viewKey;
     } catch (e) {
       console.error(e);
@@ -974,6 +970,7 @@ export class IntMaxClient implements INTMAXClient {
         }
       }
     }
+    this.#indexerFetcher.setBlockBuilderUrl(urlBlockBuilderUrl);
 
     return fee;
   }

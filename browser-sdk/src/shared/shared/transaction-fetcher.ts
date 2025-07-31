@@ -1,7 +1,7 @@
 import { Abi, createPublicClient, http, PublicClient } from 'viem';
 import { mainnet, sepolia } from 'viem/chains';
 
-import { Config, get_withdrawal_info, JsTimestampCursor, JsWithdrawalInfo } from '../../wasm/browser/intmax2_wasm_lib';
+import { Config, get_withdrawal_info, JsTimestampCursor, JsWithdrawalInfo } from '../../wasm/browser';
 import { DEVNET_ENV, LiquidityAbi, MAINNET_ENV, TESTNET_ENV } from '../constants';
 import {
   ContractWithdrawal,
@@ -34,7 +34,12 @@ export class TransactionFetcher {
     config: Config,
     privateKey: string,
     cursor: bigint | null = null,
+    limit: number = 256,
   ): Promise<FetchWithdrawalsResponse> {
+    if (limit && limit > 256) {
+      throw new Error('Limit cannot be greater than 256');
+    }
+
     const withdrawals = {
       [WithdrawalsStatus.Failed]: [] as ContractWithdrawal[],
       [WithdrawalsStatus.NeedClaim]: [] as ContractWithdrawal[],
@@ -49,7 +54,7 @@ export class TransactionFetcher {
       total_count: 0,
     };
     try {
-      const resp = await get_withdrawal_info(config, privateKey, new JsTimestampCursor(cursor, 'desc', 256));
+      const resp = await get_withdrawal_info(config, privateKey, new JsTimestampCursor(cursor, 'desc', limit));
       withdrawalInfo = resp.info;
       pagination = {
         has_more: resp.cursor_response.has_more,

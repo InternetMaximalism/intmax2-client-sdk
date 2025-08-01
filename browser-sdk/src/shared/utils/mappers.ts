@@ -9,7 +9,7 @@ import {
   JsTransferEntry,
   JsTxData,
   JsTxEntry,
-} from '../../wasm/browser/intmax2_wasm_lib';
+} from '../../wasm/browser/testnet';
 import { Token, Transaction, TransactionStatus, TransactionType, Transfer } from '../types';
 
 const wasmStatuses = {

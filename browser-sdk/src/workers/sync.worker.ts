@@ -1,4 +1,4 @@
-import { JsUserData } from '../wasm/browser';
+import { JsUserData } from '../wasm/browser/testnet';
 
 function convertUserDataToPlainObject(userData: JsUserData) {
   return {
@@ -32,15 +32,22 @@ async function start({
   viewPair: string;
   shouldSync: boolean;
 }) {
-  const { default: init, get_user_data, sync, sync_withdrawals, resync, Config } = await import('../wasm/browser');
+  const {
+    default: init,
+    get_user_data,
+    sync,
+    sync_withdrawals,
+    resync,
+    Config,
+  } = configArgs.network === 'mainnet'
+    ? await import('../wasm/browser/mainnet')
+    : await import('../wasm/browser/testnet');
   try {
     await init();
   } catch (error) {
     console.error('Error initializing Wasm module in Worker:', error);
     return;
   }
-
-  console.log('Full configArgs:', configArgs, null, 2);
 
   let config;
   try {
@@ -101,6 +108,7 @@ async function start({
   try {
     const userData = await get_user_data(config, viewPair);
     ctx.postMessage({
+      target: 'intamax_sdk',
       type: 'user_data',
       data: convertUserDataToPlainObject(userData),
       shouldSaveTime: shouldSync,
@@ -113,8 +121,13 @@ async function start({
 }
 
 ctx.addEventListener('message', (evt) => {
-  console.info(`%cWasm worker received message:`, 'color: #4CAF50; font-weight: bold;');
-  console.info(evt.data);
+  if (evt.data.type && evt.data.target === 'intamax_sdk_worker') {
+    console.info(`%cWasm worker received message:`, 'color: #4CAF50; font-weight: bold;');
+    console.info(evt.data);
+  } else {
+    return;
+  }
+
   switch (evt.data.type) {
     case 'start_sync':
       console.info(`%cWasm worker received start message`, 'color: #4CAF50; font-weight: bold;');

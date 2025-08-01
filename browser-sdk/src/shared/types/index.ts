@@ -1,6 +1,6 @@
 // General
 
-import { JsMetaData } from '../../wasm/browser/intmax2_wasm_lib';
+import { JsMetaData } from '../../wasm/browser/testnet';
 
 export interface FetchItemsRequest {
   cursor: JsMetaData | null;

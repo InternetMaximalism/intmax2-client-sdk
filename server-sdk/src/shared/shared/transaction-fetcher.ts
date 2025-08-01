@@ -28,7 +28,12 @@ export class TransactionFetcher {
     config: Config,
     privateKey: string,
     cursor: bigint | null = null,
+    limit: number = 256,
   ): Promise<FetchWithdrawalsResponse> {
+    if (limit > 256) {
+      throw new Error('Limit cannot be greater than 256');
+    }
+
     const withdrawals = {
       [WithdrawalsStatus.Failed]: [] as ContractWithdrawal[],
       [WithdrawalsStatus.NeedClaim]: [] as ContractWithdrawal[],
@@ -40,7 +45,7 @@ export class TransactionFetcher {
     const { info: withdrawalInfo, cursor_response } = await get_withdrawal_info(
       config,
       privateKey,
-      new JsTimestampCursor(cursor, 'desc', 256),
+      new JsTimestampCursor(cursor, 'desc', limit),
     );
 
     withdrawalInfo.forEach(({ contract_withdrawal, status }) => {

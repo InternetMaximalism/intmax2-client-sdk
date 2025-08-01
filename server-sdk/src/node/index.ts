@@ -573,7 +573,7 @@ export class IntMaxNodeClient implements INTMAXClient {
     const data = await fetch_deposit_history(
       this.#config,
       this.#viewKey,
-      new JsMetaDataCursor(cursor as JsMetaData, 'desc'),
+      new JsMetaDataCursor(cursor as JsMetaData, 'desc', limit),
     );
 
     return {
@@ -748,8 +748,10 @@ export class IntMaxNodeClient implements INTMAXClient {
     return this.#tokenFetcher.tokens;
   }
 
-  async fetchWithdrawals({ cursor }: FetchWithdrawalsRequest = { cursor: null }): Promise<FetchWithdrawalsResponse> {
-    return this.#txFetcher.fetchWithdrawals(this.#config, this.#viewKey, cursor);
+  async fetchWithdrawals(
+    { cursor, limit }: FetchWithdrawalsRequest = { cursor: null },
+  ): Promise<FetchWithdrawalsResponse> {
+    return this.#txFetcher.fetchWithdrawals(this.#config, this.#viewKey, cursor, limit);
   }
 
   async claimWithdrawal(needClaimWithdrawals: ContractWithdrawal[]): Promise<ClaimWithdrawalTransactionResponse> {

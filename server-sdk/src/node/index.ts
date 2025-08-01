@@ -24,6 +24,7 @@ import {
   BroadcastTransactionRequest,
   BroadcastTransactionResponse,
   checkIsValidBlockBuilderFee,
+  checkValidLocalTime,
   ClaimWithdrawalTransactionResponse,
   ConstructorNodeParams,
   ContractWithdrawal,
@@ -375,6 +376,10 @@ export class IntMaxNodeClient implements INTMAXClient {
     if (!this.isLoggedIn) {
       throw Error('Not logged in');
     }
+    if (await checkValidLocalTime()) {
+      throw Error('Local time is not valid. Please check your system time.');
+    }
+
     this.#broadcastInProgress = true;
 
     const transfers = rawTransfers.map((transfer) => {

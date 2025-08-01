@@ -76,3 +76,16 @@ export async function retryWithAttempts(callback: () => Promise<void> | undefine
   retryController.setPendingRetry(false);
   console.error(`Failed after ${attempts} attempts`);
 }
+
+export const checkValidLocalTime = async (): Promise<boolean> => {
+  const { data } = await axios.get('https://timeapi.io/api/Time/current/zone?timeZone=UTC');
+
+  const serverTime = new Date(data.dateTime);
+
+  const localTime = new Date();
+  const localTimeUTC = new Date(localTime.getTime() + localTime.getTimezoneOffset() * 60000);
+
+  const timeDiff = Math.abs(serverTime.getTime() - localTimeUTC.getTime());
+
+  return timeDiff > 10000;
+};

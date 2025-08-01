@@ -637,7 +637,7 @@ export class IntMaxClient implements INTMAXClient {
             this.#config,
             transfers[0],
             0,
-            true,
+            false, // no claim fee
           );
         } catch (e) {
           console.error(e);

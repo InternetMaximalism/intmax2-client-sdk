@@ -4,3 +4,10 @@ declare module '*.wasm' {
   const content: string;
   export default wasm;
 }
+
+declare module './mainnet' {
+  export * from './wasm/node/mainnet';
+}
+declare module './testnet' {
+  export * from './wasm/node/testnet';
+}

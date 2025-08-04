@@ -71,6 +71,7 @@ import {
   WithdrawRequest,
 } from '../shared';
 import * as mainnetWasm from './mainnet';
+import * as testnetWasm from './testnet';
 import {
   JsFeeQuote,
   JsMetaData,
@@ -81,7 +82,6 @@ import {
   JsWithdrawalTransfers,
   TokenBalance as WasmTokenBalance,
 } from '../wasm/node/testnet';
-import * as testnetWasm from './testnet';
 
 interface IFunctions {
   await_tx_sendable: typeof mainnetWasm.await_tx_sendable | typeof testnetWasm.await_tx_sendable;

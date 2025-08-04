@@ -1,12 +1,15 @@
 import { parentPort } from 'worker_threads';
 
+// @ts-ignore
 import * as mainnetWasm from './mainnet';
+// @ts-ignore
 import * as testnetWasm from './testnet';
 
 function convertUserDataToPlainObject(userData: mainnetWasm.JsUserData | testnetWasm.JsUserData) {
   return {
     pubkey: userData.pubkey,
     balances:
+      // @ts-ignore
       userData.balances?.map((v) => ({
         token_index: v.token_index,
         amount: v.amount,

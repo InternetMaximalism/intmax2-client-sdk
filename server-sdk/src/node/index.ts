@@ -69,7 +69,9 @@ import {
   WithdrawalResponse,
   WithdrawRequest,
 } from '../shared';
+// @ts-ignore
 import * as mainnetWasm from './mainnet';
+// @ts-ignore
 import * as testnetWasm from './testnet';
 import {
   JsFeeQuote,
@@ -88,17 +90,17 @@ interface IFunctions {
   fetch_transfer_history: typeof mainnetWasm.fetch_transfer_history | typeof testnetWasm.fetch_transfer_history;
   fetch_tx_history: typeof mainnetWasm.fetch_tx_history | typeof testnetWasm.fetch_tx_history;
   generate_fee_payment_memo:
-    | typeof mainnetWasm.generate_fee_payment_memo
-    | typeof testnetWasm.generate_fee_payment_memo;
+  | typeof mainnetWasm.generate_fee_payment_memo
+  | typeof testnetWasm.generate_fee_payment_memo;
   generate_intmax_account_from_eth_key:
-    | typeof mainnetWasm.generate_intmax_account_from_eth_key
-    | typeof testnetWasm.generate_intmax_account_from_eth_key;
+  | typeof mainnetWasm.generate_intmax_account_from_eth_key
+  | typeof testnetWasm.generate_intmax_account_from_eth_key;
   generate_withdrawal_transfers:
-    | typeof mainnetWasm.generate_withdrawal_transfers
-    | typeof testnetWasm.generate_withdrawal_transfers;
+  | typeof mainnetWasm.generate_withdrawal_transfers
+  | typeof testnetWasm.generate_withdrawal_transfers;
   get_balances_without_sync:
-    | typeof mainnetWasm.get_balances_without_sync
-    | typeof testnetWasm.get_balances_without_sync;
+  | typeof mainnetWasm.get_balances_without_sync
+  | typeof testnetWasm.get_balances_without_sync;
   get_user_data: typeof mainnetWasm.get_user_data | typeof testnetWasm.get_user_data;
   prepare_deposit: typeof mainnetWasm.prepare_deposit | typeof testnetWasm.prepare_deposit;
   query_and_finalize: typeof mainnetWasm.query_and_finalize | typeof testnetWasm.query_and_finalize;
@@ -546,7 +548,9 @@ export class IntMaxNodeClient implements INTMAXClient {
     }
 
     return {
+      // @ts-ignore
       txTreeRoot: tx.tx_tree_root,
+      // @ts-ignore
       transferDigests: tx.tx_data.transfer_digests,
     };
   }
@@ -577,6 +581,7 @@ export class IntMaxNodeClient implements INTMAXClient {
         total_count: data.cursor_response.total_count,
       },
       items: data.history
+        // @ts-ignore
         .map((tx) => {
           return wasmTxToTx(
             this.#config,
@@ -621,6 +626,7 @@ export class IntMaxNodeClient implements INTMAXClient {
         total_count: data.cursor_response.total_count,
       },
       items: data.history
+        // @ts-ignore
         .map((tx) => {
           return wasmTxToTx(
             this.#config,
@@ -665,6 +671,7 @@ export class IntMaxNodeClient implements INTMAXClient {
         total_count: data.cursor_response.total_count,
       },
       items: data.history
+        // @ts-ignore
         .map((tx) => {
           return wasmTxToTx(
             this.#config,

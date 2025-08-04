@@ -4,11 +4,9 @@ This SDK is a client library for the INTMAX API. It is designed to help you inte
 
 For detailed interface specifications and usage instructions, please refer to the documentation below:
 
-> ⚠️ Mainnet is not supported yet. Please use the Testnet.
-
-- [📘 INTMAX Client SDK Docs (API Reference)](https://aquatic-paperback-675.notion.site/INTMAX-Client-SDK-Docs-176d989987db8096a012d144ae0e0dba)
-- [🔧 Integration Guide](https://aquatic-paperback-675.notion.site/INTMAX-Client-SDK-Integration-Guide-208d989987db809db876ff8c79e78853)
-- [🧪 Examples on GitHub](https://github.com/InternetMaximalism/intmax2-client-sdk/tree/main/examples)
+- [INTMAX Client SDK Docs (API Reference)](https://aquatic-paperback-675.notion.site/INTMAX-Client-SDK-Docs-176d989987db8096a012d144ae0e0dba)
+- [Integration Guide](https://aquatic-paperback-675.notion.site/INTMAX-Client-SDK-Integration-Guide-208d989987db809db876ff8c79e78853)
+- [Examples on GitHub](https://github.com/InternetMaximalism/intmax2-client-sdk/tree/main/examples)
 
 Use these resources to quickly get started with building, integrating, and testing INTMAX-powered applications.
 
@@ -109,7 +107,7 @@ export interface INTMAXClient {
 ```ts
 import { IntMaxClient } from "intmax2-client-sdk";
 
-const intMaxClient = IntMaxClient.init({ environment: "testnet" });
+const intMaxClient = IntMaxClient.init({ environment: "mainnet" });
 ```
 
 To use the private ZKP server hosted at `http://localhost:9001`, you can use the following code:
@@ -118,7 +116,7 @@ To use the private ZKP server hosted at `http://localhost:9001`, you can use the
 import { IntMaxClient } from "intmax2-client-sdk";
 
 const intMaxClient = IntMaxClient.init({
-  environment: "testnet",
+  environment: "mainnet",
   urls: {
     balance_prover_url: "http://localhost:9001",
     use_private_zkp_server: false, // When using the balance prover locally on localhost, set `use_private_zkp_server` to false.

@@ -1,6 +1,7 @@
+import * as wasmMainnet from '../../wasm/node/mainnet';
+import * as wasmTestnet from '../../wasm/node/testnet';
 import {
   Config,
-  get_intmax_address_from_public_pair,
   JsDepositData,
   JsDepositEntry,
   JsMetaData,
@@ -24,7 +25,11 @@ const filterWithdrawals = (transfers: Transfer[]) => {
 };
 
 const getPublicIntMaxAddress = (config: Config, pubKeyPair: JsPublicKeyPair) => {
-  return get_intmax_address_from_public_pair(config.network, pubKeyPair);
+  if (config.network === 'mainnet') {
+    return wasmMainnet.get_intmax_address_from_public_pair(config.network, pubKeyPair);
+  } else {
+    return wasmTestnet.get_intmax_address_from_public_pair(config.network, pubKeyPair);
+  }
 };
 
 export const wasmTxToTx = (

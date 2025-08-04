@@ -607,6 +607,14 @@ export class IntMaxNodeClient implements INTMAXClient {
       throw new Error('Limit cannot be greater than 256');
     }
 
+    console.log(
+      new (this.#environment === 'mainnet' ? mainnetWasm.JsMetaDataCursor : testnetWasm.JsMetaDataCursor)(
+        cursor,
+        'desc',
+        limit,
+      ),
+    );
+
     const data = await this.#functions.fetch_transfer_history(
       this.#config,
       this.#viewKey,

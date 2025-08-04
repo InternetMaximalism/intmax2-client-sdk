@@ -3,7 +3,7 @@ import { mainnet, sepolia } from 'viem/chains';
 
 import * as wasmMainnet from '../../wasm/node/mainnet';
 import * as wasmTestnet from '../../wasm/node/testnet';
-import { DEVNET_ENV, LiquidityAbi, MAINNET_ENV, TESTNET_ENV } from '../constants';
+import { LiquidityAbi, MAINNET_ENV, TESTNET_ENV } from '../constants';
 import {
   ContractWithdrawal,
   FetchWithdrawalsResponse,
@@ -24,9 +24,7 @@ export class TransactionFetcher {
     this.#liquidityContractAddress =
       environment === 'mainnet'
         ? MAINNET_ENV.liquidity_contract
-        : environment === 'testnet'
-          ? TESTNET_ENV.liquidity_contract
-          : DEVNET_ENV.liquidity_contract;
+        : TESTNET_ENV.liquidity_contract;
 
     this.#publicClient = createPublicClient({
       chain: environment === 'mainnet' ? mainnet : sepolia,

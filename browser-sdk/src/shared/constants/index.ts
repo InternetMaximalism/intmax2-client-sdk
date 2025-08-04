@@ -51,24 +51,3 @@ export const TESTNET_ENV: SDKUrls = {
   key_vault_url: 'https://stage.api.keyvault.intmax.io/v1/external',
   tokens_url: 'https://stage.api.token.intmax.io/v1',
 };
-
-export const DEVNET_ENV: SDKUrls = {
-  balance_prover_url: 'https://dev.api.private.zkp.intmax.xyz',
-  indexer_url: 'https://dev.api.indexer.intmax.xyz/v1/indexer',
-  validity_prover_url: 'https://dev.api.node.intmax.xyz/validity-prover',
-  store_vault_server_url: 'https://dev.api.node.intmax.xyz/store-vault-server',
-  withdrawal_aggregator_url: 'https://dev.api.node.intmax.xyz/withdrawal-server',
-  predicate_url: 'https://dev.api.predicate.intmax.xyz/v1/predicate',
-  chain_id_l1: 11155111,
-  chain_id_l2: 534351,
-  //
-  liquidity_contract: '0xb2444035331beB6f77aEB973D892eA99ED9af11C',
-  rollup_contract: '0x89ce460949Bd7CDbC30BA48EbA59eC36AdFBE04f',
-  withdrawal_contract_address: '0x12c07A77cfB597C74a5eA1a3EecFc1D4D138dbD0',
-  predicate_contract_address: '0x4D9B3CF9Cb04B27C5D221c82B428D9dE990D3e3a',
-  //
-  rpc_url_l1: 'https://sepolia.gateway.tenderly.co',
-  rpc_url_l2: 'https://sepolia-rpc.scroll.io',
-  key_vault_url: 'https://dev.api.keyvault.intmax.xyz/v1/external',
-  tokens_url: 'https://dev.api.token.intmax.xyz/v1',
-};

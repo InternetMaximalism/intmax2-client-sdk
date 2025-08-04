@@ -28,7 +28,6 @@ import {
   ClaimWithdrawalTransactionResponse,
   ConstructorNodeParams,
   ContractWithdrawal,
-  DEVNET_ENV,
   FeeResponse,
   FetchTransactionsRequest,
   FetchTransactionsResponse,
@@ -158,13 +157,11 @@ export class IntMaxNodeClient implements INTMAXClient {
       baseURL:
         environment === 'mainnet'
           ? MAINNET_ENV.key_vault_url
-          : environment === 'testnet'
-            ? TESTNET_ENV.key_vault_url
-            : DEVNET_ENV.key_vault_url,
+          : TESTNET_ENV.key_vault_url,
     });
 
     this.#environment = environment;
-    const defaultUrls = environment === 'mainnet' ? MAINNET_ENV : environment === 'testnet' ? TESTNET_ENV : DEVNET_ENV;
+    const defaultUrls = environment === 'mainnet' ? MAINNET_ENV : TESTNET_ENV;
     this.#urls = {
       ...defaultUrls,
       ...params.urls,

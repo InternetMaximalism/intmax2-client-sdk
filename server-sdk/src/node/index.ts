@@ -42,6 +42,7 @@ import {
   IntMaxEnvironment,
   IntMaxTxBroadcast,
   LiquidityAbi,
+  MAINNET_ENV,
   networkMessage,
   PredicateFetcher,
   PrepareDepositTransactionRequest,
@@ -69,45 +70,54 @@ import {
   WithdrawalResponse,
   WithdrawRequest,
 } from '../shared';
+import * as mainnetWasm from './mainnet';
 import {
-  await_tx_sendable,
-  Config,
-  fetch_deposit_history,
-  fetch_transfer_history,
-  fetch_tx_history,
-  generate_fee_payment_memo,
-  generate_intmax_account_from_eth_key,
-  generate_withdrawal_transfers,
-  get_balances_without_sync,
-  get_user_data,
   JsFeeQuote,
-  JsFlatG2,
   JsMetaData,
-  JsMetaDataCursor,
   JsTransferFeeQuote,
-  JsTransferRequest,
   JsTxRequestMemo,
   JsTxResult,
   JsUserData,
   JsWithdrawalTransfers,
-  prepare_deposit,
-  query_and_finalize,
-  quote_claim_fee,
-  quote_transfer_fee,
-  quote_withdrawal_fee,
-  send_tx_request,
-  sign_message,
-  sync,
-  sync_claims,
-  sync_withdrawals,
-  verify_signature,
   TokenBalance as WasmTokenBalance,
-} from '../wasm/node';
+} from '../wasm/node/testnet';
+import * as testnetWasm from './testnet';
+
+interface IFunctions {
+  await_tx_sendable: typeof mainnetWasm.await_tx_sendable | typeof testnetWasm.await_tx_sendable;
+  fetch_deposit_history: typeof mainnetWasm.fetch_deposit_history | typeof testnetWasm.fetch_deposit_history;
+  fetch_transfer_history: typeof mainnetWasm.fetch_transfer_history | typeof testnetWasm.fetch_transfer_history;
+  fetch_tx_history: typeof mainnetWasm.fetch_tx_history | typeof testnetWasm.fetch_tx_history;
+  generate_fee_payment_memo:
+    | typeof mainnetWasm.generate_fee_payment_memo
+    | typeof testnetWasm.generate_fee_payment_memo;
+  generate_intmax_account_from_eth_key:
+    | typeof mainnetWasm.generate_intmax_account_from_eth_key
+    | typeof testnetWasm.generate_intmax_account_from_eth_key;
+  generate_withdrawal_transfers:
+    | typeof mainnetWasm.generate_withdrawal_transfers
+    | typeof testnetWasm.generate_withdrawal_transfers;
+  get_balances_without_sync:
+    | typeof mainnetWasm.get_balances_without_sync
+    | typeof testnetWasm.get_balances_without_sync;
+  get_user_data: typeof mainnetWasm.get_user_data | typeof testnetWasm.get_user_data;
+  prepare_deposit: typeof mainnetWasm.prepare_deposit | typeof testnetWasm.prepare_deposit;
+  query_and_finalize: typeof mainnetWasm.query_and_finalize | typeof testnetWasm.query_and_finalize;
+  quote_claim_fee: typeof mainnetWasm.quote_claim_fee | typeof testnetWasm.quote_claim_fee;
+  quote_transfer_fee: typeof mainnetWasm.quote_transfer_fee | typeof testnetWasm.quote_transfer_fee;
+  quote_withdrawal_fee: typeof mainnetWasm.quote_withdrawal_fee | typeof testnetWasm.quote_withdrawal_fee;
+  send_tx_request: typeof mainnetWasm.send_tx_request | typeof testnetWasm.send_tx_request;
+  sign_message: typeof mainnetWasm.sign_message | typeof testnetWasm.sign_message;
+  sync: typeof mainnetWasm.sync | typeof testnetWasm.sync;
+  sync_claims: typeof mainnetWasm.sync_claims | typeof testnetWasm.sync_claims;
+  sync_withdrawals: typeof mainnetWasm.sync_withdrawals | typeof testnetWasm.sync_withdrawals;
+  verify_signature: typeof mainnetWasm.verify_signature | typeof testnetWasm.verify_signature;
+}
 
 export class IntMaxNodeClient implements INTMAXClient {
   #intervalId: number | null | NodeJS.Timeout = null;
   #isSyncInProgress: boolean = false;
-  readonly #config: Config;
+  readonly #config: mainnetWasm.Config | testnetWasm.Config;
   readonly #tokenFetcher: TokenFetcher;
   readonly #indexerFetcher: IndexerFetcher;
   readonly #txFetcher: TransactionFetcher;
@@ -123,19 +133,16 @@ export class IntMaxNodeClient implements INTMAXClient {
   #spendKey: string = '';
   #spendPub: string = '';
   #viewKey: string = '';
-  #userData: JsUserData | undefined;
+  #userData: (mainnetWasm.JsUserData | undefined) | (testnetWasm.JsUserData | undefined);
   #broadcastInProgress: boolean = false;
   #userDataWorker: Worker | undefined;
+  #functions: IFunctions;
 
   isLoggedIn: boolean = false;
   address: string = '';
   tokenBalances: TokenBalance[] = [];
 
   constructor(params: ConstructorNodeParams) {
-    if (params.environment === 'mainnet') {
-      throw new Error('Mainnet is not supported yet');
-    }
-
     this.validateConstructorParams(params);
     const { environment, eth_private_key, l1_rpc_url } = params;
 
@@ -143,30 +150,74 @@ export class IntMaxNodeClient implements INTMAXClient {
     this.#ethAccount = privateKeyToAccount(eth_private_key);
 
     this.#publicClient = createPublicClient({
-      // chain: environment === 'mainnet' ? mainnet : sepolia,
       chain: sepolia,
       transport: l1_rpc_url ? http(l1_rpc_url) : http(),
     });
 
-    // this.#vaultHttpClient = axiosClientInit({
-    //   baseURL:
-    //     environment === 'mainnet'
-    //       ? MAINNET_ENV.key_vault_url
-    //       : environment === 'testnet'
-    //         ? TESTNET_ENV.key_vault_url
-    //         : DEVNET_ENV.key_vault_url,
-    // });
     this.#vaultHttpClient = axiosClientInit({
-      baseURL: environment === 'testnet' ? TESTNET_ENV.key_vault_url : DEVNET_ENV.key_vault_url,
+      baseURL:
+        environment === 'mainnet'
+          ? MAINNET_ENV.key_vault_url
+          : environment === 'testnet'
+            ? TESTNET_ENV.key_vault_url
+            : DEVNET_ENV.key_vault_url,
     });
 
     this.#environment = environment;
-    // this.#urls = environment === 'mainnet' ? MAINNET_ENV : environment === 'testnet' ? TESTNET_ENV : DEVNET_ENV;
-    const defaultUrls = environment === 'testnet' ? TESTNET_ENV : DEVNET_ENV;
+    const defaultUrls = environment === 'mainnet' ? MAINNET_ENV : environment === 'testnet' ? TESTNET_ENV : DEVNET_ENV;
     this.#urls = {
       ...defaultUrls,
       ...params.urls,
     };
+
+    // Initialize functions based on environment
+    if (environment === 'mainnet') {
+      this.#functions = {
+        await_tx_sendable: mainnetWasm.await_tx_sendable,
+        fetch_deposit_history: mainnetWasm.fetch_deposit_history,
+        fetch_transfer_history: mainnetWasm.fetch_transfer_history,
+        fetch_tx_history: mainnetWasm.fetch_tx_history,
+        generate_fee_payment_memo: mainnetWasm.generate_fee_payment_memo,
+        generate_intmax_account_from_eth_key: mainnetWasm.generate_intmax_account_from_eth_key,
+        generate_withdrawal_transfers: mainnetWasm.generate_withdrawal_transfers,
+        get_balances_without_sync: mainnetWasm.get_balances_without_sync,
+        get_user_data: mainnetWasm.get_user_data,
+        prepare_deposit: mainnetWasm.prepare_deposit,
+        query_and_finalize: mainnetWasm.query_and_finalize,
+        quote_claim_fee: mainnetWasm.quote_claim_fee,
+        quote_transfer_fee: mainnetWasm.quote_transfer_fee,
+        quote_withdrawal_fee: mainnetWasm.quote_withdrawal_fee,
+        send_tx_request: mainnetWasm.send_tx_request,
+        sign_message: mainnetWasm.sign_message,
+        sync: mainnetWasm.sync,
+        sync_claims: mainnetWasm.sync_claims,
+        sync_withdrawals: mainnetWasm.sync_withdrawals,
+        verify_signature: mainnetWasm.verify_signature,
+      };
+    } else {
+      this.#functions = {
+        await_tx_sendable: testnetWasm.await_tx_sendable,
+        fetch_deposit_history: testnetWasm.fetch_deposit_history,
+        fetch_transfer_history: testnetWasm.fetch_transfer_history,
+        fetch_tx_history: testnetWasm.fetch_tx_history,
+        generate_fee_payment_memo: testnetWasm.generate_fee_payment_memo,
+        generate_intmax_account_from_eth_key: testnetWasm.generate_intmax_account_from_eth_key,
+        generate_withdrawal_transfers: testnetWasm.generate_withdrawal_transfers,
+        get_balances_without_sync: testnetWasm.get_balances_without_sync,
+        get_user_data: testnetWasm.get_user_data,
+        prepare_deposit: testnetWasm.prepare_deposit,
+        query_and_finalize: testnetWasm.query_and_finalize,
+        quote_claim_fee: testnetWasm.quote_claim_fee,
+        quote_transfer_fee: testnetWasm.quote_transfer_fee,
+        quote_withdrawal_fee: testnetWasm.quote_withdrawal_fee,
+        send_tx_request: testnetWasm.send_tx_request,
+        sign_message: testnetWasm.sign_message,
+        sync: testnetWasm.sync,
+        sync_claims: testnetWasm.sync_claims,
+        sync_withdrawals: testnetWasm.sync_withdrawals,
+        verify_signature: testnetWasm.verify_signature,
+      };
+    }
 
     this.#config = this.#generateConfig(environment);
     this.#txFetcher = new TransactionFetcher(environment);
@@ -308,7 +359,7 @@ export class IntMaxNodeClient implements INTMAXClient {
     }
 
     let wasm_balances: WasmTokenBalance[] = [];
-    wasm_balances = await get_balances_without_sync(this.#config, this.#viewKey);
+    wasm_balances = await this.#functions.get_balances_without_sync(this.#config, this.#viewKey);
 
     if (!wasm_balances.length) {
       const userData = await this.#fetchUserData();
@@ -394,7 +445,9 @@ export class IntMaxNodeClient implements INTMAXClient {
           throw Error('Invalid address to withdraw');
         }
 
-        return new JsTransferRequest(transfer.address, transfer.token.tokenIndex, amount, null);
+        return this.#environment === 'mainnet'
+          ? new mainnetWasm.JsTransferRequest(transfer.address, transfer.token.tokenIndex, amount, null)
+          : new testnetWasm.JsTransferRequest(transfer.address, transfer.token.tokenIndex, amount, null);
       }
 
       if (!isWithdrawal && isAddress(transfer.address)) {
@@ -402,7 +455,9 @@ export class IntMaxNodeClient implements INTMAXClient {
         throw Error('Invalid address to transfer');
       }
 
-      return new JsTransferRequest(transfer.address, transfer.token.tokenIndex, amount, null);
+      return this.#environment === 'mainnet'
+        ? new mainnetWasm.JsTransferRequest(transfer.address, transfer.token.tokenIndex, amount, null)
+        : new testnetWasm.JsTransferRequest(transfer.address, transfer.token.tokenIndex, amount, null);
     });
 
     let privateKey = '';
@@ -429,22 +484,22 @@ export class IntMaxNodeClient implements INTMAXClient {
       let withdrawalTransfers: JsWithdrawalTransfers | undefined;
 
       if (isWithdrawal) {
-        withdrawalTransfers = await generate_withdrawal_transfers(this.#config, transfers[0], 0, true);
+        withdrawalTransfers = await this.#functions.generate_withdrawal_transfers(this.#config, transfers[0], 0, true);
       }
 
       try {
-        await await_tx_sendable(this.#config, viewPair, transfers, fee);
+        await this.#functions.await_tx_sendable(this.#config, viewPair, transfers, fee);
       } catch (e) {
         console.error(e);
       }
 
       // send the tx request
-      memo = await send_tx_request(
+      memo = await this.#functions.send_tx_request(
         this.#config,
         await this.#indexerFetcher.getBlockBuilderUrl(),
         privateKey,
         withdrawalTransfers ? withdrawalTransfers.transfer_requests : transfers,
-        generate_fee_payment_memo(
+        this.#functions.generate_fee_payment_memo(
           withdrawalTransfers?.transfer_requests ?? [],
           withdrawalTransfers?.withdrawal_fee_transfer_index,
           withdrawalTransfers?.claim_fee_transfer_index,
@@ -466,7 +521,12 @@ export class IntMaxNodeClient implements INTMAXClient {
 
     let tx: JsTxResult | undefined;
     try {
-      tx = await query_and_finalize(this.#config, await this.#indexerFetcher.getBlockBuilderUrl(), privateKey, memo);
+      tx = await this.#functions.query_and_finalize(
+        this.#config,
+        await this.#indexerFetcher.getBlockBuilderUrl(),
+        privateKey,
+        memo,
+      );
       await this.#indexerFetcher.fetchBlockBuilderUrl();
     } catch (e) {
       console.error(e);
@@ -478,14 +538,14 @@ export class IntMaxNodeClient implements INTMAXClient {
       await sleep(40000);
       if (rawTransfers[0].claim_beneficiary) {
         try {
-          await sync_claims(this.#config, viewPair, rawTransfers[0].claim_beneficiary, 0);
+          await this.#functions.sync_claims(this.#config, viewPair, rawTransfers[0].claim_beneficiary, 0);
         } catch (e) {
           console.error(e);
           throw e;
         }
       }
       await sleep(40000);
-      await retryWithAttempts(async () => await sync_withdrawals(this.#config, viewPair, 0), 1000, 5);
+      await retryWithAttempts(async () => await this.#functions.sync_withdrawals(this.#config, viewPair, 0), 1000, 5);
     }
 
     return {
@@ -503,7 +563,15 @@ export class IntMaxNodeClient implements INTMAXClient {
       throw new Error('Limit cannot be greater than 256');
     }
 
-    const data = await fetch_tx_history(this.#config, this.#viewKey, new JsMetaDataCursor(cursor, 'desc', limit));
+    const data = await this.#functions.fetch_tx_history(
+      this.#config,
+      this.#viewKey,
+      new (this.#environment === 'mainnet' ? mainnetWasm.JsMetaDataCursor : testnetWasm.JsMetaDataCursor)(
+        cursor,
+        'desc',
+        limit,
+      ),
+    );
 
     return {
       pagination: {
@@ -539,7 +607,15 @@ export class IntMaxNodeClient implements INTMAXClient {
       throw new Error('Limit cannot be greater than 256');
     }
 
-    const data = await fetch_transfer_history(this.#config, this.#viewKey, new JsMetaDataCursor(cursor, 'desc', limit));
+    const data = await this.#functions.fetch_transfer_history(
+      this.#config,
+      this.#viewKey,
+      new (this.#environment === 'mainnet' ? mainnetWasm.JsMetaDataCursor : testnetWasm.JsMetaDataCursor)(
+        cursor,
+        'desc',
+        limit,
+      ),
+    );
 
     return {
       pagination: {
@@ -575,10 +651,14 @@ export class IntMaxNodeClient implements INTMAXClient {
       throw new Error('Limit cannot be greater than 256');
     }
 
-    const data = await fetch_deposit_history(
+    const data = await this.#functions.fetch_deposit_history(
       this.#config,
       this.#viewKey,
-      new JsMetaDataCursor(cursor as JsMetaData, 'desc', limit),
+      new (this.#environment === 'mainnet' ? mainnetWasm.JsMetaDataCursor : testnetWasm.JsMetaDataCursor)(
+        cursor as JsMetaData,
+        'desc',
+        limit,
+      ),
     );
 
     return {
@@ -730,7 +810,7 @@ export class IntMaxNodeClient implements INTMAXClient {
 
   async signMessage(message: string): Promise<SignMessageResponse> {
     const data = Buffer.from(message);
-    const signature = await sign_message(this.#spendKey, data);
+    const signature = await this.#functions.sign_message(this.#spendKey, data);
     return signature.elements as SignMessageResponse;
   }
 
@@ -742,8 +822,9 @@ export class IntMaxNodeClient implements INTMAXClient {
       data = message;
     }
 
-    const newSignature = new JsFlatG2(signature);
-    return await verify_signature(newSignature, this.#spendPub, data);
+    const newSignature =
+      this.#environment === 'mainnet' ? new mainnetWasm.JsFlatG2(signature) : new testnetWasm.JsFlatG2(signature);
+    return await this.#functions.verify_signature(newSignature, this.#spendPub, data);
   }
 
   async getTokensList(): Promise<Token[]> {
@@ -853,7 +934,7 @@ export class IntMaxNodeClient implements INTMAXClient {
   }
 
   async getWithdrawalFee(token: Token): Promise<FeeResponse> {
-    const withdrawalFee = (await quote_withdrawal_fee(this.#config, token.tokenIndex, 0)) as JsFeeQuote;
+    const withdrawalFee = (await this.#functions.quote_withdrawal_fee(this.#config, token.tokenIndex, 0)) as JsFeeQuote;
     return {
       beneficiary: withdrawalFee.beneficiary,
       fee: withdrawalFee.fee,
@@ -862,7 +943,7 @@ export class IntMaxNodeClient implements INTMAXClient {
   }
 
   async getClaimFee(): Promise<FeeResponse> {
-    const claim_fee = await quote_claim_fee(this.#config, 0);
+    const claim_fee = await this.#functions.quote_claim_fee(this.#config, 0);
 
     return {
       beneficiary: claim_fee.beneficiary,
@@ -872,12 +953,12 @@ export class IntMaxNodeClient implements INTMAXClient {
   }
 
   // PRIVATE METHODS
-  #generateConfig(env: IntMaxEnvironment): Config {
+  #generateConfig(env: IntMaxEnvironment): mainnetWasm.Config | testnetWasm.Config {
     const urls = this.#urls;
 
     const isFasterMining = env === 'devnet';
-    return new Config(
-      env,
+    const args = [
+      env, // Network
       urls.store_vault_server_url,
       urls.balance_prover_url,
       urls.validity_prover_url,
@@ -899,7 +980,10 @@ export class IntMaxNodeClient implements INTMAXClient {
       true, // use_s3
       120, // private_zkp_server_max_retries
       5n, // private_zkp_server_retry_interval
-    );
+    ];
+    // eslint-disable-next-line
+    // @ts-ignore
+    return env === 'mainnet' ? new mainnetWasm.Config(...args) : new testnetWasm.Config(...args);
   }
 
   #checkAllowanceToExecuteMethod() {
@@ -928,7 +1012,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       isLegacy = resp.meta.isLegacy;
     }
 
-    const keySet = await generate_intmax_account_from_eth_key(this.#config.network, hdKey, isLegacy);
+    const keySet = await this.#functions.generate_intmax_account_from_eth_key(this.#config.network, hdKey, isLegacy);
 
     this.address = keySet.address;
     this.#privateKey = keySet.key_pair;
@@ -964,7 +1048,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       // sync the account's balance proof
       await retryWithAttempts(
         () => {
-          return sync(this.#config, this.#viewKey);
+          return this.#functions.sync(this.#config, this.#viewKey);
         },
         10000,
         5,
@@ -975,7 +1059,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       console.info('Start sync withdrawals');
       await retryWithAttempts(
         () => {
-          return sync_withdrawals(this.#config, this.#viewKey, 0);
+          return this.#functions.sync_withdrawals(this.#config, this.#viewKey, 0);
         },
         10000,
         5,
@@ -985,7 +1069,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       console.info('Failed to sync account balance proof', e);
     }
 
-    this.#userData = await get_user_data(this.#config, this.#viewKey);
+    this.#userData = await this.#functions.get_user_data(this.#config, this.#viewKey);
 
     const prevFetchDataArr =
       prevFetchData?.filter(
@@ -1016,14 +1100,14 @@ export class IntMaxNodeClient implements INTMAXClient {
         return this.#userData;
       } else if (diff < 180_000) {
         console.info('Fetching user data without sync');
-        userdata = await get_user_data(this.#config, this.#viewKey);
+        userdata = await this.#functions.get_user_data(this.#config, this.#viewKey);
         this.#userData = userdata;
 
         return userdata;
       }
     }
 
-    userdata = await get_user_data(this.#config, this.#viewKey);
+    userdata = await this.#functions.get_user_data(this.#config, this.#viewKey);
 
     return userdata;
   }
@@ -1140,7 +1224,7 @@ export class IntMaxNodeClient implements INTMAXClient {
     token_address,
     depositor,
   }: Required<IntMaxTxBroadcast>) {
-    const depositResult = await prepare_deposit(
+    const depositResult = await this.#functions.prepare_deposit(
       this.#config,
       depositor,
       pubkey,
@@ -1348,7 +1432,7 @@ export class IntMaxNodeClient implements INTMAXClient {
             urlBlockBuilderUrl = blockBuilderResponse[randomIndex].url;
           }
         }
-        fee = await quote_transfer_fee(this.#config, urlBlockBuilderUrl, this.#spendPub, 0);
+        fee = await this.#functions.quote_transfer_fee(this.#config, urlBlockBuilderUrl, this.#spendPub, 0);
 
         if (fee && fee.fee && !fee.collateral_fee && checkIsValidBlockBuilderFee(fee.fee, fee.is_registration_block)) {
           break;

@@ -1,8 +1,9 @@
 import { parentPort } from 'worker_threads';
 
-import { Config, get_user_data, JsUserData, resync, sync, sync_withdrawals } from '../wasm/node';
+import * as mainnetWasm from './mainnet';
+import * as testnetWasm from './testnet';
 
-function convertUserDataToPlainObject(userData: JsUserData) {
+function convertUserDataToPlainObject(userData: mainnetWasm.JsUserData | testnetWasm.JsUserData) {
   return {
     pubkey: userData.pubkey,
     balances:
@@ -32,32 +33,61 @@ async function start({
   viewPair: string;
   shouldSync: boolean;
 }) {
-  let config;
+  let config: mainnetWasm.Config | testnetWasm.Config;
+  const isMainnet = configArgs.network === 'mainnet';
+
   try {
-    config = new Config(
-      configArgs.network,
-      configArgs.store_vault_server_url,
-      configArgs.balance_prover_url,
-      configArgs.validity_prover_url,
-      configArgs.withdrawal_server_url,
-      configArgs.deposit_timeout,
-      configArgs.tx_timeout,
-      // ---------------------
-      configArgs.is_faster_mining,
-      configArgs.block_builder_query_wait_time,
-      configArgs.block_builder_query_interval,
-      configArgs.block_builder_query_limit,
-      // -----------------------
-      configArgs.l1_rpc_url,
-      configArgs.liquidity_contract_address,
-      configArgs.l2_rpc_url,
-      configArgs.rollup_contract_address,
-      configArgs.withdrawal_contract_address,
-      configArgs.use_private_zkp_server,
-      configArgs.use_s3,
-      configArgs.private_zkp_server_max_retires,
-      configArgs.private_zkp_server_retry_interval,
-    );
+    if (isMainnet) {
+      config = new mainnetWasm.Config(
+        configArgs.network,
+        configArgs.store_vault_server_url,
+        configArgs.balance_prover_url,
+        configArgs.validity_prover_url,
+        configArgs.withdrawal_server_url,
+        configArgs.deposit_timeout,
+        configArgs.tx_timeout,
+        // ---------------------
+        configArgs.is_faster_mining,
+        configArgs.block_builder_query_wait_time,
+        configArgs.block_builder_query_interval,
+        configArgs.block_builder_query_limit,
+        // -----------------------
+        configArgs.l1_rpc_url,
+        configArgs.liquidity_contract_address,
+        configArgs.l2_rpc_url,
+        configArgs.rollup_contract_address,
+        configArgs.withdrawal_contract_address,
+        configArgs.use_private_zkp_server,
+        configArgs.use_s3,
+        configArgs.private_zkp_server_max_retires,
+        configArgs.private_zkp_server_retry_interval,
+      );
+    } else {
+      config = new testnetWasm.Config(
+        configArgs.network,
+        configArgs.store_vault_server_url,
+        configArgs.balance_prover_url,
+        configArgs.validity_prover_url,
+        configArgs.withdrawal_server_url,
+        configArgs.deposit_timeout,
+        configArgs.tx_timeout,
+        // ---------------------
+        configArgs.is_faster_mining,
+        configArgs.block_builder_query_wait_time,
+        configArgs.block_builder_query_interval,
+        configArgs.block_builder_query_limit,
+        // -----------------------
+        configArgs.l1_rpc_url,
+        configArgs.liquidity_contract_address,
+        configArgs.l2_rpc_url,
+        configArgs.rollup_contract_address,
+        configArgs.withdrawal_contract_address,
+        configArgs.use_private_zkp_server,
+        configArgs.use_s3,
+        configArgs.private_zkp_server_max_retires,
+        configArgs.private_zkp_server_retry_interval,
+      );
+    }
     console.info('%cConfig initialized', 'color: #4CAF50; font-weight: bold;');
   } catch (error) {
     console.error('Config creation failed:', error);
@@ -68,13 +98,21 @@ async function start({
 
   if (shouldSync) {
     try {
-      await sync(config, viewPair);
+      if (isMainnet) {
+        await mainnetWasm.sync(config, viewPair);
+      } else {
+        await testnetWasm.sync(config, viewPair);
+      }
     } catch (error) {
       console.error('Error during sync from worker:', error);
 
       if (error instanceof Error && error.message.includes('unreachable')) {
         try {
-          await resync(config, viewPair, false);
+          if (isMainnet) {
+            await mainnetWasm.resync(config, viewPair, false);
+          } else {
+            await testnetWasm.resync(config, viewPair, false);
+          }
         } catch (error) {
           console.error('Error during resync from worker:', error);
         }
@@ -82,14 +120,20 @@ async function start({
     }
 
     try {
-      await sync_withdrawals(config, viewPair, 0);
+      if (isMainnet) {
+        await mainnetWasm.sync_withdrawals(config, viewPair, 0);
+      } else {
+        await testnetWasm.sync_withdrawals(config, viewPair, 0);
+      }
     } catch (error) {
       console.error('Error during withdrawals sync from worker:', error);
     }
   }
 
   try {
-    const userData = await get_user_data(config, viewPair);
+    const userData = isMainnet
+      ? await mainnetWasm.get_user_data(config, viewPair)
+      : await testnetWasm.get_user_data(config, viewPair);
     parentPort?.postMessage({
       type: 'user_data',
       data: convertUserDataToPlainObject(userData),

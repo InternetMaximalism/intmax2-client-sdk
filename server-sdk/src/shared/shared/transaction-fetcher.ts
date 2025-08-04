@@ -1,7 +1,7 @@
 import { Abi, createPublicClient, http, PublicClient } from 'viem';
 import { mainnet, sepolia } from 'viem/chains';
 
-import { Config, get_withdrawal_info, JsTimestampCursor } from '../../wasm/node';
+import { Config, get_withdrawal_info, JsTimestampCursor } from '../../wasm/node/testnet';
 import { DEVNET_ENV, LiquidityAbi, MAINNET_ENV, TESTNET_ENV } from '../constants';
 import { ContractWithdrawal, FetchWithdrawalsResponse, IntMaxEnvironment, WithdrawalsStatus } from '../types';
 import { getWithdrawHash } from '../utils';

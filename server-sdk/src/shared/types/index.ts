@@ -1,6 +1,6 @@
 // General
 
-import { JsMetaData } from '../../wasm/node';
+import { JsMetaData } from '../../wasm/node/testnet';
 
 export interface FetchItemsRequest {
   cursor: JsMetaData | null;

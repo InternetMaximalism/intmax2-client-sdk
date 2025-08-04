@@ -83,7 +83,6 @@ import * as mainnetWasm from '../wasm/browser/mainnet';
 import wasmBytesMain from '../wasm/browser/mainnet/intmax2_wasm_lib_bg.wasm?url';
 import * as testnetWasm from '../wasm/browser/testnet';
 import wasmBytes from '../wasm/browser/testnet/intmax2_wasm_lib_bg.wasm?url';
-// import SyncWorker from '../workers/sync.worker.ts?worker';
 
 const whiteListedKeys = [
   'isCoinbaseWallet',

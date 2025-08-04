@@ -9,7 +9,7 @@ import {
   JsTransferEntry,
   JsTxData,
   JsTxEntry,
-} from '../../wasm/node';
+} from '../../wasm/node/testnet';
 import { Token, Transaction, TransactionStatus, TransactionType, Transfer } from '../types';
 
 const wasmStatuses = {

@@ -110,14 +110,14 @@ export class TokenFetcher {
   async getTokensById(tokenIds: number[]): Promise<
     (
       | {
-        error?: undefined;
-        result: {
-          tokenType: TokenType;
-          tokenAddress: string;
-          tokenId: number;
-        };
-        status: 'success';
-      }
+          error?: undefined;
+          result: {
+            tokenType: TokenType;
+            tokenAddress: string;
+            tokenId: number;
+          };
+          status: 'success';
+        }
       | { error: Error; result?: undefined; status: 'failure' }
     )[]
   > {
@@ -134,14 +134,14 @@ export class TokenFetcher {
 
     return multicallResults as (
       | {
-        error?: undefined;
-        result: {
-          tokenType: TokenType;
-          tokenAddress: string;
-          tokenId: number;
-        };
-        status: 'success';
-      }
+          error?: undefined;
+          result: {
+            tokenType: TokenType;
+            tokenAddress: string;
+            tokenId: number;
+          };
+          status: 'success';
+        }
       | { error: Error; result?: undefined; status: 'failure' }
     )[];
   }

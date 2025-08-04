@@ -1496,9 +1496,9 @@ export class IntMaxNodeClient implements INTMAXClient {
             if (data.shouldSaveTime) {
               const prevFetchData = this.#cacheMap.get('user_data_fetch') as
                 | {
-                  fetchDate: number;
-                  address: string;
-                }[]
+                    fetchDate: number;
+                    address: string;
+                  }[]
                 | undefined;
               const address = this.address;
               const prevFetchDataArr =
@@ -1544,9 +1544,9 @@ export class IntMaxNodeClient implements INTMAXClient {
 
     const prevFetchData = this.#cacheMap.get('user_data_fetch') as
       | {
-        fetchDate: number;
-        address: string;
-      }[]
+          fetchDate: number;
+          address: string;
+        }[]
       | undefined;
     const address = this.address;
     const prevFetchDateObj = prevFetchData?.find((data) => data.address.toLowerCase() === address.toLowerCase());

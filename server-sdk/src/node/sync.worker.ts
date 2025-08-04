@@ -29,6 +29,7 @@ async function start({
   viewPair,
   shouldSync,
 }: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   configArgs: any; // just for testing
   viewPair: string;
   shouldSync: boolean;
@@ -146,6 +147,7 @@ async function start({
   console.info('%cWasm worker finished sync', 'color: #4CAF50; font-weight: bold;');
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 parentPort?.on('message', (data: any) => {
   console.info(`%cWasm worker received message:`, 'color: #4CAF50; font-weight: bold;');
   console.info(data);

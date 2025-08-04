@@ -28,6 +28,7 @@ async function start({
   viewPair,
   shouldSync,
 }: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   configArgs: any; // just for testing
   viewPair: string;
   shouldSync: boolean;

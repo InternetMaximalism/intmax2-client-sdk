@@ -1,16 +1,16 @@
-import {
-  Config,
-  get_intmax_address_from_public_pair,
-  JsDepositData,
-  JsDepositEntry,
-  JsMetaData,
-  JsPublicKeyPair,
-  JsTransferData,
-  JsTransferEntry,
-  JsTxData,
-  JsTxEntry,
-} from '../../wasm/browser/intmax2_wasm_lib';
+import * as wasmMainnet from '../../wasm/browser/mainnet';
+import * as wasmTestnet from '../../wasm/browser/testnet';
 import { Token, Transaction, TransactionStatus, TransactionType, Transfer } from '../types';
+
+type Config = wasmMainnet.Config | wasmTestnet.Config;
+type JsPublicKeyPair = wasmMainnet.JsPublicKeyPair | wasmTestnet.JsPublicKeyPair;
+type JsTxEntry = wasmMainnet.JsTxEntry | wasmTestnet.JsTxEntry;
+type JsTransferEntry = wasmMainnet.JsTransferEntry | wasmTestnet.JsTransferEntry;
+type JsDepositEntry = wasmMainnet.JsDepositEntry | wasmTestnet.JsDepositEntry;
+type JsTransferData = wasmMainnet.JsTransferData | wasmTestnet.JsTransferData;
+type JsDepositData = wasmMainnet.JsDepositData | wasmTestnet.JsDepositData;
+type JsTxData = wasmMainnet.JsTxData | wasmTestnet.JsTxData;
+type JsMetaData = wasmMainnet.JsMetaData | wasmTestnet.JsMetaData;
 
 const wasmStatuses = {
   settled: TransactionStatus.Processing,
@@ -24,7 +24,22 @@ const filterWithdrawals = (transfers: Transfer[]) => {
 };
 
 const getPublicIntMaxAddress = (config: Config, pubKeyPair: JsPublicKeyPair) => {
-  return get_intmax_address_from_public_pair(config.network, pubKeyPair);
+  if (config.network === 'mainnet') {
+    return wasmMainnet.get_intmax_address_from_public_pair(config.network, pubKeyPair);
+  } else {
+    return wasmTestnet.get_intmax_address_from_public_pair(config.network, pubKeyPair);
+  }
+};
+
+const getValidPublicIntMaxAddress = (
+  config: Config,
+  recipient_view_pub: string,
+  transfer_recipient_data: string,
+): JsPublicKeyPair => {
+  if (config.network === 'mainnet') {
+    return new wasmMainnet.JsPublicKeyPair(recipient_view_pub, transfer_recipient_data);
+  }
+  return new wasmTestnet.JsPublicKeyPair(recipient_view_pub, transfer_recipient_data);
 };
 
 export const wasmTxToTx = (
@@ -93,7 +108,11 @@ export const wasmTxToTx = (
         const recipient_view_pub = recipient_view_pubs[idx];
         let recipient: string;
         if (transfer.recipient.is_pubkey) {
-          const recipient_public_pair = new JsPublicKeyPair(recipient_view_pub, transfer.recipient.data);
+          const recipient_public_pair = getValidPublicIntMaxAddress(
+            config,
+            recipient_view_pub,
+            transfer.recipient.data,
+          );
           recipient = `${getPublicIntMaxAddress(config, recipient_public_pair)}`;
         } else {
           // recipient is an ethereum address

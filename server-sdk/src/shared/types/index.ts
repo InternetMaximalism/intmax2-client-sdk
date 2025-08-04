@@ -1,6 +1,6 @@
 // General
 
-import { JsMetaData } from '../../wasm/node';
+import { JsMetaData } from '../../wasm/node/testnet';
 
 export interface FetchItemsRequest {
   cursor: JsMetaData | null;
@@ -172,6 +172,7 @@ export type FetchWithdrawalsResponse = {
 };
 export type FetchWithdrawalsRequest = {
   cursor?: bigint | null;
+  limit?: number;
 };
 
 export interface ClaimWithdrawalTransactionResponse {
@@ -282,7 +283,7 @@ export interface SDKUrls {
 export type UrlConfig = {
   balance_prover_url?: string;
   use_private_zkp_server?: boolean;
-}
+};
 
 export interface MetadataItem {
   uuid: string;

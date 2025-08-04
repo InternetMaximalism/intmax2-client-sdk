@@ -1,7 +1,7 @@
 import { AxiosInstance } from 'axios';
 import { encodeAbiParameters, encodeFunctionData } from 'viem';
 
-import { DEVNET_ENV, MAINNET_ENV, TESTNET_ENV } from '../constants';
+import { MAINNET_ENV, TESTNET_ENV } from '../constants';
 import { IntMaxEnvironment, PredicateSignatureRequest, PredicateSignatureResponse, TokenType } from '../types';
 import { axiosClientInit, signaturesToBytes } from '../utils';
 
@@ -93,9 +93,7 @@ export class PredicateFetcher {
       baseURL:
         environment === 'mainnet'
           ? MAINNET_ENV.predicate_url
-          : environment === 'testnet'
-            ? TESTNET_ENV.predicate_url
-            : DEVNET_ENV.predicate_url,
+          : TESTNET_ENV.predicate_url,
     });
   }
 

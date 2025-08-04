@@ -1,8 +1,3 @@
-declare module '*.wasm?url' {
-  const url: string;
-  export default url;
-}
-
 declare module '*.wasm' {
   const wasm: ArrayBuffer;
   // eslint-disable-next-line unused-imports/no-unused-vars, @typescript-eslint/no-unused-vars
@@ -10,7 +5,9 @@ declare module '*.wasm' {
   export default wasm;
 }
 
-interface Window {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ethereum?: any;
+declare module './mainnet' {
+  export * from './wasm/node/mainnet';
+}
+declare module './testnet' {
+  export * from './wasm/node/testnet';
 }

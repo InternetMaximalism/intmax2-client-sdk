@@ -1,4 +1,5 @@
 const { IntMaxNodeClient, TokenType } = require('intmax2-server-sdk');
+const { privateKeyToAccount } = require('viem/accounts');
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -41,17 +42,24 @@ const main = async () => {
   const isVerified = await client.verifySignature(signature, message);
   console.log('Message verified:', isVerified);
 
-  // Example deposit
-  console.log('\nPreparing deposit...');
   const tokens = await client.getTokensList();
   console.log('Available tokens:', JSON.stringify(tokens, null, 2));
 
   // Fetch transaction history
   console.log('\nFetching transaction history...');
   const [deposits, receiveTransfers, sendTxs] = await Promise.all([
-    client.fetchDeposits({}),
-    client.fetchTransfers({}),
-    client.fetchTransactions({}),
+    client.fetchDeposits({
+      limit: 1,
+      cursor: null,
+    }),
+    client.fetchTransfers({
+      limit: 1,
+      cursor: null,
+    }),
+    client.fetchTransactions({
+      limit: 1,
+      cursor: null,
+    }),
   ]);
   console.log('\nTransaction History:');
   console.log('Latest deposits:', deposits.items[0]);
@@ -66,6 +74,8 @@ const main = async () => {
     price: 2417.08,
   };
 
+  // Example deposit
+  console.log('\nPreparing deposit...');
   const depositParams = {
     amount: 0.000001, // 0.000001 ETH
     token,
@@ -138,11 +148,13 @@ const main = async () => {
     }
   }
 
-  console.log('Withdraw ETH...');
+  const withdrawalDestination = privateKeyToAccount(process.env.ETH_PRIVATE_KEY).address;
+
+  console.log('Withdraw ETH to', withdrawalDestination);
   while (true) {
     try {
       const withdrawResult = await client.withdraw({
-        address: '0xf9c78dAE01Af727E2F6Db9155B942D8ab631df4B', // Ethereum address
+        address: withdrawalDestination, // Ethereum address
         token,
         amount: 0.000001,
       });
@@ -163,8 +175,10 @@ const main = async () => {
   let withdrawal_cursor = null;
   let withdrawals = { need_claim: [] };
   do {
+    console.log('Fetching withdrawals...');
     const resp = await client.fetchWithdrawals({
       cursor: withdrawal_cursor,
+      limit: 1,
     });
 
     Object.keys(withdrawals).forEach((key) => {
@@ -181,6 +195,12 @@ const main = async () => {
     const claim = await client.claimWithdrawal(withdrawals.need_claim);
     console.log('Claim Withdrawal result:', JSON.stringify(claim, null, 2));
   }
+
+  // Keep the process alive for a while to see worker activity
+  console.log('\nKeeping process alive for 60 min to observe worker activity...');
+  await new Promise((resolve) => setTimeout(resolve, 60000 * 60));
+
+  console.log('Shutting down...');
 };
 
 main()

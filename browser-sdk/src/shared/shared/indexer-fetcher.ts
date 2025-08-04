@@ -1,6 +1,6 @@
 import { AxiosInstance } from 'axios';
 
-import { DEVNET_ENV, MAINNET_ENV, TESTNET_ENV } from '../constants';
+import { MAINNET_ENV, TESTNET_ENV } from '../constants';
 import { BlockBuilderResponse, Fee, IntMaxEnvironment } from '../types';
 import { axiosClientInit } from '../utils';
 
@@ -33,13 +33,18 @@ export class IndexerFetcher {
       baseURL:
         environment === 'mainnet'
           ? MAINNET_ENV.indexer_url
-          : environment === 'testnet'
-            ? TESTNET_ENV.indexer_url
-            : DEVNET_ENV.indexer_url,
+          : TESTNET_ENV.indexer_url,
     });
   }
 
   async fetchBlockBuilderUrl(): Promise<string> {
+    const urls = await this.fetchBlockBuilderUrls();
+    this.#url = urls?.[Math.floor(Math.random() * urls.length)]?.url ?? '';
+
+    return this.#url;
+  }
+
+  async fetchBlockBuilderUrls(): Promise<BlockBuilderResponse[]> {
     const data = await this.#httpClient.get<BlockBuilderResponse[], BlockBuilderResponse[]>('/builders');
     if (!data) {
       throw new Error('Failed to fetch block builder URL');
@@ -55,13 +60,23 @@ export class IndexerFetcher {
       }),
     );
 
-    const urls = data.filter((_, index) => {
+    return data.filter((_, index) => {
       return validUrls[index].status === 'fulfilled';
     });
+  }
 
-    this.#url = urls?.[Math.floor(Math.random() * data.length)]?.url ?? '';
+  setBlockBuilderUrl(url: string): void {
+    if (!url) {
+      throw new Error('Block builder URL cannot be empty');
+    }
 
-    return this.#url;
+    try {
+      new URL(url);
+      this.#url = url;
+    } catch (error) {
+      console.error('Invalid Block Builder URL format:', error);
+      throw new Error('Invalid Block Builder URL format');
+    }
   }
 
   async getBlockBuilderUrl(): Promise<string> {

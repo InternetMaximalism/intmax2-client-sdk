@@ -7,6 +7,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
+  "dependencies": {
+    "intmax2-client-sdk": "file:../../browser-sdk"
+  },
   "devDependencies": {
     "prettier": "^3.5.3",
     "typescript": "~5.8.3",

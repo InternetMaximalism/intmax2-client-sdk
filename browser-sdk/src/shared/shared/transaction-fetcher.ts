@@ -1,8 +1,9 @@
 import { Abi, createPublicClient, http, PublicClient } from 'viem';
 import { mainnet, sepolia } from 'viem/chains';
 
-import { Config, get_withdrawal_info, JsTimestampCursor, JsWithdrawalInfo } from '../../wasm/browser/intmax2_wasm_lib';
-import { DEVNET_ENV, LiquidityAbi, MAINNET_ENV, TESTNET_ENV } from '../constants';
+import * as wasmMainnet from '../../wasm/browser/mainnet';
+import * as wasmTestnet from '../../wasm/browser/testnet';
+import { LiquidityAbi, MAINNET_ENV, TESTNET_ENV } from '../constants';
 import {
   ContractWithdrawal,
   FetchWithdrawalsResponse,
@@ -13,28 +14,36 @@ import {
 import { getWithdrawHash } from '../utils';
 
 export class TransactionFetcher {
+  readonly #environment: IntMaxEnvironment;
   readonly #publicClient: PublicClient;
   readonly #liquidityContractAddress: string;
+  readonly #get_withdrawal_info: typeof wasmMainnet.get_withdrawal_info | typeof wasmTestnet.get_withdrawal_info;
 
   constructor(environment: IntMaxEnvironment) {
+    this.#environment = environment;
     this.#liquidityContractAddress =
       environment === 'mainnet'
         ? MAINNET_ENV.liquidity_contract
-        : environment === 'testnet'
-          ? TESTNET_ENV.liquidity_contract
-          : DEVNET_ENV.liquidity_contract;
+        : TESTNET_ENV.liquidity_contract;
 
     this.#publicClient = createPublicClient({
       chain: environment === 'mainnet' ? mainnet : sepolia,
       transport: http(),
     });
+    this.#get_withdrawal_info =
+      environment === 'mainnet' ? wasmMainnet.get_withdrawal_info : wasmTestnet.get_withdrawal_info;
   }
 
   async fetchWithdrawals(
-    config: Config,
+    config: wasmMainnet.Config | wasmTestnet.Config,
     privateKey: string,
     cursor: bigint | null = null,
+    limit: number = 256,
   ): Promise<FetchWithdrawalsResponse> {
+    if (limit && limit > 256) {
+      throw new Error('Limit cannot be greater than 256');
+    }
+
     const withdrawals = {
       [WithdrawalsStatus.Failed]: [] as ContractWithdrawal[],
       [WithdrawalsStatus.NeedClaim]: [] as ContractWithdrawal[],
@@ -42,14 +51,14 @@ export class TransactionFetcher {
       [WithdrawalsStatus.Requested]: [] as ContractWithdrawal[],
       [WithdrawalsStatus.Success]: [] as ContractWithdrawal[],
     };
-    let withdrawalInfo: JsWithdrawalInfo[];
+    let withdrawalInfo: wasmMainnet.JsWithdrawalInfo[] | wasmTestnet.JsWithdrawalInfo[] = [];
     let pagination: PaginationCursor = {
       has_more: false,
       next_cursor: null,
       total_count: 0,
     };
     try {
-      const resp = await get_withdrawal_info(config, privateKey, new JsTimestampCursor(cursor, 'desc', 256));
+      const resp = await this.#get_withdrawal_info(config, privateKey, this.getValidCursor(cursor, limit));
       withdrawalInfo = resp.info;
       pagination = {
         has_more: resp.cursor_response.has_more,
@@ -96,5 +105,11 @@ export class TransactionFetcher {
     }
 
     return { withdrawals, pagination };
+  }
+
+  getValidCursor(cursor: bigint | null, limit: number): wasmTestnet.JsTimestampCursor | wasmMainnet.JsTimestampCursor {
+    return this.#environment === 'mainnet'
+      ? new wasmMainnet.JsTimestampCursor(cursor, 'desc', limit)
+      : new wasmTestnet.JsTimestampCursor(cursor, 'desc', limit);
   }
 }

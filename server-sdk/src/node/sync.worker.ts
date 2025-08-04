@@ -1,15 +1,15 @@
 import { parentPort } from 'worker_threads';
 
-// @ts-ignore
+// @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
 import * as mainnetWasm from './mainnet';
-// @ts-ignore
+// @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
 import * as testnetWasm from './testnet';
 
 function convertUserDataToPlainObject(userData: mainnetWasm.JsUserData | testnetWasm.JsUserData) {
   return {
     pubkey: userData.pubkey,
     balances:
-      // @ts-ignore
+      // @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
       userData.balances?.map((v) => ({
         token_index: v.token_index,
         amount: v.amount,

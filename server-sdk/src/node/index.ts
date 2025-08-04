@@ -69,9 +69,9 @@ import {
   WithdrawalResponse,
   WithdrawRequest,
 } from '../shared';
-// @ts-ignore
+// @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
 import * as mainnetWasm from './mainnet';
-// @ts-ignore
+// @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
 import * as testnetWasm from './testnet';
 import {
   JsFeeQuote,
@@ -548,9 +548,9 @@ export class IntMaxNodeClient implements INTMAXClient {
     }
 
     return {
-      // @ts-ignore
+      // @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
       txTreeRoot: tx.tx_tree_root,
-      // @ts-ignore
+      // @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
       transferDigests: tx.tx_data.transfer_digests,
     };
   }
@@ -581,7 +581,7 @@ export class IntMaxNodeClient implements INTMAXClient {
         total_count: data.cursor_response.total_count,
       },
       items: data.history
-        // @ts-ignore
+        // @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
         .map((tx) => {
           return wasmTxToTx(
             this.#config,
@@ -626,7 +626,7 @@ export class IntMaxNodeClient implements INTMAXClient {
         total_count: data.cursor_response.total_count,
       },
       items: data.history
-        // @ts-ignore
+        // @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
         .map((tx) => {
           return wasmTxToTx(
             this.#config,
@@ -671,7 +671,7 @@ export class IntMaxNodeClient implements INTMAXClient {
         total_count: data.cursor_response.total_count,
       },
       items: data.history
-        // @ts-ignore
+        // @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
         .map((tx) => {
           return wasmTxToTx(
             this.#config,

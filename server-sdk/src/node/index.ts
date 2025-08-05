@@ -17,7 +17,7 @@ import {
   WriteContractParameters,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { sepolia } from 'viem/chains';
+import { mainnet, sepolia } from 'viem/chains';
 
 import {
   axiosClientInit,
@@ -150,7 +150,7 @@ export class IntMaxNodeClient implements INTMAXClient {
     this.#ethAccount = privateKeyToAccount(eth_private_key);
 
     this.#publicClient = createPublicClient({
-      chain: sepolia,
+      chain: environment === 'mainnet' ? mainnet : sepolia,
       transport: l1_rpc_url ? http(l1_rpc_url) : http(),
     });
 

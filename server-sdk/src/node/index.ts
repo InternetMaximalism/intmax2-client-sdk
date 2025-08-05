@@ -17,7 +17,7 @@ import {
   WriteContractParameters,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { sepolia } from 'viem/chains';
+import { mainnet, sepolia } from 'viem/chains';
 
 import {
   axiosClientInit,
@@ -90,17 +90,17 @@ interface IFunctions {
   fetch_transfer_history: typeof mainnetWasm.fetch_transfer_history | typeof testnetWasm.fetch_transfer_history;
   fetch_tx_history: typeof mainnetWasm.fetch_tx_history | typeof testnetWasm.fetch_tx_history;
   generate_fee_payment_memo:
-  | typeof mainnetWasm.generate_fee_payment_memo
-  | typeof testnetWasm.generate_fee_payment_memo;
+    | typeof mainnetWasm.generate_fee_payment_memo
+    | typeof testnetWasm.generate_fee_payment_memo;
   generate_intmax_account_from_eth_key:
-  | typeof mainnetWasm.generate_intmax_account_from_eth_key
-  | typeof testnetWasm.generate_intmax_account_from_eth_key;
+    | typeof mainnetWasm.generate_intmax_account_from_eth_key
+    | typeof testnetWasm.generate_intmax_account_from_eth_key;
   generate_withdrawal_transfers:
-  | typeof mainnetWasm.generate_withdrawal_transfers
-  | typeof testnetWasm.generate_withdrawal_transfers;
+    | typeof mainnetWasm.generate_withdrawal_transfers
+    | typeof testnetWasm.generate_withdrawal_transfers;
   get_balances_without_sync:
-  | typeof mainnetWasm.get_balances_without_sync
-  | typeof testnetWasm.get_balances_without_sync;
+    | typeof mainnetWasm.get_balances_without_sync
+    | typeof testnetWasm.get_balances_without_sync;
   get_user_data: typeof mainnetWasm.get_user_data | typeof testnetWasm.get_user_data;
   prepare_deposit: typeof mainnetWasm.prepare_deposit | typeof testnetWasm.prepare_deposit;
   query_and_finalize: typeof mainnetWasm.query_and_finalize | typeof testnetWasm.query_and_finalize;
@@ -151,15 +151,12 @@ export class IntMaxNodeClient implements INTMAXClient {
     this.#ethAccount = privateKeyToAccount(eth_private_key);
 
     this.#publicClient = createPublicClient({
-      chain: sepolia,
+      chain: environment === 'mainnet' ? mainnet : sepolia,
       transport: l1_rpc_url ? http(l1_rpc_url) : http(),
     });
 
     this.#vaultHttpClient = axiosClientInit({
-      baseURL:
-        environment === 'mainnet'
-          ? MAINNET_ENV.key_vault_url
-          : TESTNET_ENV.key_vault_url,
+      baseURL: environment === 'mainnet' ? MAINNET_ENV.key_vault_url : TESTNET_ENV.key_vault_url,
     });
 
     this.#environment = environment;

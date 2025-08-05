@@ -156,16 +156,11 @@ export class IntMaxNodeClient implements INTMAXClient {
     });
 
     this.#vaultHttpClient = axiosClientInit({
-      baseURL:
-        environment === 'mainnet'
-          ? MAINNET_ENV.key_vault_url
-          : environment === 'mainnet'
-          ? MAINNET_ENV.key_vault_url
-            : TESTNET_ENV.key_vault_url,
+      baseURL: environment === 'mainnet' ? MAINNET_ENV.key_vault_url : TESTNET_ENV.key_vault_url,
     });
 
     this.#environment = environment;
-    const defaultUrls = environment === 'mainnet' ? MAINNET_ENV : environment === 'testnet' ? TESTNET_ENV : DEVNET_ENV;
+    const defaultUrls = environment === 'mainnet' ? MAINNET_ENV : TESTNET_ENV;
     this.#urls = {
       ...defaultUrls,
       ...params.urls,

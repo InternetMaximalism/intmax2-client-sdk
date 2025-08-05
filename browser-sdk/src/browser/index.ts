@@ -326,7 +326,7 @@ export class IntMaxClient implements INTMAXClient {
     });
 
     this.#environment = environment;
-    const defaultUrls = environment === 'mainnet' ? MAINNET_ENV : environment === 'testnet' ? TESTNET_ENV : DEVNET_ENV;
+    const defaultUrls = environment === 'mainnet' ? MAINNET_ENV : TESTNET_ENV;
 
     // Merge default URLs with provided URLs
     this.#urls = {
@@ -335,12 +335,7 @@ export class IntMaxClient implements INTMAXClient {
     };
 
     this.#vaultHttpClient = axiosClientInit({
-      baseURL:
-        environment === 'mainnet'
-          ? MAINNET_ENV.key_vault_url
-          : environment === 'mainnet'
-          ? MAINNET_ENV.key_vault_url
-            : TESTNET_ENV.key_vault_url,
+      baseURL: environment === 'mainnet' ? MAINNET_ENV.key_vault_url : TESTNET_ENV.key_vault_url,
     });
 
     this.#config = this.#generateConfig(environment);

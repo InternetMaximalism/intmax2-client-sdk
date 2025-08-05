@@ -1,6 +1,6 @@
 import { AxiosInstance } from 'axios';
 
-import { DEVNET_ENV, MAINNET_ENV, TESTNET_ENV } from '../constants';
+import { MAINNET_ENV, TESTNET_ENV } from '../constants';
 import { BlockBuilderResponse, Fee, IntMaxEnvironment } from '../types';
 import { axiosClientInit } from '../utils';
 
@@ -33,9 +33,7 @@ export class IndexerFetcher {
       baseURL:
         environment === 'mainnet'
           ? MAINNET_ENV.indexer_url
-          : environment === 'testnet'
-            ? TESTNET_ENV.indexer_url
-            : DEVNET_ENV.indexer_url,
+          : TESTNET_ENV.indexer_url,
     });
   }
 

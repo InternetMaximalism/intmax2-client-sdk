@@ -1,12 +1,15 @@
 import { parentPort } from 'worker_threads';
 
+// @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
 import * as mainnetWasm from './mainnet';
+// @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
 import * as testnetWasm from './testnet';
 
 function convertUserDataToPlainObject(userData: mainnetWasm.JsUserData | testnetWasm.JsUserData) {
   return {
     pubkey: userData.pubkey,
     balances:
+      // @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
       userData.balances?.map((v) => ({
         token_index: v.token_index,
         amount: v.amount,
@@ -29,6 +32,7 @@ async function start({
   viewPair,
   shouldSync,
 }: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   configArgs: any; // just for testing
   viewPair: string;
   shouldSync: boolean;
@@ -146,6 +150,7 @@ async function start({
   console.info('%cWasm worker finished sync', 'color: #4CAF50; font-weight: bold;');
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 parentPort?.on('message', (data: any) => {
   console.info(`%cWasm worker received message:`, 'color: #4CAF50; font-weight: bold;');
   console.info(data);

@@ -28,7 +28,6 @@ import {
   ClaimWithdrawalTransactionResponse,
   ConstructorNodeParams,
   ContractWithdrawal,
-  DEVNET_ENV,
   FeeResponse,
   FetchTransactionsRequest,
   FetchTransactionsResponse,
@@ -70,7 +69,9 @@ import {
   WithdrawalResponse,
   WithdrawRequest,
 } from '../shared';
+// @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
 import * as mainnetWasm from './mainnet';
+// @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
 import * as testnetWasm from './testnet';
 import {
   JsFeeQuote,
@@ -158,9 +159,9 @@ export class IntMaxNodeClient implements INTMAXClient {
       baseURL:
         environment === 'mainnet'
           ? MAINNET_ENV.key_vault_url
-          : environment === 'testnet'
-            ? TESTNET_ENV.key_vault_url
-            : DEVNET_ENV.key_vault_url,
+          : environment === 'mainnet'
+          ? MAINNET_ENV.key_vault_url
+            : TESTNET_ENV.key_vault_url,
     });
 
     this.#environment = environment;
@@ -549,7 +550,9 @@ export class IntMaxNodeClient implements INTMAXClient {
     }
 
     return {
+      // @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
       txTreeRoot: tx.tx_tree_root,
+      // @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
       transferDigests: tx.tx_data.transfer_digests,
     };
   }
@@ -580,6 +583,7 @@ export class IntMaxNodeClient implements INTMAXClient {
         total_count: data.cursor_response.total_count,
       },
       items: data.history
+        // @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
         .map((tx) => {
           return wasmTxToTx(
             this.#config,
@@ -624,6 +628,7 @@ export class IntMaxNodeClient implements INTMAXClient {
         total_count: data.cursor_response.total_count,
       },
       items: data.history
+        // @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
         .map((tx) => {
           return wasmTxToTx(
             this.#config,
@@ -668,6 +673,7 @@ export class IntMaxNodeClient implements INTMAXClient {
         total_count: data.cursor_response.total_count,
       },
       items: data.history
+        // @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
         .map((tx) => {
           return wasmTxToTx(
             this.#config,

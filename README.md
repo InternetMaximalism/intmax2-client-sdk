@@ -4,8 +4,8 @@ This SDK is a client library for the INTMAX API. It is designed to help you inte
 
 For detailed interface specifications and usage instructions, please refer to the documentation below:
 
-- [INTMAX Client SDK Docs (API Reference)](https://aquatic-paperback-675.notion.site/INTMAX-Client-SDK-Docs-176d989987db8096a012d144ae0e0dba)
-- [Integration Guide](https://aquatic-paperback-675.notion.site/INTMAX-Client-SDK-Integration-Guide-208d989987db809db876ff8c79e78853)
+- [INTMAX Client SDK Docs (API Reference)](https://docs.network.intmax.io/developers-hub/intmax-client-sdk/client-sdk-reference)
+- [Integration Guide](https://docs.network.intmax.io/developers-hub/intmax-client-sdk/integration-guide)
 - [Examples on GitHub](https://github.com/InternetMaximalism/intmax2-client-sdk/tree/main/examples)
 
 Use these resources to quickly get started with building, integrating, and testing INTMAX-powered applications.

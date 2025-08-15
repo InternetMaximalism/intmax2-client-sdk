@@ -155,6 +155,36 @@ const claimWithdrawalsButton = async () => {
   };
 };
 
+const tokenFetchingButton = () => {
+  const wrapper = document.createElement('div');
+  wrapper.style.marginTop = '10px';
+  appDiv.appendChild(wrapper);
+
+  const button = document.createElement('button');
+  button.innerHTML = 'Fetching tokens example limit 1 and indexes [0, 4, 21, 19, 13, 11]';
+  wrapper.appendChild(button);
+
+  button.onclick = async () => {
+    button.innerHTML = 'Fetching... (Check Console)';
+    const tokensTest = await client.getPaginatedTokens({
+      tokenIndexes: [0, 4, 21, 19, 13, 11],
+      perPage: 1,
+    });
+    console.log('resp', tokensTest);
+
+    let nextCursor: any = tokensTest.nextCursor;
+    do {
+      const resp = await client.getPaginatedTokens({
+        cursor: nextCursor,
+        perPage: 1,
+      });
+      nextCursor = resp.nextCursor;
+      console.log('resp', resp);
+    } while (nextCursor);
+    button.innerHTML = 'Fetching tokens example limit 1 and indexes [0, 4, 21, 19, 13, 11]';
+  };
+};
+
 const createLoginButton = () => {
   const button = document.createElement('button');
   button.innerHTML = 'Login';
@@ -162,6 +192,7 @@ const createLoginButton = () => {
     await client.login();
     button.remove();
     createLogoutButton();
+    tokenFetchingButton();
     showPrivateKeyButton();
     fetchBalancesButton();
     createDepositForm();

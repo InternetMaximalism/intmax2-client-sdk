@@ -45,6 +45,22 @@ const main = async () => {
   const tokens = await client.getTokensList();
   console.log('Available tokens:', JSON.stringify(tokens, null, 2));
 
+  const tokensTest = await client.getPaginatedTokens({
+    tokenIndexes: [0, 4, 21, 19, 13, 11],
+    perPage: 1,
+  });
+  console.log('Paginated Response: ', JSON.stringify(tokensTest, null, 2));
+
+  let nextCursor = tokensTest.nextCursor;
+  do {
+    const resp = await client.getPaginatedTokens({
+      cursor: nextCursor,
+      perPage: 1,
+    });
+    nextCursor = resp.nextCursor;
+    console.log('Paginated Response: ', JSON.stringify(resp, null, 2));
+  } while (nextCursor);
+
   // Fetch transaction history
   console.log('\nFetching transaction history...');
   const [deposits, receiveTransfers, sendTxs] = await Promise.all([

@@ -17,15 +17,10 @@ export class TokenFetcher {
 
   constructor(environment: IntMaxEnvironment) {
     this.#liquidityContractAddress =
-      environment === 'mainnet'
-        ? MAINNET_ENV.liquidity_contract
-        : TESTNET_ENV.liquidity_contract;
+      environment === 'mainnet' ? MAINNET_ENV.liquidity_contract : TESTNET_ENV.liquidity_contract;
 
     this.#httpClient = axiosClientInit({
-      baseURL:
-        environment === 'mainnet'
-          ? MAINNET_ENV.tokens_url
-          : TESTNET_ENV.tokens_url,
+      baseURL: environment === 'mainnet' ? MAINNET_ENV.tokens_url : TESTNET_ENV.tokens_url,
     });
 
     this.#publicClient = createPublicClient({
@@ -145,6 +140,33 @@ export class TokenFetcher {
         }
       | { error: Error; result?: undefined; status: 'failure' }
     )[];
+  }
+
+  async fetchPaginatedTokens({
+    tokenIndexes,
+    perPage = 100,
+    cursor,
+  }: {
+    tokenIndexes?: number[];
+    perPage?: number;
+    cursor?: string;
+  }): Promise<PaginatedResponse<Token>> {
+    const params = new URLSearchParams();
+    params.append('perPage', perPage.toString());
+
+    if (cursor) {
+      params.append('cursor', cursor);
+    }
+
+    if (tokenIndexes) {
+      tokenIndexes.forEach((index) => {
+        params.append('tokenIndexes', index.toString());
+      });
+    }
+
+    return this.#httpClient.get<PaginatedResponse<Token>, PaginatedResponse<Token>>('/token-maps/list', {
+      params,
+    });
   }
 
   // PRIVATE METHODS

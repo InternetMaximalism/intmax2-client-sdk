@@ -42,6 +42,7 @@ import {
   LoginResponse,
   MAINNET_ENV,
   networkMessage,
+  PaginatedResponse,
   PredicateFetcher,
   PrepareDepositTransactionRequest,
   PrepareDepositTransactionResponse,
@@ -1019,6 +1020,14 @@ export class IntMaxClient implements INTMAXClient {
       return this.#tokenFetcher.fetchTokens();
     }
     return this.#tokenFetcher.tokens;
+  }
+
+  async getPaginatedTokens(params: {
+    tokenIndexes?: number[];
+    perPage?: number;
+    cursor?: string;
+  }): Promise<PaginatedResponse<Token>> {
+    return this.#tokenFetcher.fetchPaginatedTokens(params);
   }
 
   async getTransferFee(): Promise<FeeResponse> {

@@ -118,6 +118,8 @@ await intMaxClient.login();
 const { balances } = await intMaxClient.fetchTokenBalances();
 ```
 
+The `fetchTokenBalances` function retrieves user data and simultaneously synchronizes token balances. Once the synchronization is complete, the execution time will be shorter for subsequent calls. **Normally, if balance synchronization is not required, it completes in approximately 3 to 6 seconds.**
+
 ### Retrieve INTMAX Account Address & Private Key
 
 This example retrieves the address and private key of the generated INTMAX account.

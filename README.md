@@ -6,7 +6,7 @@ For detailed interface specifications and usage instructions, please refer to th
 
 - [INTMAX Client SDK Docs (API Reference)](https://docs.network.intmax.io/developers-hub/intmax-client-sdk/client-sdk-reference)
 - [Integration Guide](https://docs.network.intmax.io/developers-hub/intmax-client-sdk/integration-guide)
-- [Examples on GitHub](https://github.com/InternetMaximalism/intmax2-client-sdk/tree/main/examples)
+- [Examples on GitHub](./examples)
 
 Use these resources to quickly get started with building, integrating, and testing INTMAX-powered applications.
 

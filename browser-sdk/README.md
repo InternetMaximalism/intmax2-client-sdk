@@ -49,18 +49,21 @@ export interface INTMAXClient {
   fetchTokenBalances: () => Promise<TokenBalancesResponse>;
 
   // transaction
-  fetchTransactions: (params: FetchTransactionsRequest) => Promise<Transaction[]>;
+  fetchTransactions: (params?: FetchTransactionsRequest) => Promise<FetchTransactionsResponse>;
   broadcastTransaction: (
     rawTransfers: BroadcastTransactionRequest[],
     isWithdrawal: boolean,
   ) => Promise<BroadcastTransactionResponse>;
 
+  //receiveTxs
+  fetchTransfers: (params?: FetchTransactionsRequest) => Promise<FetchTransactionsResponse>;
+
   // deposit
   deposit: (params: PrepareDepositTransactionRequest) => Promise<PrepareDepositTransactionResponse>;
-  fetchDeposits: (params: FetchTransactionsRequest) => Promise<(Transaction | null)[]>;
+  fetchDeposits: (params?: FetchTransactionsRequest) => Promise<FetchTransactionsResponse>;
 
   // withdrawal
-  fetchWithdrawals: (params: FetchWithdrawalsRequest) => Promise<FetchWithdrawalsResponse>;
+  fetchWithdrawals: (params?: FetchWithdrawalsRequest) => Promise<FetchWithdrawalsResponse>;
   withdraw: (params: WithdrawRequest) => Promise<WithdrawalResponse>;
   claimWithdrawal: (params: ContractWithdrawal[]) => Promise<ClaimWithdrawalTransactionResponse>;
 

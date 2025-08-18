@@ -4,7 +4,7 @@ This SDK is a client library for the INTMAX API. It is designed to help you inte
 
 For detailed interface specifications and usage instructions, please refer to the documentation below:
 
-- [INTMAX Client SDK Docs (API Reference)](https://docs.network.intmax.io/developers-hub/intmax-client-sdk/client-sdk-reference)
+- [INTMAX Client SDK Docs (API Reference)](https://docs.network.intmax.io/developers-hub/intmax-client-sdk/api-reference)
 - [Integration Guide](https://docs.network.intmax.io/developers-hub/intmax-client-sdk/integration-guide)
 - [Examples on GitHub](./examples)
 

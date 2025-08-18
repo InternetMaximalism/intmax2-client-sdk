@@ -226,6 +226,11 @@ export interface INTMAXClient {
   // token
   getTokensList: () => Promise<Token[]>;
   fetchTokenBalances: () => Promise<TokenBalancesResponse>;
+  getPaginatedTokens(params: {
+    tokenIndexes?: number[];
+    perPage?: number;
+    cursor?: string;
+  }): Promise<PaginatedResponse<Token>>;
 
   // transaction
   fetchTransactions: (params: FetchTransactionsRequest | undefined) => Promise<FetchTransactionsResponse>;

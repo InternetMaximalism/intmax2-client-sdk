@@ -424,7 +424,7 @@ export class IntMaxNodeClient implements INTMAXClient {
     if (!this.isLoggedIn) {
       throw Error('Not logged in');
     }
-    if (await checkValidLocalTime()) {
+    if (await checkValidLocalTime(this.#environment)) {
       throw Error('Local time is not valid. Please check your system time.');
     }
 

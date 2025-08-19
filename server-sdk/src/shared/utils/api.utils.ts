@@ -94,14 +94,13 @@ export const checkValidLocalTime = async (env: IntMaxEnvironment): Promise<boole
     }
 
     const { data } = await axios.get(url);
-    const serverTime = new Date(data.dateTime);
 
     const localTime = new Date();
-    const localTimeUTC = new Date(localTime.getTime() + localTime.getTimezoneOffset() * 60000);
+    const serverTime = new Date(data.dateTime);
 
-    const timeDiff = Math.abs(serverTime.getTime() - localTimeUTC.getTime());
+    const timeDiff = Math.abs(serverTime.getTime() - localTime.getTime());
 
-    return timeDiff > 10000;
+    return timeDiff > 10000 || timeDiff < -10000; // 10 seconds threshold
   } catch (error) {
     console.error('Error checking local time validity:', error);
     return false;

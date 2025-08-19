@@ -469,6 +469,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       privateKey = this.#privateKey;
       viewPair = this.#viewKey;
     } catch (e) {
+      this.#broadcastInProgress = false;
       console.error(e);
       throw Error('No private key found');
     }
@@ -548,6 +549,8 @@ export class IntMaxNodeClient implements INTMAXClient {
       await sleep(40000);
       await retryWithAttempts(async () => await this.#functions.sync_withdrawals(this.#config, viewPair, 0), 1000, 5);
     }
+
+    this.#broadcastInProgress = false;
 
     return {
       // @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
@@ -967,6 +970,21 @@ export class IntMaxNodeClient implements INTMAXClient {
       fee: claim_fee.fee,
       collateral_fee: claim_fee.collateral_fee,
     };
+  }
+
+  async sync(): Promise<void> {
+    if (this.#isSyncInProgress) {
+      throw Error('Sync already in progress');
+    }
+    this.#isSyncInProgress = true;
+
+    if (!this.isLoggedIn) {
+      this.#isSyncInProgress = false;
+      throw Error('Not logged in yet.');
+    }
+    return await this.#functions.sync(this.#config, this.#viewKey).finally(() => {
+      this.#isSyncInProgress = false;
+    });
   }
 
   // PRIVATE METHODS

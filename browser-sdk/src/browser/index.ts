@@ -1069,6 +1069,21 @@ export class IntMaxClient implements INTMAXClient {
     };
   }
 
+  async sync(): Promise<void> {
+    if (this.#isSyncInProgress) {
+      throw Error('Sync already in progress');
+    }
+    this.#isSyncInProgress = true;
+
+    if (!this.isLoggedIn) {
+      this.#isSyncInProgress = false;
+      throw Error('Not logged in yet.');
+    }
+    return await this.#functions.sync(this.#config, this.#viewKey).finally(() => {
+      this.#isSyncInProgress = false;
+    });
+  }
+
   // PRIVATE METHODS
   #generateConfig(env: IntMaxEnvironment): mainnetWasm.Config | testnetWasm.Config {
     const urls = this.#urls;

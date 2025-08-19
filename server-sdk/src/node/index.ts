@@ -798,6 +798,9 @@ export class IntMaxNodeClient implements INTMAXClient {
           status = tx.status === 'success' ? TransactionStatus.Completed : TransactionStatus.Rejected;
         }
       } catch (e) {
+        if (e instanceof Error && e.message.includes('Transaction receipt with hash')) {
+          continue;
+        }
         console.error(e);
       }
     }

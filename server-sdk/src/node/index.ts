@@ -1476,7 +1476,6 @@ export class IntMaxNodeClient implements INTMAXClient {
   }
 
   async #restartSyncUserData() {
-    console.info('Restarting worker...');
     this.#terminateSyncUserData();
 
     setTimeout(() => {

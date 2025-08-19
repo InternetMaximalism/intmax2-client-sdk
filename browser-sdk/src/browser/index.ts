@@ -224,9 +224,12 @@ export class IntMaxClient implements INTMAXClient {
   address: string = '';
   tokenBalances: TokenBalance[] = [];
 
-  constructor({ async_params, environment, urls }: ConstructorParams) {
+  constructor({ async_params, environment, urls, showLogs }: ConstructorParams) {
     if (typeof async_params === 'undefined') {
       throw new Error('Cannot be called directly');
+    }
+    if (!showLogs) {
+      console.info = () => {};
     }
 
     if (environment === 'mainnet') {
@@ -1188,6 +1191,7 @@ export class IntMaxClient implements INTMAXClient {
   }
 
   async #restartSyncUserData() {
+    console.info('Restarting worker...');
     this.#terminateSyncUserData();
 
     setTimeout(() => {

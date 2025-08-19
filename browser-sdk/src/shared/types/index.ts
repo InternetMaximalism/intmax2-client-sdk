@@ -206,6 +206,7 @@ export interface ConstructorParams {
   environment: IntMaxEnvironment;
   async_params?: ArrayBuffer;
   urls?: UrlConfig;
+  showLogs?: boolean;
 }
 
 export interface ConstructorNodeParams extends ConstructorParams {

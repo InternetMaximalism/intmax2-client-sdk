@@ -148,6 +148,10 @@ export class IntMaxNodeClient implements INTMAXClient {
     this.validateConstructorParams(params);
     const { environment, eth_private_key, l1_rpc_url } = params;
 
+    if (!params.showLogs) {
+      console.info = () => {};
+    }
+
     this.#cacheMap.set('user_data_fetch', []);
     this.#ethAccount = privateKeyToAccount(eth_private_key);
 
@@ -1476,6 +1480,7 @@ export class IntMaxNodeClient implements INTMAXClient {
   }
 
   async #restartSyncUserData() {
+    console.info('Restarting worker...');
     this.#terminateSyncUserData();
 
     setTimeout(() => {

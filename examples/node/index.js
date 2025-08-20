@@ -1,16 +1,22 @@
 const { IntMaxNodeClient, TokenType } = require('intmax2-server-sdk');
 const { privateKeyToAccount } = require('viem/accounts');
-const dotenv = require('dotenv');
-dotenv.config();
+require('dotenv/config');
 
 const main = async () => {
   const environment = process.env.ENVIRONMENT || 'testnet';
+  if (environment !== 'testnet' && environment !== 'mainnet') {
+    throw new Error(`Invalid environment: ${environment}`);
+  }
+  const ethPrivateKey = process.env.ETH_PRIVATE_KEY;
+  if (typeof ethPrivateKey !== 'string') {
+    throw new Error('ETH_PRIVATE_KEY is not set');
+  }
 
   // Initialize client
   console.log('Initializing client...');
   const client = new IntMaxNodeClient({
     environment,
-    eth_private_key: process.env.ETH_PRIVATE_KEY,
+    eth_private_key: ethPrivateKey,
     l1_rpc_url: process.env.L1_RPC_URL,
     urls: process.env.BALANCE_PROVER_URL
       ? {
@@ -72,7 +78,6 @@ const main = async () => {
     tokenIndex: 0,
     decimals: 18,
     contractAddress: '0x0000000000000000000000000000000000000000',
-    price: 2417.08,
   };
 
   // Example deposit
@@ -91,8 +96,8 @@ const main = async () => {
   });
   console.log('Estimated gas for deposit:', gas);
 
-  const deposit = await client.deposit(depositParams);
-  console.log('Deposit result:', JSON.stringify(deposit, null, 2));
+  const depositResult = await client.deposit(depositParams);
+  console.log('Deposit result:', JSON.stringify(depositResult, null, 2));
 
   // The user needs to pay `transferFeeAmount` of tokens corresponding to the `transferFeeToken`.
   const transferFee = await client.getTransferFee();
@@ -109,10 +114,11 @@ const main = async () => {
       address: client.address, // Transfer to self
     },
   ];
+
+  let transferResult;
   while (true) {
     try {
-      const transferResult = await client.broadcastTransaction(transfers);
-      console.log('Transfer result:', JSON.stringify(transferResult, null, 2));
+      transferResult = await client.broadcastTransaction(transfers);
       break;
     } catch (error) {
       console.warn('Transfer error:', error);
@@ -129,6 +135,12 @@ const main = async () => {
     }
   }
 
+  console.log('Transfer result:', JSON.stringify(transferResult, null, 2));
+  const result = await client.waitForTransactionConfirmation({
+    txTreeRoot: transferResult.txTreeRoot,
+  });
+  console.log('Transfer confirmation result:', JSON.stringify(result, null, 2));
+
   // The user needs to pay `withdrawalFeeAmount` of tokens corresponding to the `withdrawalFeeToken`.
   const withdrawalFee = await client.getWithdrawalFee(token);
   const withdrawalFeeToken = withdrawalFee?.fee?.token_index;
@@ -138,7 +150,7 @@ const main = async () => {
 
   while (true) {
     try {
-      await client.fetchTokenBalances();
+      await client.sync();
       break;
     } catch (error) {
       const expectedErrorMessage = ['Pending tx error'];
@@ -149,7 +161,7 @@ const main = async () => {
     }
   }
 
-  const withdrawalDestination = privateKeyToAccount(process.env.ETH_PRIVATE_KEY).address;
+  const withdrawalDestination = privateKeyToAccount(ethPrivateKey).address;
 
   console.log('Withdraw ETH to', withdrawalDestination);
   while (true) {

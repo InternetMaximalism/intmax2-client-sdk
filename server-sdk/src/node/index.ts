@@ -783,7 +783,7 @@ export class IntMaxNodeClient implements INTMAXClient {
   }
 
   async deposit({
-    waitConfirmation = true,
+    skipConfirmation = false,
     ...params
   }: PrepareDepositTransactionRequest): Promise<PrepareDepositTransactionResponse> {
     const address = params.address;
@@ -818,7 +818,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       serializedTransaction: signedTx,
     });
 
-    if (!waitConfirmation) {
+    if (skipConfirmation) {
       return {
         status: TransactionStatus.Processing,
         txHash: depositHash,

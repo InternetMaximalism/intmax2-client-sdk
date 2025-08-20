@@ -921,7 +921,7 @@ export class IntMaxClient implements INTMAXClient {
   }
 
   async deposit({
-    waitConfirmation = true,
+    skipConfirmation = true,
     ...params
   }: PrepareDepositTransactionRequest): Promise<PrepareDepositTransactionResponse> {
     const address = params.address;
@@ -940,7 +940,7 @@ export class IntMaxClient implements INTMAXClient {
 
     const depositHash = await this.#walletClient.writeContract(txConfig);
 
-    if (!waitConfirmation) {
+    if (skipConfirmation) {
       return {
         status: TransactionStatus.Processing,
         txHash: depositHash,

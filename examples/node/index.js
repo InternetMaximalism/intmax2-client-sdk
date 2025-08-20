@@ -136,9 +136,7 @@ const main = async () => {
   }
 
   console.log('Transfer result:', JSON.stringify(transferResult, null, 2));
-  const result = await client.waitForTransactionConfirmation({
-    txTreeRoot: transferResult.txTreeRoot,
-  });
+  const result = await client.waitForTransactionConfirmation(transferResult.txTreeRoot);
   console.log('Transfer confirmation result:', JSON.stringify(result, null, 2));
 
   // The user needs to pay `withdrawalFeeAmount` of tokens corresponding to the `withdrawalFeeToken`.

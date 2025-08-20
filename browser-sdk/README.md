@@ -290,7 +290,7 @@ console.log('Transaction Hash:', depositResult.txHash);
 ### Withdraw
 
 ```ts
-const { balances } = await intMaxClient.fetchTokenBalances(); // fetch token balances
+await intMaxClient.sync(); // synchronize balance
 
 // You can change filtration by tokenIndex or tokenAddress
 const token = balances.find((b) => b.token.tokenIndex === 0).token;
@@ -303,6 +303,11 @@ const withdrawalResult = await intMaxClient.withdraw({
 });
 console.log('Withdrawal result:', withdrawalResult);
 ```
+
+It is recommended to run the sync function before executing a transfer or withdrawal.
+This is because synchronizing your balance with the latest state may take some time.
+
+By running the sync function after completing a transfer, you ensure that your balance is up to date, making subsequent transfers smoother and more reliable.
 
 ### Claim withdrawals
 

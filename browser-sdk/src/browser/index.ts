@@ -320,13 +320,13 @@ export class IntMaxClient implements INTMAXClient {
 
     this.#walletClient = createWalletClient({
       chain: environment === 'mainnet' ? mainnet : sepolia,
-      transport: custom(window.ethereum!),
+      transport: urls?.rpc_url_l1 ? http(urls.rpc_url_l1) : custom(window.ethereum!),
     });
     this.#walletProviderType = getWalletProviderType();
 
     this.#publicClient = createPublicClient({
       chain: environment === 'mainnet' ? mainnet : sepolia,
-      transport: http(),
+      transport: urls?.rpc_url_l1 ? http(urls.rpc_url_l1) : http(),
     });
 
     this.#environment = environment;

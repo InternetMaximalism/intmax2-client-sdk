@@ -292,6 +292,8 @@ export interface SDKUrls {
 export type UrlConfig = {
   balance_prover_url?: string;
   use_private_zkp_server?: boolean;
+  rpc_url_l1?: string;
+  rpc_url_l2?: string;
 };
 
 export interface MetadataItem {

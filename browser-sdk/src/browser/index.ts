@@ -1056,7 +1056,7 @@ export class IntMaxClient implements INTMAXClient {
         };
       }
       await sleep(timeout);
-    } while (status === 'not_found');
+    } while (status === 'not_found' || status === 'pending');
 
     return {
       status,

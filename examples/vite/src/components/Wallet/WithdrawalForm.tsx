@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import { FeeResponse, IntMaxClient, type TokenBalance } from 'intmax2-client-sdk'
+import type { FeeResponse, INTMAXClient, TokenBalance } from 'intmax2-client-sdk'
 import { formatUnits } from 'viem'
 import { LoadingSpinner } from '../../components/Common/LoadingSpinner'
 import { ErrorMessage } from '../../components/Common/ErrorMessage'
 import { getTokenDecimals } from '../../lib/utils'
 
 interface WithdrawFormProps {
-  client: IntMaxClient
+  client: INTMAXClient
 }
 
 interface WithdrawFormData {
@@ -29,6 +29,7 @@ export const WithdrawForm: React.FC<WithdrawFormProps> = ({ client }) => {
 
   useEffect(() => {
     fetchBalances()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client])
 
   const fetchBalances = async () => {
@@ -72,6 +73,7 @@ export const WithdrawForm: React.FC<WithdrawFormProps> = ({ client }) => {
     if (formData.tokenIndex) {
       calculateFees()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.tokenIndex])
 
   const handleSubmit = async (e: React.FormEvent) => {

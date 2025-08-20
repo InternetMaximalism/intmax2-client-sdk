@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
-import { ContractWithdrawal, IntMaxClient, Transaction, WithdrawalsStatus } from 'intmax2-client-sdk'
+import type { ContractWithdrawal, INTMAXClient, Transaction, WithdrawalsStatus } from 'intmax2-client-sdk'
 import { LoadingSpinner } from '../../components/Common/LoadingSpinner'
 import { ErrorMessage } from '../../components/Common/ErrorMessage'
 
 interface TransactionHistoryProps {
-  client: IntMaxClient
+  client: INTMAXClient
 }
 
 interface HistoryData {

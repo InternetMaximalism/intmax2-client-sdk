@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
-import { IntMaxClient, TokenType } from 'intmax2-client-sdk'
+import { type INTMAXClient, TokenType } from 'intmax2-client-sdk'
 import { LoadingSpinner } from '../../components/Common/LoadingSpinner'
 import { ErrorMessage } from '../../components/Common/ErrorMessage'
 import { PLACEHOLDER_INTMAX_ADDRESS } from '../../lib/constants'
 
 interface DepositFormProps {
-  client: IntMaxClient
+  client: INTMAXClient
 }
 
 interface DepositFormData {

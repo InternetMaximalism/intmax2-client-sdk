@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
-import { IntMaxClient, type TokenBalance } from 'intmax2-client-sdk'
+import type { INTMAXClient, TokenBalance } from 'intmax2-client-sdk'
 import { formatUnits } from 'viem'
 import { LoadingSpinner } from '../../components/Common/LoadingSpinner'
 import { ErrorMessage } from '../../components/Common/ErrorMessage'
 import { getTokenDecimals } from '../../lib/utils'
 
 interface BalanceDisplayProps {
-  client: IntMaxClient
+  client: INTMAXClient
 }
 
 export const BalanceDisplay: React.FC<BalanceDisplayProps> = ({ client }) => {

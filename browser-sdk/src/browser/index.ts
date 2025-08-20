@@ -921,7 +921,7 @@ export class IntMaxClient implements INTMAXClient {
   }
 
   async deposit({
-    skipConfirmation = true,
+    skipConfirmation = false,
     ...params
   }: PrepareDepositTransactionRequest): Promise<PrepareDepositTransactionResponse> {
     const address = params.address;

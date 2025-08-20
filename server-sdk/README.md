@@ -43,27 +43,33 @@ export interface INTMAXClient {
   getPrivateKey: () => Promise<string | undefined>;
   signMessage: (message: string) => Promise<SignMessageResponse>;
   verifySignature: (signature: SignMessageResponse, message: string | Uint8Array) => Promise<boolean>;
+  sync: () => Promise<void>;
+  updatePublicClientRpc: (url: string) => void;
 
   // token
   getTokensList: () => Promise<Token[]>;
   fetchTokenBalances: () => Promise<TokenBalancesResponse>;
-  getPaginatedTokens(params: {
+  getPaginatedTokens: (params: {
     tokenIndexes?: number[];
     perPage?: number;
     cursor?: string;
-  }): Promise<PaginatedResponse<Token>>;
+  }) => Promise<PaginatedResponse<Token>>;
 
   // transaction
   fetchTransactions: (params?: FetchTransactionsRequest) => Promise<FetchTransactionsResponse>;
   broadcastTransaction: (
     rawTransfers: BroadcastTransactionRequest[],
-    isWithdrawal: boolean,
+    isWithdrawal?: boolean,
   ) => Promise<BroadcastTransactionResponse>;
+  waitForTransactionConfirmation: (
+    params: WaitForTransactionConfirmationRequest,
+  ) => Promise<WaitForTransactionConfirmationResponse>;
 
   //receiveTxs
   fetchTransfers: (params?: FetchTransactionsRequest) => Promise<FetchTransactionsResponse>;
 
   // deposit
+  estimateDepositGas: (params: PrepareEstimateDepositTransactionRequest) => Promise<bigint>;
   deposit: (params: PrepareDepositTransactionRequest) => Promise<PrepareDepositTransactionResponse>;
   fetchDeposits: (params?: FetchTransactionsRequest) => Promise<FetchTransactionsResponse>;
 
@@ -114,6 +120,18 @@ const intMaxClient = new IntMaxNodeClient({
 
 To set up a local Balance Prover instance, please see [Tips: How to Run a Local Balance Prover](../README.md#tips-how-to-run-a-local-balance-prover)
 
+If you set `showLogs` to true, more logs will be output.
+If nothing is specified, it defaults to false, and only minimal logs will be output.
+
+```ts
+const intMaxClient = new IntMaxNodeClient({
+  environment: 'mainnet',
+  eth_private_key: process.env.ETH_PRIVATE_KEY,
+  l1_rpc_url: process.env.L1_RPC_URL,
+  showLogs: true,
+});
+```
+
 ### Login to INTMAX Network & Retrieve Balance
 
 Here is an example of logging in to INTMAX and retrieving balances. Users need to retrieve their balances once before using the SDK functions.
@@ -132,6 +150,15 @@ This example retrieves the address and private key of the generated INTMAX accou
 ```ts
 const address = intMaxClient.address; // Your INTMAX address
 const privateKey = intMaxClient.getPrivateKey(); // INTMAX private key. Here you should sign message.
+```
+
+### Update L1 RPC URL
+
+You can customize the RPC URL of the Ethereum (Sepolia) network used when executing a deposit transaction.
+
+```ts
+const newL1RpcUrl = 'https://new-rpc-url.com';
+intMaxClient.updateL1RpcUrl(newL1RpcUrl);
 ```
 
 ### Sign & Verify signature
@@ -176,9 +203,9 @@ All returned data is sorted in descending chronological order (newest first).
 
 ```ts
 const [receivedDeposits, receivedTransfers, sentTxs, requestedWithdrawals] = await Promise.all([
-  client.fetchDeposits({}),
-  client.fetchTransfers({}),
-  client.fetchTransactions({}),
+  client.fetchDeposits(),
+  client.fetchTransfers(),
+  client.fetchTransactions(),
   client.fetchWithdrawals(),
 ]);
 
@@ -290,7 +317,7 @@ console.log('Transaction Hash:', depositResult.txHash);
 ### Withdraw
 
 ```ts
-const { balances } = await intMaxClient.fetchTokenBalances(); // fetch token balances
+await intMaxClient.sync(); // synchronize balance
 
 // You can change filtration by tokenIndex or tokenAddress
 const token = balances.find((b) => b.token.tokenIndex === 0).token;
@@ -303,6 +330,11 @@ const withdrawalResult = await intMaxClient.withdraw({
 });
 console.log('Withdrawal result:', withdrawalResult);
 ```
+
+It is recommended to run the sync function before executing a transfer or withdrawal.
+This is because synchronizing your balance with the latest state may take some time.
+
+By running the sync function after completing a transfer, you ensure that your balance is up to date, making subsequent transfers smoother and more reliable.
 
 ### Claim withdrawals
 

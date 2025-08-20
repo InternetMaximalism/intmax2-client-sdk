@@ -43,27 +43,33 @@ export interface INTMAXClient {
   getPrivateKey: () => Promise<string | undefined>;
   signMessage: (message: string) => Promise<SignMessageResponse>;
   verifySignature: (signature: SignMessageResponse, message: string | Uint8Array) => Promise<boolean>;
+  sync: () => Promise<void>;
+  updatePublicClientRpc: (url: string) => void;
 
   // token
   getTokensList: () => Promise<Token[]>;
   fetchTokenBalances: () => Promise<TokenBalancesResponse>;
-  getPaginatedTokens(params: {
+  getPaginatedTokens: (params: {
     tokenIndexes?: number[];
     perPage?: number;
     cursor?: string;
-  }): Promise<PaginatedResponse<Token>>;
+  }) => Promise<PaginatedResponse<Token>>;
 
   // transaction
   fetchTransactions: (params?: FetchTransactionsRequest) => Promise<FetchTransactionsResponse>;
   broadcastTransaction: (
     rawTransfers: BroadcastTransactionRequest[],
-    isWithdrawal: boolean,
+    isWithdrawal?: boolean,
   ) => Promise<BroadcastTransactionResponse>;
+  waitForTransactionConfirmation: (
+    params: WaitForTransactionConfirmationRequest,
+  ) => Promise<WaitForTransactionConfirmationResponse>;
 
   //receiveTxs
   fetchTransfers: (params?: FetchTransactionsRequest) => Promise<FetchTransactionsResponse>;
 
   // deposit
+  estimateDepositGas: (params: PrepareEstimateDepositTransactionRequest) => Promise<bigint>;
   deposit: (params: PrepareDepositTransactionRequest) => Promise<PrepareDepositTransactionResponse>;
   fetchDeposits: (params?: FetchTransactionsRequest) => Promise<FetchTransactionsResponse>;
 

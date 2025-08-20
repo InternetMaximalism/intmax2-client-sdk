@@ -204,7 +204,7 @@ If nothing is specified, it defaults to false, and only minimal logs will be out
 
 ```ts
 const intMaxClient = new IntMaxNodeClient({
-  environment: 'mainnet',
+  environment: "mainnet",
   eth_private_key: process.env.ETH_PRIVATE_KEY,
   l1_rpc_url: process.env.L1_RPC_URL,
   showLogs: true,
@@ -240,7 +240,7 @@ const privateKey = intMaxClient.getPrivateKey(); // INTMAX private key. Here you
 You can customize the RPC URL of the Ethereum (Sepolia) network used when executing a deposit transaction.
 
 ```ts
-const newL1RpcUrl = 'https://new-rpc-url.com';
+const newL1RpcUrl = "https://new-rpc-url.com";
 intMaxClient.updateL1RpcUrl(newL1RpcUrl);
 ```
 

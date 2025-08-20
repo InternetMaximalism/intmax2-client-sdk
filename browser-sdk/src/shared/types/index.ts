@@ -132,7 +132,7 @@ export interface Transfer {
 
 export interface WaitForTransactionConfirmationRequest {
   txTreeRoot: string;
-  timeout?: number; // in milliseconds
+  pollInterval?: number; // in milliseconds
 }
 
 export interface WaitForTransactionConfirmationResponse {

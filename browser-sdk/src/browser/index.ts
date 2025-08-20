@@ -1033,7 +1033,7 @@ export class IntMaxClient implements INTMAXClient {
 
   async waitForTransactionConfirmation({
     txTreeRoot,
-    timeout = 5000,
+    pollInterval = 5000,
   }: WaitForTransactionConfirmationRequest): Promise<WaitForTransactionConfirmationResponse> {
     if (!this.isLoggedIn || !this.#spendPub) {
       throw new Error('Not logged in');
@@ -1055,7 +1055,7 @@ export class IntMaxClient implements INTMAXClient {
           status: 'not_found',
         };
       }
-      await sleep(timeout);
+      await sleep(pollInterval);
     } while (status === 'not_found' || status === 'pending');
 
     return {

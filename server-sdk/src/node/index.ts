@@ -123,7 +123,7 @@ export class IntMaxNodeClient implements INTMAXClient {
   readonly #tokenFetcher: TokenFetcher;
   readonly #indexerFetcher: IndexerFetcher;
   readonly #txFetcher: TransactionFetcher;
-  readonly #publicClient: PublicClient;
+  #publicClient: PublicClient;
   readonly #vaultHttpClient: AxiosInstance;
   readonly #predicateFetcher: PredicateFetcher;
   readonly #environment: IntMaxEnvironment;
@@ -994,6 +994,20 @@ export class IntMaxNodeClient implements INTMAXClient {
     }
     return await this.#functions.sync(this.#config, this.#viewKey).finally(() => {
       this.#isSyncInProgress = false;
+    });
+  }
+
+  updatePublicClientRpc(url: string): void {
+    const httpRegex =
+      /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/;
+
+    if (!url || !httpRegex.test(url)) {
+      throw new Error('Invalid url');
+    }
+
+    this.#publicClient = createPublicClient({
+      chain: this.#environment === 'mainnet' ? mainnet : sepolia,
+      transport: http(url),
     });
   }
 

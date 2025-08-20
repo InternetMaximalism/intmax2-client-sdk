@@ -84,6 +84,13 @@ import wasmBytesMain from '../wasm/browser/mainnet/intmax2_wasm_lib_bg.wasm?url'
 import * as testnetWasm from '../wasm/browser/testnet';
 import wasmBytes from '../wasm/browser/testnet/intmax2_wasm_lib_bg.wasm?url';
 
+declare global {
+  interface Window {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ethereum?: any;
+  }
+}
+
 const whiteListedKeys = [
   'isCoinbaseWallet',
   'isMetaMask',

@@ -143,7 +143,6 @@ export interface PrepareDepositTransactionRequest {
   token: Token;
   amount: number;
   address: string;
-  isMining: boolean;
   waitConfirmation: boolean;
 }
 

@@ -132,10 +132,11 @@ export interface Transfer {
 
 export interface WaitForTransactionConfirmationRequest {
   txTreeRoot: string;
+  timeout?: number; // in milliseconds
 }
 
 export interface WaitForTransactionConfirmationResponse {
-  status: 'not_found' | 'success' | 'confirmed';
+  status: 'not_found' | 'success' | 'confirmed' | 'pending' | 'failed';
 }
 
 // // Deposit

@@ -1033,16 +1033,30 @@ export class IntMaxClient implements INTMAXClient {
 
   async waitForTransactionConfirmation({
     txTreeRoot,
+    timeout = 5000,
   }: WaitForTransactionConfirmationRequest): Promise<WaitForTransactionConfirmationResponse> {
     if (!this.isLoggedIn || !this.#spendPub) {
       throw new Error('Not logged in');
     }
 
-    const status = (await this.#functions.get_tx_status(
-      this.#config,
-      this.#spendPub,
-      txTreeRoot,
-    )) as WaitForTransactionConfirmationResponse['status'];
+    let status: WaitForTransactionConfirmationResponse['status'] = 'not_found';
+    do {
+      try {
+        status = (await this.#functions.get_tx_status(
+          this.#config,
+          this.#spendPub,
+          txTreeRoot,
+        )) as WaitForTransactionConfirmationResponse['status'];
+      } catch (e) {
+        if (this.#showLogs) {
+          console.error('Error while fetching transaction status:', e);
+        }
+        return {
+          status: 'not_found',
+        };
+      }
+      await sleep(timeout);
+    } while (status === 'not_found');
 
     return {
       status,

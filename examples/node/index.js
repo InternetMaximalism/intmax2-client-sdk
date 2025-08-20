@@ -18,6 +18,7 @@ const main = async () => {
           use_private_zkp_server: false,
         }
       : undefined,
+    showLogs: true,
   });
 
   // Login
@@ -45,43 +46,43 @@ const main = async () => {
   const tokens = await client.getTokensList();
   console.log('Available tokens:', JSON.stringify(tokens, null, 2));
 
-  const tokensTest = await client.getPaginatedTokens({
-    tokenIndexes: [0, 4, 21, 19, 13, 11],
-    perPage: 1,
-  });
-  console.log('Paginated Response: ', JSON.stringify(tokensTest, null, 2));
-
-  let nextCursor = tokensTest.nextCursor;
-  do {
-    const resp = await client.getPaginatedTokens({
-      cursor: nextCursor,
-      perPage: 1,
-    });
-    nextCursor = resp.nextCursor;
-    console.log('Paginated Response: ', JSON.stringify(resp, null, 2));
-  } while (nextCursor);
-
-  // Fetch transaction history
-  console.log('\nFetching transaction history...');
-  const [deposits, receiveTransfers, sendTxs] = await Promise.all([
-    client.fetchDeposits({
-      limit: 1,
-      cursor: null,
-    }),
-    client.fetchTransfers({
-      limit: 1,
-      cursor: null,
-    }),
-    client.fetchTransactions({
-      limit: 1,
-      cursor: null,
-    }),
-  ]);
-  console.log('\nTransaction History:');
-  console.log('Latest deposits:', deposits.items[0]);
-  console.log('Latest received transfers:', receiveTransfers.items[0]);
-  console.log('Latest sent transfers:', sendTxs.items[0]);
-
+  // const tokensTest = await client.getPaginatedTokens({
+  //   tokenIndexes: [0, 4, 21, 19, 13, 11],
+  //   perPage: 1,
+  // });
+  // console.log('Paginated Response: ', JSON.stringify(tokensTest, null, 2));
+  //
+  // let nextCursor = tokensTest.nextCursor;
+  // do {
+  //   const resp = await client.getPaginatedTokens({
+  //     cursor: nextCursor,
+  //     perPage: 1,
+  //   });
+  //   nextCursor = resp.nextCursor;
+  //   console.log('Paginated Response: ', JSON.stringify(resp, null, 2));
+  // } while (nextCursor);
+  //
+  // // Fetch transaction history
+  // console.log('\nFetching transaction history...');
+  // const [deposits, receiveTransfers, sendTxs] = await Promise.all([
+  //   client.fetchDeposits({
+  //     limit: 1,
+  //     cursor: null,
+  //   }),
+  //   client.fetchTransfers({
+  //     limit: 1,
+  //     cursor: null,
+  //   }),
+  //   client.fetchTransactions({
+  //     limit: 1,
+  //     cursor: null,
+  //   }),
+  // ]);
+  // console.log('\nTransaction History:');
+  // console.log('Latest deposits:', deposits.items[0]);
+  // console.log('Latest received transfers:', receiveTransfers.items[0]);
+  // console.log('Latest sent transfers:', sendTxs.items[0]);
+  //
   const token = {
     tokenType: TokenType.NATIVE,
     tokenIndex: 0,
@@ -89,25 +90,25 @@ const main = async () => {
     contractAddress: '0x0000000000000000000000000000000000000000',
     price: 2417.08,
   };
-
-  // Example deposit
-  console.log('\nPreparing deposit...');
-  const depositParams = {
-    amount: 0.000001, // 0.000001 ETH
-    token,
-    // Your public key of the IntMax wallet or any other IntMax wallet public key
-    address: client.address,
-  };
-
-  // Check gas estimation to verify if the transaction can be executed
-  const gas = await client.estimateDepositGas({
-    ...depositParams,
-    isGasEstimation: true,
-  });
-  console.log('Estimated gas for deposit:', gas);
-
-  const deposit = await client.deposit(depositParams);
-  console.log('Deposit result:', JSON.stringify(deposit, null, 2));
+  //
+  // // Example deposit
+  // console.log('\nPreparing deposit...');
+  // const depositParams = {
+  //   amount: 0.000001, // 0.000001 ETH
+  //   token,
+  //   // Your public key of the IntMax wallet or any other IntMax wallet public key
+  //   address: client.address,
+  // };
+  //
+  // // Check gas estimation to verify if the transaction can be executed
+  // const gas = await client.estimateDepositGas({
+  //   ...depositParams,
+  //   isGasEstimation: true,
+  // });
+  // console.log('Estimated gas for deposit:', gas);
+  //
+  // const deposit = await client.deposit(depositParams);
+  // console.log('Deposit result:', JSON.stringify(deposit, null, 2));
 
   // The user needs to pay `transferFeeAmount` of tokens corresponding to the `transferFeeToken`.
   const transferFee = await client.getTransferFee();
@@ -126,11 +127,18 @@ const main = async () => {
   ];
   while (true) {
     try {
+      console.log('Start sync', new Date().getTime())
+      await client.sync()
+      console.log('Done sync', new Date().getTime());
+
+      console.log("start time: ", new Date().getTime());
       const transferResult = await client.broadcastTransaction(transfers);
+      console.log("finish time: ", new Date().getTime());
       console.log('Transfer result:', JSON.stringify(transferResult, null, 2));
       break;
     } catch (error) {
       console.warn('Transfer error:', error);
+      console.log("finish time: ", new Date().getTime());
 
       const expectedErrorMessage = [
         'Pending tx error',
@@ -145,72 +153,72 @@ const main = async () => {
   }
 
   // The user needs to pay `withdrawalFeeAmount` of tokens corresponding to the `withdrawalFeeToken`.
-  const withdrawalFee = await client.getWithdrawalFee(token);
-  const withdrawalFeeToken = withdrawalFee?.fee?.token_index;
-  const withdrawalFeeAmount = withdrawalFee?.fee?.amount;
-  console.log('Withdrawal Fee Token Index:', withdrawalFeeToken);
-  console.log('Withdrawal Fee Amount:', withdrawalFeeAmount);
-
-  while (true) {
-    try {
-      await client.fetchTokenBalances();
-      break;
-    } catch (error) {
-      const expectedErrorMessage = ['Pending tx error'];
-      if (expectedErrorMessage.some((errorMessage) => error.message.includes(errorMessage))) {
-        console.log('Retrying balance fetching in 5 seconds...');
-        await new Promise((resolve) => setTimeout(resolve, 5000));
-      }
-    }
-  }
-
-  const withdrawalDestination = privateKeyToAccount(process.env.ETH_PRIVATE_KEY).address;
-
-  console.log('Withdraw ETH to', withdrawalDestination);
-  while (true) {
-    try {
-      const withdrawResult = await client.withdraw({
-        address: withdrawalDestination, // Ethereum address
-        token,
-        amount: 0.000001,
-      });
-      console.log('Withdrawal result:', JSON.stringify(withdrawResult, null, 2));
-      break;
-    } catch (error) {
-      console.warn('Withdrawal error:', error);
-
-      const expectedErrorMessage = ['Pending tx error', 'Failed to send tx request'];
-      if (expectedErrorMessage.some((errorMessage) => error.message.includes(errorMessage))) {
-        console.log('Retrying withdrawal in 5 seconds...');
-        await new Promise((resolve) => setTimeout(resolve, 5000));
-      }
-    }
-  }
-
-  let hasNextPage = true;
-  let withdrawal_cursor = null;
-  let withdrawals = { need_claim: [] };
-  do {
-    console.log('Fetching withdrawals...');
-    const resp = await client.fetchWithdrawals({
-      cursor: withdrawal_cursor,
-      limit: 1,
-    });
-
-    Object.keys(withdrawals).forEach((key) => {
-      withdrawals[key] = [...withdrawals[key], ...resp.withdrawals[key]];
-    });
-
-    hasNextPage = resp.pagination.has_more;
-    withdrawal_cursor = resp.pagination.next_cursor;
-  } while (hasNextPage);
-
-  if (withdrawals.need_claim.length === 0) {
-    console.log('No withdrawals to claim.');
-  } else {
-    const claim = await client.claimWithdrawal(withdrawals.need_claim);
-    console.log('Claim Withdrawal result:', JSON.stringify(claim, null, 2));
-  }
+  // const withdrawalFee = await client.getWithdrawalFee(token);
+  // const withdrawalFeeToken = withdrawalFee?.fee?.token_index;
+  // const withdrawalFeeAmount = withdrawalFee?.fee?.amount;
+  // console.log('Withdrawal Fee Token Index:', withdrawalFeeToken);
+  // console.log('Withdrawal Fee Amount:', withdrawalFeeAmount);
+  //
+  // while (true) {
+  //   try {
+  //     await client.fetchTokenBalances();
+  //     break;
+  //   } catch (error) {
+  //     const expectedErrorMessage = ['Pending tx error'];
+  //     if (expectedErrorMessage.some((errorMessage) => error.message.includes(errorMessage))) {
+  //       console.log('Retrying balance fetching in 5 seconds...');
+  //       await new Promise((resolve) => setTimeout(resolve, 5000));
+  //     }
+  //   }
+  // }
+  //
+  // const withdrawalDestination = privateKeyToAccount(process.env.ETH_PRIVATE_KEY).address;
+  //
+  // console.log('Withdraw ETH to', withdrawalDestination);
+  // while (true) {
+  //   try {
+  //     const withdrawResult = await client.withdraw({
+  //       address: withdrawalDestination, // Ethereum address
+  //       token,
+  //       amount: 0.000001,
+  //     });
+  //     console.log('Withdrawal result:', JSON.stringify(withdrawResult, null, 2));
+  //     break;
+  //   } catch (error) {
+  //     console.warn('Withdrawal error:', error);
+  //
+  //     const expectedErrorMessage = ['Pending tx error', 'Failed to send tx request'];
+  //     if (expectedErrorMessage.some((errorMessage) => error.message.includes(errorMessage))) {
+  //       console.log('Retrying withdrawal in 5 seconds...');
+  //       await new Promise((resolve) => setTimeout(resolve, 5000));
+  //     }
+  //   }
+  // }
+  //
+  // let hasNextPage = true;
+  // let withdrawal_cursor = null;
+  // let withdrawals = { need_claim: [] };
+  // do {
+  //   console.log('Fetching withdrawals...');
+  //   const resp = await client.fetchWithdrawals({
+  //     cursor: withdrawal_cursor,
+  //     limit: 1,
+  //   });
+  //
+  //   Object.keys(withdrawals).forEach((key) => {
+  //     withdrawals[key] = [...withdrawals[key], ...resp.withdrawals[key]];
+  //   });
+  //
+  //   hasNextPage = resp.pagination.has_more;
+  //   withdrawal_cursor = resp.pagination.next_cursor;
+  // } while (hasNextPage);
+  //
+  // if (withdrawals.need_claim.length === 0) {
+  //   console.log('No withdrawals to claim.');
+  // } else {
+  //   const claim = await client.claimWithdrawal(withdrawals.need_claim);
+  //   console.log('Claim Withdrawal result:', JSON.stringify(claim, null, 2));
+  // }
 
   // Keep the process alive for a while to see worker activity
   console.log('\nKeeping process alive for 60 min to observe worker activity...');

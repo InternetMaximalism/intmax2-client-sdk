@@ -148,9 +148,11 @@ export interface PrepareDepositTransactionRequest {
   amount: number;
   address: string;
   isMining: boolean;
+  waitConfirmation: boolean;
 }
 
-export interface PrepareEstimateDepositTransactionRequest extends PrepareDepositTransactionRequest {
+export interface PrepareEstimateDepositTransactionRequest
+  extends Omit<PrepareDepositTransactionRequest, 'waitConfirmation'> {
   isGasEstimation: boolean;
 }
 

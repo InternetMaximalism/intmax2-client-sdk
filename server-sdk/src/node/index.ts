@@ -757,7 +757,10 @@ export class IntMaxNodeClient implements INTMAXClient {
     return (gasPrice ?? 0n) * estimatedGas;
   }
 
-  async deposit(params: PrepareDepositTransactionRequest): Promise<PrepareDepositTransactionResponse> {
+  async deposit({
+    waitConfirmation = true,
+    ...params
+  }: PrepareDepositTransactionRequest): Promise<PrepareDepositTransactionResponse> {
     const address = params.address;
     if (params.token.tokenType === TokenType.ERC20) {
       // eslint-disable-next-line no-param-reassign
@@ -789,6 +792,13 @@ export class IntMaxNodeClient implements INTMAXClient {
     const depositHash = await this.#publicClient.sendRawTransaction({
       serializedTransaction: signedTx,
     });
+
+    if (!waitConfirmation) {
+      return {
+        status: TransactionStatus.Processing,
+        txHash: depositHash,
+      };
+    }
 
     let status: TransactionStatus = TransactionStatus.Processing;
     while (status === TransactionStatus.Processing) {

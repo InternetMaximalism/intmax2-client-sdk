@@ -70,6 +70,7 @@ import {
   WithdrawRequest,
 } from '../shared';
 import { generateEncryptionKey } from '../shared/shared/generate-encryption-key';
+import * as mainnetWasm from '../wasm/browser/mainnet';
 import {
   JsFeeQuote,
   JsFlatG2,
@@ -79,7 +80,6 @@ import {
   JsTxResult,
   JsUserData,
 } from '../wasm/browser/mainnet';
-import * as mainnetWasm from '../wasm/browser/mainnet';
 import wasmBytesMain from '../wasm/browser/mainnet/intmax2_wasm_lib_bg.wasm?url';
 import * as testnetWasm from '../wasm/browser/testnet';
 import wasmBytes from '../wasm/browser/testnet/intmax2_wasm_lib_bg.wasm?url';
@@ -896,7 +896,10 @@ export class IntMaxClient implements INTMAXClient {
     return (gasPrice ?? 0n) * estimatedGas;
   }
 
-  async deposit(params: PrepareDepositTransactionRequest): Promise<PrepareDepositTransactionResponse> {
+  async deposit({
+    waitConfirmation = true,
+    ...params
+  }: PrepareDepositTransactionRequest): Promise<PrepareDepositTransactionResponse> {
     const address = params.address;
     if (params.token.tokenType === TokenType.ERC20) {
       // eslint-disable-next-line no-param-reassign
@@ -912,6 +915,13 @@ export class IntMaxClient implements INTMAXClient {
     }
 
     const depositHash = await this.#walletClient.writeContract(txConfig);
+
+    if (!waitConfirmation) {
+      return {
+        status: TransactionStatus.Processing,
+        txHash: depositHash,
+      };
+    }
 
     let status: TransactionStatus = TransactionStatus.Processing;
     while (status === TransactionStatus.Processing) {

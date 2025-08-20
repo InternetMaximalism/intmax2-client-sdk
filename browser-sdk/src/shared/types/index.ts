@@ -152,9 +152,11 @@ export interface PrepareDepositTransactionRequest {
   token: Token;
   amount: number;
   address: string;
+  waitConfirmation: boolean;
 }
 
-export interface PrepareEstimateDepositTransactionRequest extends PrepareDepositTransactionRequest {
+export interface PrepareEstimateDepositTransactionRequest
+  extends Omit<PrepareDepositTransactionRequest, 'waitConfirmation'> {
   isGasEstimation: boolean;
 }
 

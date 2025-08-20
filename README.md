@@ -137,18 +137,6 @@ const intMaxClient = IntMaxClient.init({
 
 To set up a local Balance Prover instance, please see [Tips: How to Run a Local Balance Prover](./README.md#tips-how-to-run-a-local-balance-prover)
 
-If you set `showLogs` to true, more logs will be output.
-If nothing is specified, it defaults to false, and only minimal logs will be output.
-
-```ts
-const intMaxClient = new IntMaxNodeClient({
-  environment: 'mainnet',
-  eth_private_key: process.env.ETH_PRIVATE_KEY,
-  l1_rpc_url: process.env.L1_RPC_URL,
-  showLogs: true,
-});
-```
-
 ### Login to INTMAX Network
 
 Here is an example of logging in to INTMAX. Users need to login once before using the SDK functions.
@@ -210,6 +198,18 @@ const intMaxClient = new IntMaxNodeClient({
 ```
 
 To set up a local Balance Prover instance, please see [Tips: How to Run a Local Balance Prover](./README.md#tips-how-to-run-a-local-balance-prover)
+
+If you set `showLogs` to true, more logs will be output.
+If nothing is specified, it defaults to false, and only minimal logs will be output.
+
+```ts
+const intMaxClient = new IntMaxNodeClient({
+  environment: 'mainnet',
+  eth_private_key: process.env.ETH_PRIVATE_KEY,
+  l1_rpc_url: process.env.L1_RPC_URL,
+  showLogs: true,
+});
+```
 
 ### Login to INTMAX Network & Retrieve Balance
 

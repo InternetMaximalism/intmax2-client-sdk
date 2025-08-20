@@ -114,6 +114,7 @@ interface IFunctions {
   sync_claims: typeof mainnetWasm.sync_claims | typeof testnetWasm.sync_claims;
   sync_withdrawals: typeof mainnetWasm.sync_withdrawals | typeof testnetWasm.sync_withdrawals;
   verify_signature: typeof mainnetWasm.verify_signature | typeof testnetWasm.verify_signature;
+  get_tx_status: typeof mainnetWasm.get_tx_status | typeof testnetWasm.get_tx_status;
 }
 
 export class IntMaxNodeClient implements INTMAXClient {
@@ -194,6 +195,7 @@ export class IntMaxNodeClient implements INTMAXClient {
         sync_claims: mainnetWasm.sync_claims,
         sync_withdrawals: mainnetWasm.sync_withdrawals,
         verify_signature: mainnetWasm.verify_signature,
+        get_tx_status: mainnetWasm.get_tx_status,
       };
     } else {
       this.#functions = {
@@ -217,6 +219,7 @@ export class IntMaxNodeClient implements INTMAXClient {
         sync_claims: testnetWasm.sync_claims,
         sync_withdrawals: testnetWasm.sync_withdrawals,
         verify_signature: testnetWasm.verify_signature,
+        get_tx_status: testnetWasm.get_tx_status,
       };
     }
 
@@ -824,12 +827,6 @@ export class IntMaxNodeClient implements INTMAXClient {
     };
   }
 
-  waitForTransactionConfirmation(
-    _params: WaitForTransactionConfirmationRequest,
-  ): Promise<WaitForTransactionConfirmationResponse> {
-    throw Error('Not implemented!');
-  }
-
   async signMessage(message: string): Promise<SignMessageResponse> {
     const data = Buffer.from(message);
     const signature = await this.#functions.sign_message(this.#spendKey, data);
@@ -982,6 +979,24 @@ export class IntMaxNodeClient implements INTMAXClient {
     };
   }
 
+  async waitForTransactionConfirmation({
+    txTreeRoot,
+  }: WaitForTransactionConfirmationRequest): Promise<WaitForTransactionConfirmationResponse> {
+    if (!this.isLoggedIn || !this.#spendPub) {
+      throw new Error('Not logged in');
+    }
+
+    const status = (await this.#functions.get_tx_status(
+      this.#config,
+      this.#spendPub,
+      txTreeRoot,
+    )) as WaitForTransactionConfirmationResponse['status'];
+
+    return {
+      status,
+    };
+  }
+
   async sync(): Promise<void> {
     if (this.#isSyncInProgress) {
       throw Error('Sync already in progress');
@@ -999,6 +1014,7 @@ export class IntMaxNodeClient implements INTMAXClient {
 
   updatePublicClientRpc(url: string): void {
     const httpRegex =
+      // eslint-disable-next-line
       /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/;
 
     if (!url || !httpRegex.test(url)) {
@@ -1525,6 +1541,7 @@ export class IntMaxNodeClient implements INTMAXClient {
   }
 
   async #restartSyncUserData() {
+    return;
     console.info('Restarting worker...');
     this.#terminateSyncUserData();
 

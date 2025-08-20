@@ -194,6 +194,7 @@ interface IFunctions {
   validate_transfer_receipt:
     | typeof mainnetWasm.validate_transfer_receipt
     | typeof testnetWasm.validate_transfer_receipt;
+  get_tx_status: typeof mainnetWasm.get_tx_status | typeof testnetWasm.get_tx_status;
 }
 
 export class IntMaxClient implements INTMAXClient {
@@ -273,6 +274,7 @@ export class IntMaxClient implements INTMAXClient {
         sync_claims: mainnetWasm.sync_claims,
         sync_withdrawals: mainnetWasm.sync_withdrawals,
         validate_transfer_receipt: mainnetWasm.validate_transfer_receipt,
+        get_tx_status: mainnetWasm.get_tx_status,
       };
     } else {
       testnetWasm.initSync(async_params);
@@ -315,6 +317,7 @@ export class IntMaxClient implements INTMAXClient {
         sync_claims: testnetWasm.sync_claims,
         sync_withdrawals: testnetWasm.sync_withdrawals,
         validate_transfer_receipt: testnetWasm.validate_transfer_receipt,
+        get_tx_status: testnetWasm.get_tx_status,
       };
     }
 
@@ -1007,10 +1010,22 @@ export class IntMaxClient implements INTMAXClient {
     }
   }
 
-  waitForTransactionConfirmation(
-    _params: WaitForTransactionConfirmationRequest,
-  ): Promise<WaitForTransactionConfirmationResponse> {
-    throw Error('Not implemented!');
+  async waitForTransactionConfirmation({
+    txTreeRoot,
+  }: WaitForTransactionConfirmationRequest): Promise<WaitForTransactionConfirmationResponse> {
+    if (!this.isLoggedIn || !this.#spendPub) {
+      throw new Error('Not logged in');
+    }
+
+    const status = (await this.#functions.get_tx_status(
+      this.#config,
+      this.#spendPub,
+      txTreeRoot,
+    )) as WaitForTransactionConfirmationResponse['status'];
+
+    return {
+      status,
+    };
   }
 
   async signMessage(message: string): Promise<SignMessageResponse> {
@@ -1096,6 +1111,7 @@ export class IntMaxClient implements INTMAXClient {
 
   updatePublicClientRpc(url: string): void {
     const httpRegex =
+      //eslint-disable-next-line
       /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/;
 
     if (!url || !httpRegex.test(url)) {

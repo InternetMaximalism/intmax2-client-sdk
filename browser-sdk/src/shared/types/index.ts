@@ -132,15 +132,10 @@ export interface Transfer {
 
 export interface WaitForTransactionConfirmationRequest {
   txTreeRoot: string;
-  pollingInterval?: number;
-  retryCount?: number;
-  retryDelay?: number;
-  timeout?: number;
 }
 
 export interface WaitForTransactionConfirmationResponse {
   status: 'not_found' | 'success' | 'confirmed';
-  blockNumber: number | null;
 }
 
 // // Deposit

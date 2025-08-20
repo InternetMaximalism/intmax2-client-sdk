@@ -114,6 +114,7 @@ interface IFunctions {
   sync_claims: typeof mainnetWasm.sync_claims | typeof testnetWasm.sync_claims;
   sync_withdrawals: typeof mainnetWasm.sync_withdrawals | typeof testnetWasm.sync_withdrawals;
   verify_signature: typeof mainnetWasm.verify_signature | typeof testnetWasm.verify_signature;
+  get_tx_status: typeof mainnetWasm.get_tx_status | typeof testnetWasm.get_tx_status;
 }
 
 export class IntMaxNodeClient implements INTMAXClient {
@@ -123,7 +124,7 @@ export class IntMaxNodeClient implements INTMAXClient {
   readonly #tokenFetcher: TokenFetcher;
   readonly #indexerFetcher: IndexerFetcher;
   readonly #txFetcher: TransactionFetcher;
-  readonly #publicClient: PublicClient;
+  #publicClient: PublicClient;
   readonly #vaultHttpClient: AxiosInstance;
   readonly #predicateFetcher: PredicateFetcher;
   readonly #environment: IntMaxEnvironment;
@@ -139,6 +140,7 @@ export class IntMaxNodeClient implements INTMAXClient {
   #broadcastInProgress: boolean = false;
   #userDataWorker: Worker | undefined;
   #functions: IFunctions;
+  #showLogs: boolean = true;
 
   isLoggedIn: boolean = false;
   address: string = '';
@@ -147,6 +149,12 @@ export class IntMaxNodeClient implements INTMAXClient {
   constructor(params: ConstructorNodeParams) {
     this.validateConstructorParams(params);
     const { environment, eth_private_key, l1_rpc_url } = params;
+
+    if (!params.showLogs) {
+      this.#showLogs = false;
+      console.info = () => {};
+      console.warn = () => {};
+    }
 
     this.#cacheMap.set('user_data_fetch', []);
     this.#ethAccount = privateKeyToAccount(eth_private_key);
@@ -190,6 +198,7 @@ export class IntMaxNodeClient implements INTMAXClient {
         sync_claims: mainnetWasm.sync_claims,
         sync_withdrawals: mainnetWasm.sync_withdrawals,
         verify_signature: mainnetWasm.verify_signature,
+        get_tx_status: mainnetWasm.get_tx_status,
       };
     } else {
       this.#functions = {
@@ -213,6 +222,7 @@ export class IntMaxNodeClient implements INTMAXClient {
         sync_claims: testnetWasm.sync_claims,
         sync_withdrawals: testnetWasm.sync_withdrawals,
         verify_signature: testnetWasm.verify_signature,
+        get_tx_status: testnetWasm.get_tx_status,
       };
     }
 
@@ -424,7 +434,7 @@ export class IntMaxNodeClient implements INTMAXClient {
     if (!this.isLoggedIn) {
       throw Error('Not logged in');
     }
-    if (await checkValidLocalTime()) {
+    if (await checkValidLocalTime(this.#environment)) {
       throw Error('Local time is not valid. Please check your system time.');
     }
 
@@ -465,6 +475,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       privateKey = this.#privateKey;
       viewPair = this.#viewKey;
     } catch (e) {
+      this.#broadcastInProgress = false;
       console.error(e);
       throw Error('No private key found');
     }
@@ -511,7 +522,16 @@ export class IntMaxNodeClient implements INTMAXClient {
 
       memo.tx();
     } catch (e) {
-      console.error(e);
+      if (
+        e instanceof Error &&
+        e.message.includes(
+          'save-snapshot failed with status:500 Internal Server Error, error:Lock error: prev_digest mismatch with stored digest',
+        )
+      ) {
+        if (this.#showLogs) console.error(e);
+      } else {
+        console.error(e);
+      }
       this.#broadcastInProgress = false;
       throw new Error('Failed to send tx request');
     }
@@ -537,13 +557,25 @@ export class IntMaxNodeClient implements INTMAXClient {
         try {
           await this.#functions.sync_claims(this.#config, viewPair, rawTransfers[0].claim_beneficiary, 0);
         } catch (e) {
-          console.error(e);
+          if (
+            e instanceof Error &&
+            e.message.includes(
+              'save-snapshot failed with status:500 Internal Server Error, error:Lock error: prev_digest mismatch with stored digest',
+            )
+          ) {
+            if (this.#showLogs) console.error(e);
+          } else {
+            console.error(e);
+          }
+          this.#broadcastInProgress = false;
           throw e;
         }
       }
       await sleep(40000);
       await retryWithAttempts(async () => await this.#functions.sync_withdrawals(this.#config, viewPair, 0), 1000, 5);
     }
+
+    this.#broadcastInProgress = false;
 
     return {
       // @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
@@ -750,7 +782,10 @@ export class IntMaxNodeClient implements INTMAXClient {
     return (gasPrice ?? 0n) * estimatedGas;
   }
 
-  async deposit(params: PrepareDepositTransactionRequest): Promise<PrepareDepositTransactionResponse> {
+  async deposit({
+    skipConfirmation = false,
+    ...params
+  }: PrepareDepositTransactionRequest): Promise<PrepareDepositTransactionResponse> {
     const address = params.address;
     if (params.token.tokenType === TokenType.ERC20) {
       // eslint-disable-next-line no-param-reassign
@@ -783,6 +818,13 @@ export class IntMaxNodeClient implements INTMAXClient {
       serializedTransaction: signedTx,
     });
 
+    if (skipConfirmation) {
+      return {
+        status: TransactionStatus.Processing,
+        txHash: depositHash,
+      };
+    }
+
     let status: TransactionStatus = TransactionStatus.Processing;
     while (status === TransactionStatus.Processing) {
       await sleep(3000);
@@ -794,6 +836,9 @@ export class IntMaxNodeClient implements INTMAXClient {
           status = tx.status === 'success' ? TransactionStatus.Completed : TransactionStatus.Rejected;
         }
       } catch (e) {
+        if (e instanceof Error && e.message.includes('Transaction receipt with hash')) {
+          continue;
+        }
         console.error(e);
       }
     }
@@ -802,12 +847,6 @@ export class IntMaxNodeClient implements INTMAXClient {
       status,
       txHash: depositHash,
     };
-  }
-
-  waitForTransactionConfirmation(
-    _params: WaitForTransactionConfirmationRequest,
-  ): Promise<WaitForTransactionConfirmationResponse> {
-    throw Error('Not implemented!');
   }
 
   async signMessage(message: string): Promise<SignMessageResponse> {
@@ -960,6 +999,68 @@ export class IntMaxNodeClient implements INTMAXClient {
       fee: claim_fee.fee,
       collateral_fee: claim_fee.collateral_fee,
     };
+  }
+
+  async waitForTransactionConfirmation({
+    txTreeRoot,
+    pollInterval = 5000,
+  }: WaitForTransactionConfirmationRequest): Promise<WaitForTransactionConfirmationResponse> {
+    if (!this.isLoggedIn || !this.#spendPub) {
+      throw new Error('Not logged in');
+    }
+
+    let status: WaitForTransactionConfirmationResponse['status'] = 'not_found';
+    do {
+      try {
+        status = (await this.#functions.get_tx_status(
+          this.#config,
+          this.#spendPub,
+          txTreeRoot,
+        )) as WaitForTransactionConfirmationResponse['status'];
+      } catch (e) {
+        if (this.#showLogs) {
+          console.error('Error while fetching transaction status:', e);
+        }
+        return {
+          status: 'not_found',
+        };
+      }
+      await sleep(pollInterval);
+    } while (status === 'not_found' || status === 'pending');
+
+    return {
+      status,
+    };
+  }
+
+  async sync(): Promise<void> {
+    if (this.#isSyncInProgress) {
+      throw Error('Sync already in progress');
+    }
+    this.#isSyncInProgress = true;
+
+    if (!this.isLoggedIn) {
+      this.#isSyncInProgress = false;
+      throw Error('Not logged in yet.');
+    }
+    return await this.#functions.sync(this.#config, this.#viewKey).finally(() => {
+      this.#isSyncInProgress = false;
+    });
+  }
+
+  updatePublicClientRpc(url: string): void {
+    const httpRegex =
+      // eslint-disable-next-line
+      /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/;
+
+    if (!url || !httpRegex.test(url)) {
+      throw new Error('Invalid url');
+    }
+
+    this.#publicClient = createPublicClient({
+      chain: this.#environment === 'mainnet' ? mainnet : sepolia,
+      transport: http(url),
+    });
   }
 
   // PRIVATE METHODS
@@ -1476,6 +1577,7 @@ export class IntMaxNodeClient implements INTMAXClient {
   }
 
   async #restartSyncUserData() {
+    return;
     console.info('Restarting worker...');
     this.#terminateSyncUserData();
 

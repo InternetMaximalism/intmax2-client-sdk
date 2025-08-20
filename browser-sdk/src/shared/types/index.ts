@@ -55,7 +55,7 @@ export interface Token {
   contractAddress: string;
   decimals?: number;
   image?: string;
-  price: number;
+  price?: number;
   symbol?: string;
   tokenIndex: number;
   tokenType: TokenType;
@@ -132,15 +132,11 @@ export interface Transfer {
 
 export interface WaitForTransactionConfirmationRequest {
   txTreeRoot: string;
-  pollingInterval?: number;
-  retryCount?: number;
-  retryDelay?: number;
-  timeout?: number;
+  pollInterval?: number; // in milliseconds
 }
 
 export interface WaitForTransactionConfirmationResponse {
-  status: 'not_found' | 'success' | 'confirmed';
-  blockNumber: number | null;
+  status: 'not_found' | 'success' | 'confirmed' | 'pending' | 'failed';
 }
 
 // // Deposit
@@ -152,9 +148,11 @@ export interface PrepareDepositTransactionRequest {
   token: Token;
   amount: number;
   address: string;
+  skipConfirmation?: boolean;
 }
 
-export interface PrepareEstimateDepositTransactionRequest extends PrepareDepositTransactionRequest {
+export interface PrepareEstimateDepositTransactionRequest
+  extends Omit<PrepareDepositTransactionRequest, 'skipConfirmation'> {
   isGasEstimation: boolean;
 }
 
@@ -206,6 +204,7 @@ export interface ConstructorParams {
   environment: IntMaxEnvironment;
   async_params?: ArrayBuffer;
   urls?: UrlConfig;
+  showLogs?: boolean;
 }
 
 export interface ConstructorNodeParams extends ConstructorParams {
@@ -225,32 +224,35 @@ export interface INTMAXClient {
   getPrivateKey: () => Promise<string | undefined>;
   signMessage: (data: string) => Promise<SignMessageResponse>;
   verifySignature: (signature: SignMessageResponse, message: string | Uint8Array) => Promise<boolean>;
+  sync: () => Promise<void>;
+  updatePublicClientRpc: (url: string) => void;
 
   // token
   getTokensList: () => Promise<Token[]>;
   fetchTokenBalances: () => Promise<TokenBalancesResponse>;
-  getPaginatedTokens(params: {
+  getPaginatedTokens: (params: {
     tokenIndexes?: number[];
     perPage?: number;
     cursor?: string;
-  }): Promise<PaginatedResponse<Token>>;
+  }) => Promise<PaginatedResponse<Token>>;
 
   // transaction
-  fetchTransactions: (params: FetchTransactionsRequest | undefined) => Promise<FetchTransactionsResponse>;
+  fetchTransactions: (params?: FetchTransactionsRequest) => Promise<FetchTransactionsResponse>;
   broadcastTransaction: (
     rawTransfers: BroadcastTransactionRequest[],
-    isWithdrawal: boolean,
+    isWithdrawal?: boolean,
   ) => Promise<BroadcastTransactionResponse>;
   waitForTransactionConfirmation: (
     params: WaitForTransactionConfirmationRequest,
   ) => Promise<WaitForTransactionConfirmationResponse>;
 
   //receiveTxs
-  fetchTransfers: (params: FetchTransactionsRequest | undefined) => Promise<FetchTransactionsResponse>;
+  fetchTransfers: (params?: FetchTransactionsRequest) => Promise<FetchTransactionsResponse>;
 
   // deposit
+  estimateDepositGas: (params: PrepareEstimateDepositTransactionRequest) => Promise<bigint>;
   deposit: (params: PrepareDepositTransactionRequest) => Promise<PrepareDepositTransactionResponse>;
-  fetchDeposits: (params: FetchTransactionsRequest | undefined) => Promise<FetchTransactionsResponse>;
+  fetchDeposits: (params?: FetchTransactionsRequest) => Promise<FetchTransactionsResponse>;
 
   // withdrawal
   fetchWithdrawals: (params?: FetchWithdrawalsRequest) => Promise<FetchWithdrawalsResponse>;
@@ -292,6 +294,8 @@ export interface SDKUrls {
 export type UrlConfig = {
   balance_prover_url?: string;
   use_private_zkp_server?: boolean;
+  rpc_url_l1?: string;
+  rpc_url_l2?: string;
 };
 
 export interface MetadataItem {

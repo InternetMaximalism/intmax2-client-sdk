@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
-import { IntMaxClient } from 'intmax2-client-sdk'
+import type { INTMAXClient } from 'intmax2-client-sdk'
 
 interface PrivateKeyDisplayProps {
-  client: IntMaxClient
+  client: INTMAXClient
 }
 
 export const PrivateKeyDisplay: React.FC<PrivateKeyDisplayProps> = ({ client }) => {
@@ -14,6 +14,10 @@ export const PrivateKeyDisplay: React.FC<PrivateKeyDisplayProps> = ({ client }) 
     try {
       setLoading(true)
       const key = await client.getPrivateKey()
+      if (!key) {
+        throw new Error('Private key not available')
+      }
+
       setPrivateKey(key)
       setIsVisible(true)
       

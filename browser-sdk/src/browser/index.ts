@@ -70,6 +70,7 @@ import {
   WithdrawRequest,
 } from '../shared';
 import { generateEncryptionKey } from '../shared/shared/generate-encryption-key';
+import * as mainnetWasm from '../wasm/browser/mainnet';
 import {
   JsFeeQuote,
   JsFlatG2,
@@ -79,10 +80,16 @@ import {
   JsTxResult,
   JsUserData,
 } from '../wasm/browser/mainnet';
-import * as mainnetWasm from '../wasm/browser/mainnet';
 import wasmBytesMain from '../wasm/browser/mainnet/intmax2_wasm_lib_bg.wasm?url';
 import * as testnetWasm from '../wasm/browser/testnet';
 import wasmBytes from '../wasm/browser/testnet/intmax2_wasm_lib_bg.wasm?url';
+
+declare global {
+  interface Window {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ethereum?: any;
+  }
+}
 
 const whiteListedKeys = [
   'isCoinbaseWallet',
@@ -194,6 +201,7 @@ interface IFunctions {
   validate_transfer_receipt:
     | typeof mainnetWasm.validate_transfer_receipt
     | typeof testnetWasm.validate_transfer_receipt;
+  get_tx_status: typeof mainnetWasm.get_tx_status | typeof testnetWasm.get_tx_status;
 }
 
 export class IntMaxClient implements INTMAXClient {
@@ -205,7 +213,7 @@ export class IntMaxClient implements INTMAXClient {
   readonly #indexerFetcher: IndexerFetcher;
   readonly #txFetcher: TransactionFetcher;
   readonly #walletClient: WalletClient;
-  readonly #publicClient: PublicClient;
+  #publicClient: PublicClient;
   readonly #vaultHttpClient: AxiosInstance;
   readonly #predicateFetcher: PredicateFetcher;
   readonly #urls: SDKUrls;
@@ -218,15 +226,21 @@ export class IntMaxClient implements INTMAXClient {
   #userDataWorker: Worker | undefined;
   #broadcastInProgress: boolean = false;
   #functions: IFunctions;
+  #showLogs: boolean = true;
   #boundUserDataWorkerMessageHandler: (event: MessageEvent) => void;
 
   isLoggedIn: boolean = false;
   address: string = '';
   tokenBalances: TokenBalance[] = [];
 
-  constructor({ async_params, environment, urls }: ConstructorParams) {
+  constructor({ async_params, environment, urls, showLogs }: ConstructorParams) {
     if (typeof async_params === 'undefined') {
       throw new Error('Cannot be called directly');
+    }
+    if (!showLogs) {
+      this.#showLogs = false;
+      console.info = () => {};
+      console.warn = () => {};
     }
 
     if (environment === 'mainnet') {
@@ -270,6 +284,7 @@ export class IntMaxClient implements INTMAXClient {
         sync_claims: mainnetWasm.sync_claims,
         sync_withdrawals: mainnetWasm.sync_withdrawals,
         validate_transfer_receipt: mainnetWasm.validate_transfer_receipt,
+        get_tx_status: mainnetWasm.get_tx_status,
       };
     } else {
       testnetWasm.initSync(async_params);
@@ -312,18 +327,19 @@ export class IntMaxClient implements INTMAXClient {
         sync_claims: testnetWasm.sync_claims,
         sync_withdrawals: testnetWasm.sync_withdrawals,
         validate_transfer_receipt: testnetWasm.validate_transfer_receipt,
+        get_tx_status: testnetWasm.get_tx_status,
       };
     }
 
     this.#walletClient = createWalletClient({
       chain: environment === 'mainnet' ? mainnet : sepolia,
-      transport: custom(window.ethereum!),
+      transport: urls?.rpc_url_l1 ? http(urls.rpc_url_l1) : custom(window.ethereum!),
     });
     this.#walletProviderType = getWalletProviderType();
 
     this.#publicClient = createPublicClient({
       chain: environment === 'mainnet' ? mainnet : sepolia,
-      transport: http(),
+      transport: urls?.rpc_url_l1 ? http(urls.rpc_url_l1) : http(),
     });
 
     this.#environment = environment;
@@ -565,7 +581,7 @@ export class IntMaxClient implements INTMAXClient {
     if (!this.isLoggedIn) {
       throw Error('Not logged in');
     }
-    if (await checkValidLocalTime()) {
+    if (await checkValidLocalTime(this.#environment)) {
       throw Error('Local time is not valid. Please check your device time settings.');
     }
 
@@ -667,7 +683,16 @@ export class IntMaxClient implements INTMAXClient {
 
       memo.tx();
     } catch (e) {
-      console.error(e);
+      if (
+        e instanceof Error &&
+        e.message.includes(
+          'save-snapshot failed with status:500 Internal Server Error, error:Lock error: prev_digest mismatch with stored digest',
+        )
+      ) {
+        if (this.#showLogs) console.error(e);
+      } else {
+        console.error(e);
+      }
       this.#broadcastInProgress = false;
       throw new Error('Failed to send tx request');
     }
@@ -693,7 +718,16 @@ export class IntMaxClient implements INTMAXClient {
         try {
           await this.#functions.sync_claims(this.#config, viewPair, rawTransfers[0].claim_beneficiary, 0);
         } catch (e) {
-          console.error(e);
+          if (
+            e instanceof Error &&
+            e.message.includes(
+              'save-snapshot failed with status:500 Internal Server Error, error:Lock error: prev_digest mismatch with stored digest',
+            )
+          ) {
+            if (this.#showLogs) console.error(e);
+          } else {
+            console.error(e);
+          }
           this.#broadcastInProgress = false;
           throw e;
         }
@@ -893,7 +927,10 @@ export class IntMaxClient implements INTMAXClient {
     return (gasPrice ?? 0n) * estimatedGas;
   }
 
-  async deposit(params: PrepareDepositTransactionRequest): Promise<PrepareDepositTransactionResponse> {
+  async deposit({
+    skipConfirmation = false,
+    ...params
+  }: PrepareDepositTransactionRequest): Promise<PrepareDepositTransactionResponse> {
     const address = params.address;
     if (params.token.tokenType === TokenType.ERC20) {
       // eslint-disable-next-line no-param-reassign
@@ -910,6 +947,13 @@ export class IntMaxClient implements INTMAXClient {
 
     const depositHash = await this.#walletClient.writeContract(txConfig);
 
+    if (skipConfirmation) {
+      return {
+        status: TransactionStatus.Processing,
+        txHash: depositHash,
+      };
+    }
+
     let status: TransactionStatus = TransactionStatus.Processing;
     while (status === TransactionStatus.Processing) {
       await sleep(3000);
@@ -921,6 +965,9 @@ export class IntMaxClient implements INTMAXClient {
           status = tx.status === 'success' ? TransactionStatus.Completed : TransactionStatus.Rejected;
         }
       } catch (e) {
+        if (e instanceof Error && e.message.includes('Transaction receipt with hash')) {
+          continue;
+        }
         console.error(e);
       }
     }
@@ -991,10 +1038,36 @@ export class IntMaxClient implements INTMAXClient {
     }
   }
 
-  waitForTransactionConfirmation(
-    _params: WaitForTransactionConfirmationRequest,
-  ): Promise<WaitForTransactionConfirmationResponse> {
-    throw Error('Not implemented!');
+  async waitForTransactionConfirmation({
+    txTreeRoot,
+    pollInterval = 5000,
+  }: WaitForTransactionConfirmationRequest): Promise<WaitForTransactionConfirmationResponse> {
+    if (!this.isLoggedIn || !this.#spendPub) {
+      throw new Error('Not logged in');
+    }
+
+    let status: WaitForTransactionConfirmationResponse['status'] = 'not_found';
+    do {
+      try {
+        status = (await this.#functions.get_tx_status(
+          this.#config,
+          this.#spendPub,
+          txTreeRoot,
+        )) as WaitForTransactionConfirmationResponse['status'];
+      } catch (e) {
+        if (this.#showLogs) {
+          console.error('Error while fetching transaction status:', e);
+        }
+        return {
+          status: 'not_found',
+        };
+      }
+      await sleep(pollInterval);
+    } while (status === 'not_found' || status === 'pending');
+
+    return {
+      status,
+    };
   }
 
   async signMessage(message: string): Promise<SignMessageResponse> {
@@ -1061,6 +1134,36 @@ export class IntMaxClient implements INTMAXClient {
       fee: claim_fee.fee,
       collateral_fee: claim_fee.collateral_fee,
     };
+  }
+
+  async sync(): Promise<void> {
+    if (this.#isSyncInProgress) {
+      throw Error('Sync already in progress');
+    }
+    this.#isSyncInProgress = true;
+
+    if (!this.isLoggedIn) {
+      this.#isSyncInProgress = false;
+      throw Error('Not logged in yet.');
+    }
+    return await this.#functions.sync(this.#config, this.#viewKey).finally(() => {
+      this.#isSyncInProgress = false;
+    });
+  }
+
+  updatePublicClientRpc(url: string): void {
+    const httpRegex =
+      //eslint-disable-next-line
+      /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/;
+
+    if (!url || !httpRegex.test(url)) {
+      throw new Error('Invalid url');
+    }
+
+    this.#publicClient = createPublicClient({
+      chain: this.#environment === 'mainnet' ? mainnet : sepolia,
+      transport: http(url),
+    });
   }
 
   // PRIVATE METHODS

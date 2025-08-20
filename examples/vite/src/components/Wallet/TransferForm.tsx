@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { IntMaxClient, TokenBalance } from 'intmax2-client-sdk'
+import type { INTMAXClient, TokenBalance } from 'intmax2-client-sdk'
 import { formatUnits } from 'viem'
 import { LoadingSpinner } from '../../components/Common/LoadingSpinner'
 import { ErrorMessage } from '../../components/Common/ErrorMessage'
@@ -7,7 +7,7 @@ import { PLACEHOLDER_INTMAX_ADDRESS } from '../../lib/constants'
 import { getTokenDecimals } from '../../lib/utils'
 
 interface TransferFormProps {
-  client: IntMaxClient
+  client: INTMAXClient
 }
 
 interface TransferFormData {
@@ -42,6 +42,7 @@ export const TransferForm: React.FC<TransferFormProps> = ({ client }) => {
   useEffect(() => {
     fetchBalances()
     fetchTransferFee()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client])
 
   const fetchBalances = async () => {

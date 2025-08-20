@@ -1,11 +1,11 @@
 
 // src/components/Wallet/QuickTransferButton.tsx
 import React, { useState } from 'react'
-import { BroadcastTransactionResponse, IntMaxClient } from 'intmax2-client-sdk'
+import type { BroadcastTransactionResponse, INTMAXClient } from 'intmax2-client-sdk'
 import { LoadingSpinner } from '../../components/Common/LoadingSpinner'
 
 interface QuickTransferButtonProps {
-  client: IntMaxClient
+  client: INTMAXClient
 }
 
 export const QuickTransferButton: React.FC<QuickTransferButtonProps> = ({ client }) => {

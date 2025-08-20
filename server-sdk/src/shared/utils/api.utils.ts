@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse, CreateAxiosDefaults } from 'axios';
 
+import { IntMaxEnvironment } from '../types';
 import { sleep } from './index';
 
 export function onResponse(response: AxiosResponse): AxiosResponse {
@@ -77,18 +78,29 @@ export async function retryWithAttempts(callback: () => Promise<void> | undefine
   console.error(`Failed after ${attempts} attempts`);
 }
 
-export const checkValidLocalTime = async (): Promise<boolean> => {
+export const checkValidLocalTime = async (env: IntMaxEnvironment): Promise<boolean> => {
   try {
-    const { data } = await axios.get('https://timeapi.io/api/Time/current/zone?timeZone=UTC');
+    let url = '';
+    switch (env) {
+      case 'mainnet':
+        url = 'https://api.indexer.intmax.io/v1/time';
+        break;
+      case 'testnet':
+        url = 'https://stage.api.indexer.intmax.io/v1/time';
+        break;
+      case 'devnet':
+      default:
+        url = 'https://dev.api.indexer.intmax.xyz/v1/time';
+    }
 
-    const serverTime = new Date(data.dateTime);
+    const { data } = await axios.get(url);
 
     const localTime = new Date();
-    const localTimeUTC = new Date(localTime.getTime() + localTime.getTimezoneOffset() * 60000);
+    const serverTime = new Date(data.dateTime);
 
-    const timeDiff = Math.abs(serverTime.getTime() - localTimeUTC.getTime());
+    const timeDiff = Math.abs(serverTime.getTime() - localTime.getTime());
 
-    return timeDiff > 10000;
+    return timeDiff > 10000 || timeDiff < -10000; // 10 seconds threshold
   } catch (error) {
     console.error('Error checking local time validity:', error);
     return false;

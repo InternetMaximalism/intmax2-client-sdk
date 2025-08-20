@@ -140,6 +140,7 @@ export class IntMaxNodeClient implements INTMAXClient {
   #broadcastInProgress: boolean = false;
   #userDataWorker: Worker | undefined;
   #functions: IFunctions;
+  #showLogs: boolean = true;
 
   isLoggedIn: boolean = false;
   address: string = '';
@@ -150,7 +151,9 @@ export class IntMaxNodeClient implements INTMAXClient {
     const { environment, eth_private_key, l1_rpc_url } = params;
 
     if (!params.showLogs) {
+      this.#showLogs = false;
       console.info = () => {};
+      console.warn = () => {};
     }
 
     this.#cacheMap.set('user_data_fetch', []);
@@ -519,7 +522,16 @@ export class IntMaxNodeClient implements INTMAXClient {
 
       memo.tx();
     } catch (e) {
-      console.error(e);
+      if (
+        e instanceof Error &&
+        e.message.includes(
+          'save-snapshot failed with status:500 Internal Server Error, error:Lock error: prev_digest mismatch with stored digest',
+        )
+      ) {
+        if (this.#showLogs) console.error(e);
+      } else {
+        console.error(e);
+      }
       this.#broadcastInProgress = false;
       throw new Error('Failed to send tx request');
     }
@@ -545,7 +557,17 @@ export class IntMaxNodeClient implements INTMAXClient {
         try {
           await this.#functions.sync_claims(this.#config, viewPair, rawTransfers[0].claim_beneficiary, 0);
         } catch (e) {
-          console.error(e);
+          if (
+            e instanceof Error &&
+            e.message.includes(
+              'save-snapshot failed with status:500 Internal Server Error, error:Lock error: prev_digest mismatch with stored digest',
+            )
+          ) {
+            if (this.#showLogs) console.error(e);
+          } else {
+            console.error(e);
+          }
+          this.#broadcastInProgress = false;
           throw e;
         }
       }

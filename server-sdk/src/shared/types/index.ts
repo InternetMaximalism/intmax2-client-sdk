@@ -55,7 +55,7 @@ export interface Token {
   contractAddress: string;
   decimals?: number;
   image?: string;
-  price: number;
+  price?: number;
   symbol?: string;
   tokenIndex: number;
   tokenType: TokenType;

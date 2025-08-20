@@ -143,7 +143,7 @@ export interface PrepareDepositTransactionRequest {
   token: Token;
   amount: number;
   address: string;
-  skipConfirmation: boolean;
+  skipConfirmation?: boolean;
 }
 
 export interface PrepareEstimateDepositTransactionRequest
@@ -233,21 +233,22 @@ export interface INTMAXClient {
   }) => Promise<PaginatedResponse<Token>>;
 
   // transaction
-  fetchTransactions: (params: FetchTransactionsRequest | undefined) => Promise<FetchTransactionsResponse>;
+  fetchTransactions: (params?: FetchTransactionsRequest) => Promise<FetchTransactionsResponse>;
   broadcastTransaction: (
     rawTransfers: BroadcastTransactionRequest[],
-    isWithdrawal: boolean,
+    isWithdrawal?: boolean,
   ) => Promise<BroadcastTransactionResponse>;
   waitForTransactionConfirmation: (
     params: WaitForTransactionConfirmationRequest,
   ) => Promise<WaitForTransactionConfirmationResponse>;
 
   //receiveTxs
-  fetchTransfers: (params: FetchTransactionsRequest | undefined) => Promise<FetchTransactionsResponse>;
+  fetchTransfers: (params?: FetchTransactionsRequest) => Promise<FetchTransactionsResponse>;
 
   // deposit
+  estimateDepositGas: (params: PrepareEstimateDepositTransactionRequest) => Promise<bigint>;
   deposit: (params: PrepareDepositTransactionRequest) => Promise<PrepareDepositTransactionResponse>;
-  fetchDeposits: (params: FetchTransactionsRequest | undefined) => Promise<FetchTransactionsResponse>;
+  fetchDeposits: (params?: FetchTransactionsRequest) => Promise<FetchTransactionsResponse>;
 
   // withdrawal
   fetchWithdrawals: (params: FetchWithdrawalsRequest) => Promise<FetchWithdrawalsResponse>;

@@ -176,9 +176,9 @@ All returned data is sorted in descending chronological order (newest first).
 
 ```ts
 const [receivedDeposits, receivedTransfers, sentTxs, requestedWithdrawals] = await Promise.all([
-  client.fetchDeposits({}),
-  client.fetchTransfers({}),
-  client.fetchTransactions({}),
+  client.fetchDeposits(),
+  client.fetchTransfers(),
+  client.fetchTransactions(),
   client.fetchWithdrawals(),
 ]);
 

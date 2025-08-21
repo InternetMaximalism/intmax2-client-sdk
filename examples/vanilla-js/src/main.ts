@@ -383,9 +383,6 @@ const createWithdrawForm = async () => {
       form.appendChild(hr);
       form.appendChild(transactionText);
       submitButton.disabled = false;
-
-      const withdrawalConfirmation = await client.waitForTransactionConfirmation(withdrawResult);
-      console.log('Withdrawal confirmation result:', withdrawalConfirmation);
     } catch (e) {
       console.error(e);
       submitButton.disabled = false;

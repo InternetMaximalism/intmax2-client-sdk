@@ -168,8 +168,6 @@ const main = async () => {
         amount: 0.000001,
       });
       console.log('Withdrawal result:', JSON.stringify(withdrawResult, null, 2));
-      const withdrawalConfirmation = await client.waitForTransactionConfirmation(withdrawResult);
-      console.log('Withdrawal confirmation result:', JSON.stringify(withdrawalConfirmation, null, 2));
       break;
     } catch (error) {
       console.warn('Withdrawal error:', error);

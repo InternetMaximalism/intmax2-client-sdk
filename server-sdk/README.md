@@ -43,27 +43,33 @@ export interface INTMAXClient {
   getPrivateKey: () => Promise<string | undefined>;
   signMessage: (message: string) => Promise<SignMessageResponse>;
   verifySignature: (signature: SignMessageResponse, message: string | Uint8Array) => Promise<boolean>;
+  sync: () => Promise<void>;
+  updatePublicClientRpc: (url: string) => void;
 
   // token
   getTokensList: () => Promise<Token[]>;
   fetchTokenBalances: () => Promise<TokenBalancesResponse>;
-  getPaginatedTokens(params: {
+  getPaginatedTokens: (params: {
     tokenIndexes?: number[];
     perPage?: number;
     cursor?: string;
-  }): Promise<PaginatedResponse<Token>>;
+  }) => Promise<PaginatedResponse<Token>>;
 
   // transaction
   fetchTransactions: (params?: FetchTransactionsRequest) => Promise<FetchTransactionsResponse>;
   broadcastTransaction: (
     rawTransfers: BroadcastTransactionRequest[],
-    isWithdrawal: boolean,
+    isWithdrawal?: boolean,
   ) => Promise<BroadcastTransactionResponse>;
+  waitForTransactionConfirmation: (
+    params: WaitForTransactionConfirmationRequest,
+  ) => Promise<WaitForTransactionConfirmationResponse>;
 
   //receiveTxs
   fetchTransfers: (params?: FetchTransactionsRequest) => Promise<FetchTransactionsResponse>;
 
   // deposit
+  estimateDepositGas: (params: PrepareEstimateDepositTransactionRequest) => Promise<bigint>;
   deposit: (params: PrepareDepositTransactionRequest) => Promise<PrepareDepositTransactionResponse>;
   fetchDeposits: (params?: FetchTransactionsRequest) => Promise<FetchTransactionsResponse>;
 
@@ -114,6 +120,18 @@ const intMaxClient = new IntMaxNodeClient({
 
 To set up a local Balance Prover instance, please see [Tips: How to Run a Local Balance Prover](../README.md#tips-how-to-run-a-local-balance-prover)
 
+If you set `showLogs` to true, more logs will be output.
+If nothing is specified, it defaults to false, and only minimal logs will be output.
+
+```ts
+const intMaxClient = new IntMaxNodeClient({
+  environment: 'mainnet',
+  eth_private_key: process.env.ETH_PRIVATE_KEY,
+  l1_rpc_url: process.env.L1_RPC_URL,
+  showLogs: true,
+});
+```
+
 ### Login to INTMAX Network & Retrieve Balance
 
 Here is an example of logging in to INTMAX and retrieving balances. Users need to retrieve their balances once before using the SDK functions.
@@ -132,6 +150,15 @@ This example retrieves the address and private key of the generated INTMAX accou
 ```ts
 const address = intMaxClient.address; // Your INTMAX address
 const privateKey = intMaxClient.getPrivateKey(); // INTMAX private key. Here you should sign message.
+```
+
+### Update L1 RPC URL
+
+You can customize the RPC URL of the Ethereum (Sepolia) network used when executing a deposit transaction.
+
+```ts
+const newL1RpcUrl = 'https://new-rpc-url.com';
+intMaxClient.updateL1RpcUrl(newL1RpcUrl);
 ```
 
 ### Sign & Verify signature
@@ -176,9 +203,9 @@ All returned data is sorted in descending chronological order (newest first).
 
 ```ts
 const [receivedDeposits, receivedTransfers, sentTxs, requestedWithdrawals] = await Promise.all([
-  client.fetchDeposits({}),
-  client.fetchTransfers({}),
-  client.fetchTransactions({}),
+  client.fetchDeposits(),
+  client.fetchTransfers(),
+  client.fetchTransactions(),
   client.fetchWithdrawals(),
 ]);
 
@@ -287,10 +314,72 @@ console.log('Deposit result:', depositResult);
 console.log('Transaction Hash:', depositResult.txHash);
 ```
 
+### The `sync` Function
+
+```ts
+await intMaxClient.sync();
+```
+
+The `sync` function keeps your balance information up to date with the INTMAX network.
+
+* **Without calling `sync`:**
+  Your balance will still be updated automatically before the next transfer or withdrawal, but this automatic update may take extra time.
+
+* **By calling `sync` in advance:**
+  Your balance is already updated, so transfers and withdrawals can start faster.
+
+* **After a transfer:**
+  Running `sync` ensures your balance reflects the completed transaction, making your next transfer smoother.
+
+**Important:**
+
+* ⚠️ Always run `sync` **before and after** transfers or withdrawals for the best experience.
+* ⚠️ Do not run multiple `sync` calls at the same time — one of them will fail.
+
+### Wait for Transaction Confirmation
+
+```ts
+const transferConfirmation = await intMaxClient.waitForTransactionConfirmation({ txTreeRoot });
+```
+
+The `waitForTransactionConfirmation` function is used to verify whether a transfer or withdrawal has been fully finalized after execution.
+On the INTMAX network, transactions are submitted to nodes using the `broadcastTransaction`/`withdraw` function (described below) and then processed.
+
+The success response of `broadcastTransaction`/`withdraw` alone does not guarantee on-chain finalization.
+Therefore, the `waitForTransactionConfirmation` function provides a reliable way to track the transaction until its status becomes either `success` or `failed`.
+
+**Important:**
+
+* ⚠️ It is important to call `waitForTransactionConfirmation` after executing a transfer or withdrawal transaction.
+
+### Transfer (Broadcast Transaction)
+
+```ts
+await intMaxClient.sync(); // synchronize balance
+
+// You can change filtration by tokenIndex or tokenAddress
+const token = balances.find((b) => b.token.tokenIndex === 0).token;
+
+const transferResult = await intMaxClient.broadcastTransaction([
+  {
+    address: "T6ubiG36LmNce6uzcJU3h5JR5FWa72jBBLUGmEPx5VXcFtvXnBB3bqice6uzcJU3h5JR5FWa72jBBLUGmEPx5VXcB3prnCZ", // Your INTMAX address
+    token,
+    amount: 0.000001, // 0.000001 ETH
+  }
+]);
+console.log("Transfer result:", transferResult);
+
+// Wait for transfer confirmation
+const transferConfirmation = await intMaxClient.waitForTransactionConfirmation(transferResult);
+console.log('Transfer confirmation result:', transferConfirmation);
+
+await intMaxClient.sync(); // synchronize balance
+```
+
 ### Withdraw
 
 ```ts
-const { balances } = await intMaxClient.fetchTokenBalances(); // fetch token balances
+await intMaxClient.sync(); // synchronize balance
 
 // You can change filtration by tokenIndex or tokenAddress
 const token = balances.find((b) => b.token.tokenIndex === 0).token;
@@ -302,6 +391,12 @@ const withdrawalResult = await intMaxClient.withdraw({
   amount: 0.000001, // Amount of the token, for erc721 should be 1, for erc1155 can be more than 1
 });
 console.log('Withdrawal result:', withdrawalResult);
+
+// Wait for transfer confirmation
+const withdrawalConfirmation = await intMaxClient.waitForTransactionConfirmation(withdrawResult);
+console.log("Withdrawal confirmation result:", withdrawalConfirmation);
+
+await intMaxClient.sync(); // synchronize balance
 ```
 
 ### Claim withdrawals

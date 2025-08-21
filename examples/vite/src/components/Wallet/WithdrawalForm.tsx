@@ -98,17 +98,21 @@ export const WithdrawForm: React.FC<WithdrawFormProps> = ({ client }) => {
       setError(null)
       setSuccess(null)
 
-      const withdraw = await client.withdraw({
+      const withdrawResult = await client.withdraw({
         amount: formData.amount,
         token: selectedBalance.token,
         address: formData.address as `0x${string}`,
       })
 
-      console.log('Withdrawal result:', withdraw)
-      setSuccess(`Withdrawal successful! Transaction: ${JSON.stringify(withdraw, null, 2)}`)
+      console.log('Withdrawal result:', withdrawResult)
+      setSuccess(`Withdrawal successful! Transaction: ${JSON.stringify(withdrawResult, null, 2)}`)
       
       // Reset form and refresh balances
       setFormData({ tokenIndex: '', address: '', amount: '' })
+
+      const withdrawalConfirmation = await client.waitForTransactionConfirmation(withdrawResult);
+      console.log('Withdrawal confirmation result:', JSON.stringify(withdrawalConfirmation, null, 2));
+
       await fetchBalances()
       
     } catch (err) {

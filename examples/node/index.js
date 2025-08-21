@@ -115,10 +115,12 @@ const main = async () => {
     },
   ];
 
-  let transferResult;
   while (true) {
     try {
-      transferResult = await client.broadcastTransaction(transfers);
+      const transferResult = await client.broadcastTransaction(transfers);
+      console.log('Transfer result:', JSON.stringify(transferResult, null, 2));
+      const transferConfirmation = await client.waitForTransactionConfirmation(transferResult);
+      console.log('Transfer confirmation result:', JSON.stringify(transferConfirmation, null, 2));
       break;
     } catch (error) {
       console.warn('Transfer error:', error);
@@ -134,10 +136,6 @@ const main = async () => {
       }
     }
   }
-
-  console.log('Transfer result:', JSON.stringify(transferResult, null, 2));
-  const result = await client.waitForTransactionConfirmation(transferResult.txTreeRoot);
-  console.log('Transfer confirmation result:', JSON.stringify(result, null, 2));
 
   // The user needs to pay `withdrawalFeeAmount` of tokens corresponding to the `withdrawalFeeToken`.
   const withdrawalFee = await client.getWithdrawalFee(token);
@@ -170,6 +168,8 @@ const main = async () => {
         amount: 0.000001,
       });
       console.log('Withdrawal result:', JSON.stringify(withdrawResult, null, 2));
+      const withdrawalConfirmation = await client.waitForTransactionConfirmation(withdrawResult);
+      console.log('Withdrawal confirmation result:', JSON.stringify(withdrawalConfirmation, null, 2));
       break;
     } catch (error) {
       console.warn('Withdrawal error:', error);

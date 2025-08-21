@@ -43,27 +43,33 @@ export interface INTMAXClient {
   getPrivateKey: () => Promise<string | undefined>;
   signMessage: (message: string) => Promise<SignMessageResponse>;
   verifySignature: (signature: SignMessageResponse, message: string | Uint8Array) => Promise<boolean>;
+  sync: () => Promise<void>;
+  updatePublicClientRpc: (url: string) => void;
 
   // token
   getTokensList: () => Promise<Token[]>;
   fetchTokenBalances: () => Promise<TokenBalancesResponse>;
-  getPaginatedTokens(params: {
+  getPaginatedTokens: (params: {
     tokenIndexes?: number[];
     perPage?: number;
     cursor?: string;
-  }): Promise<PaginatedResponse<Token>>;
+  }) => Promise<PaginatedResponse<Token>>;
 
   // transaction
   fetchTransactions: (params?: FetchTransactionsRequest) => Promise<FetchTransactionsResponse>;
   broadcastTransaction: (
     rawTransfers: BroadcastTransactionRequest[],
-    isWithdrawal: boolean,
+    isWithdrawal?: boolean,
   ) => Promise<BroadcastTransactionResponse>;
+  waitForTransactionConfirmation: (
+    params: WaitForTransactionConfirmationRequest,
+  ) => Promise<WaitForTransactionConfirmationResponse>;
 
   //receiveTxs
   fetchTransfers: (params?: FetchTransactionsRequest) => Promise<FetchTransactionsResponse>;
 
   // deposit
+  estimateDepositGas: (params: PrepareEstimateDepositTransactionRequest) => Promise<bigint>;
   deposit: (params: PrepareDepositTransactionRequest) => Promise<PrepareDepositTransactionResponse>;
   fetchDeposits: (params?: FetchTransactionsRequest) => Promise<FetchTransactionsResponse>;
 
@@ -128,6 +134,15 @@ const address = intMaxClient.address; // Your INTMAX address
 const privateKey = intMaxClient.getPrivateKey(); // INTMAX private key. Here you should sign message.
 ```
 
+### Update L1 RPC URL
+
+You can customize the RPC URL of the Ethereum (Sepolia) network used when executing a deposit transaction.
+
+```ts
+const newL1RpcUrl = "https://new-rpc-url.com";
+intMaxClient.updateL1RpcUrl(newL1RpcUrl);
+```
+
 ### Sign & Verify signature
 
 ```ts
@@ -170,9 +185,9 @@ All returned data is sorted in descending chronological order (newest first).
 
 ```ts
 const [receivedDeposits, receivedTransfers, sentTxs, requestedWithdrawals] = await Promise.all([
-  client.fetchDeposits({}),
-  client.fetchTransfers({}),
-  client.fetchTransactions({}),
+  client.fetchDeposits(),
+  client.fetchTransfers(),
+  client.fetchTransactions(),
   client.fetchWithdrawals(),
 ]);
 
@@ -281,11 +296,63 @@ console.log('Deposit result:', depositResult);
 console.log('Transaction Hash:', depositResult.txHash);
 ```
 
+### The `sync` Function
+
+```ts
+await intMaxClient.sync();
+```
+
+The `sync` function updates the user’s balance to the latest state.
+On the INTMAX network, a user’s balance must be refreshed before transfers or withdrawals.
+
+However, this function should not be called manually in normal use.
+When an instance of `IntMaxClient` is created, the `sync` function is automatically executed in the background at regular intervals.
+
+**Important:**
+
+* ⚠️ The `sync` function should not be called manually in normal use.
+* ⚠️ Be aware that multiple `sync` calls cannot run concurrently — if called at the same time, one of them will fail.
+
+
+### Wait for Transaction Confirmation
+
+```ts
+const transferConfirmation = await intMaxClient.waitForTransactionConfirmation({ txTreeRoot });
+```
+
+The `waitForTransactionConfirmation` function is used to verify whether a transfer or withdrawal has been fully finalized after execution.
+On the INTMAX network, transactions are submitted to nodes using the `broadcastTransaction`/`withdraw` function (described below) and then processed.
+
+The success response of `broadcastTransaction`/`withdraw` alone does not guarantee on-chain finalization.
+Therefore, the `waitForTransactionConfirmation` function provides a reliable way to track the transaction until its status becomes either `success` or `failed`.
+
+**Important:**
+
+* ⚠️ It is important to call `waitForTransactionConfirmation` after executing a transfer or withdrawal transaction.
+
+### Transfer (Broadcast Transaction)
+
+```ts
+// You can change filtration by tokenIndex or tokenAddress
+const token = balances.find((b) => b.token.tokenIndex === 0).token;
+
+const transferResult = await intMaxClient.broadcastTransaction([
+  {
+    address: "T6ubiG36LmNce6uzcJU3h5JR5FWa72jBBLUGmEPx5VXcFtvXnBB3bqice6uzcJU3h5JR5FWa72jBBLUGmEPx5VXcB3prnCZ", // Your INTMAX address
+    token,
+    amount: 0.000001, // 0.000001 ETH
+  }
+]);
+console.log("Transfer result:", transferResult);
+
+// Wait for transfer confirmation
+const transferConfirmation = await intMaxClient.waitForTransactionConfirmation(transferResult);
+console.log('Transfer confirmation result:', transferConfirmation);
+```
+
 ### Withdraw
 
 ```ts
-const { balances } = await intMaxClient.fetchTokenBalances(); // fetch token balances
-
 // You can change filtration by tokenIndex or tokenAddress
 const token = balances.find((b) => b.token.tokenIndex === 0).token;
 
@@ -296,6 +363,10 @@ const withdrawalResult = await intMaxClient.withdraw({
   amount: 0.000001, // Amount of the token, for erc721 should be 1, for erc1155 can be more than 1
 });
 console.log('Withdrawal result:', withdrawalResult);
+
+// Wait for transfer confirmation
+const withdrawalConfirmation = await intMaxClient.waitForTransactionConfirmation(withdrawResult);
+console.log("Withdrawal confirmation result:", withdrawalConfirmation);
 ```
 
 ### Claim withdrawals

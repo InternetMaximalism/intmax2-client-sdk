@@ -139,9 +139,6 @@ export default function Home() {
 
       console.log('Withdraw:', withdrawResult);
 
-      const withdrawalConfirmation = await client.waitForTransactionConfirmation(withdrawResult);
-      console.log('Withdrawal confirmation result:', withdrawalConfirmation);
-
       alert('Withdrawal successful');
     } catch (e) {
       console.error(e);

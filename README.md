@@ -434,15 +434,17 @@ The `sync` function keeps your balance information up to date with the INTMAX ne
 const transferConfirmation = await intMaxClient.waitForTransactionConfirmation({ txTreeRoot });
 ```
 
-The `waitForTransactionConfirmation` function is used to verify whether a transfer or withdrawal has been fully finalized after execution.
-On the INTMAX network, transactions are submitted to nodes using the `broadcastTransaction`/`withdraw` function (described below) and then processed.
+The `waitForTransactionConfirmation` function is used to verify whether a transfer has been fully finalized after execution.
+On the INTMAX network, transactions are submitted to nodes using the `broadcastTransaction` function (described below) and then processed.
 
-The success response of `broadcastTransaction`/`withdraw` alone does not guarantee on-chain finalization.
+The success response of `broadcastTransaction` alone does not guarantee on-chain finalization.
 Therefore, the `waitForTransactionConfirmation` function provides a reliable way to track the transaction until its status becomes either `success` or `failed`.
 
 **Important:**
 
-* ⚠️ It is important to call `waitForTransactionConfirmation` after executing a transfer or withdrawal transaction.
+* ⚠️ It is important to call `waitForTransactionConfirmation` after executing a transfer transaction.
+
+**NOTE**: This function can also be used with the `txTreeRoot` of the `withdraw` function. However, since the transaction is already reflected on-chain once the `withdraw` function has finished executing, there is no need to use this function to wait any further.
 
 ### Transfer (Broadcast Transaction)
 
@@ -483,10 +485,6 @@ const withdrawalResult = await intMaxClient.withdraw({
   amount: 0.000001, // Amount of the token, for erc721 should be 1, for erc1155 can be more than 1
 });
 console.log("Withdrawal result:", withdrawalResult);
-
-// Wait for transfer confirmation
-const withdrawalConfirmation = await intMaxClient.waitForTransactionConfirmation(withdrawResult);
-console.log("Withdrawal confirmation result:", withdrawalConfirmation);
 
 await intMaxClient.sync(); // synchronize balance
 ```
@@ -534,3 +532,30 @@ Run the Balance Prover in release mode (`-r`) using Cargo.
 ```bash
 cargo run -r
 ```
+
+## Benchmark
+
+The approximate execution time for each function is as follows.
+Please note that the duration may increase further when the network is congested.
+
+## Mainnet
+
+| Operation                          | Time (s) |
+|------------------------------------|----------|
+| broadcastTransaction (before sync) | 164      |
+| broadcastTransaction (after sync)  | 23       |
+| waitForTransactionConfirmation (after transfer) | 50 |
+| withdraw (before sync)             | 302      |
+| withdraw (after sync)              | 187      |
+| sync (after transfer)              | 139      |
+
+## Testnet
+
+| Operation                          | Time (s) |
+|------------------------------------|----------|
+| broadcastTransaction (before sync) | 256      |
+| broadcastTransaction (after sync)  | 52       |
+| waitForTransactionConfirmation (after transfer) | 50 |
+| withdraw (before sync)             | 472      |
+| withdraw (after sync)              | 257      |
+| sync (after transfer)              | 216      |

@@ -110,9 +110,6 @@ export const WithdrawForm: React.FC<WithdrawFormProps> = ({ client }) => {
       // Reset form and refresh balances
       setFormData({ tokenIndex: '', address: '', amount: '' })
 
-      const withdrawalConfirmation = await client.waitForTransactionConfirmation(withdrawResult);
-      console.log('Withdrawal confirmation result:', JSON.stringify(withdrawalConfirmation, null, 2));
-
       await fetchBalances()
       
     } catch (err) {

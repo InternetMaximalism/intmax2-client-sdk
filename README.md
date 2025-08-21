@@ -538,18 +538,24 @@ cargo run -r
 The approximate execution time for each function is as follows.
 Please note that the duration may increase further when the network is congested.
 
-### Mainnet
+## Mainnet
 
-- broadcastTransaction (before sync): 164s
-- broadcastTransaction (after sync): 23s
-- waitForTransactionConfirmation (after transfer): 50s
-- withdraw (before sync): 302s
-- withdraw (after sync): 187s
+| Operation                          | Time (s) |
+|------------------------------------|----------|
+| broadcastTransaction (before sync) | 164      |
+| broadcastTransaction (after sync)  | 23       |
+| waitForTransactionConfirmation (after transfer) | 50 |
+| withdraw (before sync)             | 302      |
+| withdraw (after sync)              | 187      |
+| sync (after transfer)              | 139      |
 
-### Testnet
+## Testnet
 
-- broadcastTransaction (before sync): 256s
-- broadcastTransaction (after sync): 52s
-- waitForTransactionConfirmation (after transfer): 50s
-- withdraw (before sync): 472s
-- withdraw (after sync): 257s
+| Operation                          | Time (s) |
+|------------------------------------|----------|
+| broadcastTransaction (before sync) | 256      |
+| broadcastTransaction (after sync)  | 52       |
+| waitForTransactionConfirmation (after transfer) | 50 |
+| withdraw (before sync)             | 472      |
+| withdraw (after sync)              | 257      |
+| sync (after transfer)              | 216      |

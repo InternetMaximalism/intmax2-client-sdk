@@ -314,6 +314,28 @@ console.log('Deposit result:', depositResult);
 console.log('Transaction Hash:', depositResult.txHash);
 ```
 
+### The `sync` Function
+
+```ts
+await intMaxClient.sync();
+```
+
+The `sync` function keeps your balance information up to date with the INTMAX network.
+
+* **Without calling `sync`:**
+  Your balance will still be updated automatically before the next transfer or withdrawal, but this automatic update may take extra time.
+
+* **By calling `sync` in advance:**
+  Your balance is already updated, so transfers and withdrawals can start faster.
+
+* **After a transfer:**
+  Running `sync` ensures your balance reflects the completed transaction, making your next transfer smoother.
+
+**Important:**
+
+* ⚠️ Always run `sync` **before and after** transfers or withdrawals for the best experience.
+* ⚠️ Do not run multiple `sync` calls at the same time — one of them will fail.
+
 ### Withdraw
 
 ```ts
@@ -329,12 +351,9 @@ const withdrawalResult = await intMaxClient.withdraw({
   amount: 0.000001, // Amount of the token, for erc721 should be 1, for erc1155 can be more than 1
 });
 console.log('Withdrawal result:', withdrawalResult);
+
+await intMaxClient.sync(); // synchronize balance
 ```
-
-It is recommended to run the sync function before executing a transfer or withdrawal.
-This is because synchronizing your balance with the latest state may take some time.
-
-By running the sync function after completing a transfer, you ensure that your balance is up to date, making subsequent transfers smoother and more reliable.
 
 ### Claim withdrawals
 

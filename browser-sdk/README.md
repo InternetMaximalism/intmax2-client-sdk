@@ -296,11 +296,25 @@ console.log('Deposit result:', depositResult);
 console.log('Transaction Hash:', depositResult.txHash);
 ```
 
+### The `sync` Function
+
+```ts
+await intMaxClient.sync();
+```
+
+The sync function updates the user’s balance to the latest state.
+On the INTMAX network, a user’s balance must be refreshed before transfers or withdrawals.
+
+However, this function should not be called manually in normal use.
+When an instance of IntMaxClient is created, the sync function is automatically executed in the background at regular intervals.
+
+**Important:**
+
+* ⚠️ Be aware that multiple sync calls cannot run concurrently — if called at the same time, one of them will fail.
+
 ### Withdraw
 
 ```ts
-await intMaxClient.sync(); // synchronize balance
-
 // You can change filtration by tokenIndex or tokenAddress
 const token = balances.find((b) => b.token.tokenIndex === 0).token;
 
@@ -312,11 +326,6 @@ const withdrawalResult = await intMaxClient.withdraw({
 });
 console.log('Withdrawal result:', withdrawalResult);
 ```
-
-It is recommended to run the sync function before executing a transfer or withdrawal.
-This is because synchronizing your balance with the latest state may take some time.
-
-By running the sync function after completing a transfer, you ensure that your balance is up to date, making subsequent transfers smoother and more reliable.
 
 ### Claim withdrawals
 

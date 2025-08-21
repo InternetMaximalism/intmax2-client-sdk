@@ -310,6 +310,7 @@ When an instance of `IntMaxClient` is created, the `sync` function is automatica
 
 **Important:**
 
+* ⚠️ The `sync` function should not be called manually in normal use.
 * ⚠️ Be aware that multiple `sync` calls cannot run concurrently — if called at the same time, one of them will fail.
 
 ### Withdraw

@@ -51,6 +51,8 @@ export const QuickTransferButton: React.FC<QuickTransferButtonProps> = ({ client
       console.log('Transfer result:', transferResult)
       setResult(transferResult)
 
+      const transferConfirmation = await client.waitForTransactionConfirmation(transferResult);
+      console.log('Transfer confirmation result:', JSON.stringify(transferConfirmation, null, 2));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Quick transfer failed'
       setError(errorMessage)

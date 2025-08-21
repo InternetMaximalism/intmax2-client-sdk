@@ -336,6 +336,46 @@ The `sync` function keeps your balance information up to date with the INTMAX ne
 * ⚠️ Always run `sync` **before and after** transfers or withdrawals for the best experience.
 * ⚠️ Do not run multiple `sync` calls at the same time — one of them will fail.
 
+### Wait for Transaction Confirmation
+
+```ts
+const transferConfirmation = await intMaxClient.waitForTransactionConfirmation({ txTreeRoot });
+```
+
+The `waitForTransaction` function is used to verify whether a transfer or withdrawal has been fully finalized after execution.
+On the INTMAX network, transactions are submitted to nodes using the `broadcastTransaction` function (described below) and then processed.
+
+The success response of `broadcastTransaction` alone does not guarantee on-chain finalization.
+Therefore, the `waitForTransaction` function provides a reliable way to track the transaction until its status becomes either `success` or `failed`.
+
+**Important:**
+
+* ⚠️ It is important to call `waitForTransaction` after executing a transfer or withdrawal transaction.
+
+### Transfer
+
+```ts
+await intMaxClient.sync(); // synchronize balance
+
+// You can change filtration by tokenIndex or tokenAddress
+const token = balances.find((b) => b.token.tokenIndex === 0).token;
+
+const transferResult = await intMaxClient.broadcastTransaction([
+  {
+    address: "T6ubiG36LmNce6uzcJU3h5JR5FWa72jBBLUGmEPx5VXcFtvXnBB3bqice6uzcJU3h5JR5FWa72jBBLUGmEPx5VXcB3prnCZ", // Your INTMAX address
+    token,
+    amount: 0.000001, // 0.000001 ETH
+  }
+]);
+console.log("Transfer result:", transferResult);
+
+// Wait for transfer confirmation
+const transferConfirmation = await intMaxClient.waitForTransactionConfirmation(transferResult);
+console.log('Transfer confirmation result:', transferConfirmation);
+
+await intMaxClient.sync(); // synchronize balance
+```
+
 ### Withdraw
 
 ```ts
@@ -351,6 +391,10 @@ const withdrawalResult = await intMaxClient.withdraw({
   amount: 0.000001, // Amount of the token, for erc721 should be 1, for erc1155 can be more than 1
 });
 console.log('Withdrawal result:', withdrawalResult);
+
+// Wait for transfer confirmation
+const withdrawalConfirmation = await intMaxClient.waitForTransactionConfirmation(withdrawResult);
+console.log("Withdrawal confirmation result:", withdrawalConfirmation);
 
 await intMaxClient.sync(); // synchronize balance
 ```

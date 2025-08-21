@@ -444,7 +444,7 @@ Therefore, the `waitForTransaction` function provides a reliable way to track th
 
 * ⚠️ It is important to call `waitForTransaction` after executing a transfer or withdrawal transaction.
 
-### Transfer
+### Transfer (Broadcast Transaction)
 
 ```ts
 await intMaxClient.sync(); // synchronize balance

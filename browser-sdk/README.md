@@ -320,15 +320,15 @@ When an instance of `IntMaxClient` is created, the `sync` function is automatica
 const transferConfirmation = await intMaxClient.waitForTransactionConfirmation({ txTreeRoot });
 ```
 
-The `waitForTransaction` function is used to verify whether a transfer or withdrawal has been fully finalized after execution.
-On the INTMAX network, transactions are submitted to nodes using the `broadcastTransaction` function (described below) and then processed.
+The `waitForTransactionConfirmation` function is used to verify whether a transfer or withdrawal has been fully finalized after execution.
+On the INTMAX network, transactions are submitted to nodes using the `broadcastTransaction`/`withdraw` function (described below) and then processed.
 
-The success response of `broadcastTransaction` alone does not guarantee on-chain finalization.
-Therefore, the `waitForTransaction` function provides a reliable way to track the transaction until its status becomes either `success` or `failed`.
+The success response of `broadcastTransaction`/`withdraw` alone does not guarantee on-chain finalization.
+Therefore, the `waitForTransactionConfirmation` function provides a reliable way to track the transaction until its status becomes either `success` or `failed`.
 
 **Important:**
 
-* ⚠️ It is important to call `waitForTransaction` after executing a transfer or withdrawal transaction.
+* ⚠️ It is important to call `waitForTransactionConfirmation` after executing a transfer or withdrawal transaction.
 
 ### Transfer (Broadcast Transaction)
 

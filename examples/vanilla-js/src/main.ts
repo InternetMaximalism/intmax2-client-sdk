@@ -369,20 +369,23 @@ const createWithdrawForm = async () => {
     console.log('trasnferFee', trasnferFee);
 
     try {
-      const withdraw = await client.withdraw({
+      const withdrawResult = await client.withdraw({
         amount,
         token,
         address: address as `0x${string}`,
       });
 
       const transactionText = document.createElement('pre');
-      transactionText.innerHTML = JSON.stringify(withdraw, null, 2);
+      transactionText.innerHTML = JSON.stringify(withdrawResult, null, 2);
       const hr = document.createElement('hr');
       hr.style.width = '100%';
 
       form.appendChild(hr);
       form.appendChild(transactionText);
       submitButton.disabled = false;
+
+      const withdrawalConfirmation = await client.waitForTransactionConfirmation(withdrawResult);
+      console.log('Withdrawal confirmation result:', withdrawalConfirmation);
     } catch (e) {
       console.error(e);
       submitButton.disabled = false;

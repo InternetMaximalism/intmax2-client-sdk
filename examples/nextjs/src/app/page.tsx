@@ -131,13 +131,17 @@ export default function Home() {
       console.log('withdrawalFee', withdrawalFee);
       console.log('transferFee', transferFee);
 
-      const withdraw = await client.withdraw({
+      const withdrawResult = await client.withdraw({
         amount: withdrawForm.amount,
         token,
         address: withdrawForm.address as `0x${string}`,
       });
 
-      console.log('Withdraw:', withdraw);
+      console.log('Withdraw:', withdrawResult);
+
+      const withdrawalConfirmation = await client.waitForTransactionConfirmation(withdrawResult);
+      console.log('Withdrawal confirmation result:', withdrawalConfirmation);
+
       alert('Withdrawal successful');
     } catch (e) {
       console.error(e);

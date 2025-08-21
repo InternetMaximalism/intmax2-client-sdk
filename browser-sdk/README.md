@@ -302,15 +302,15 @@ console.log('Transaction Hash:', depositResult.txHash);
 await intMaxClient.sync();
 ```
 
-The sync function updates the user’s balance to the latest state.
+The `sync` function updates the user’s balance to the latest state.
 On the INTMAX network, a user’s balance must be refreshed before transfers or withdrawals.
 
 However, this function should not be called manually in normal use.
-When an instance of IntMaxClient is created, the sync function is automatically executed in the background at regular intervals.
+When an instance of `IntMaxClient` is created, the `sync` function is automatically executed in the background at regular intervals.
 
 **Important:**
 
-* ⚠️ Be aware that multiple sync calls cannot run concurrently — if called at the same time, one of them will fail.
+* ⚠️ Be aware that multiple `sync` calls cannot run concurrently — if called at the same time, one of them will fail.
 
 ### Withdraw
 

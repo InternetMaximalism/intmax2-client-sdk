@@ -538,7 +538,7 @@ cargo run -r
 The approximate execution time for each function is as follows.
 Please note that the duration may increase further when the network is congested.
 
-#### Mainnet
+### Mainnet
 
 - broadcastTransaction (before sync): 164s
 - broadcastTransaction (after sync): 23s
@@ -546,7 +546,7 @@ Please note that the duration may increase further when the network is congested
 - withdraw (before sync): 302s
 - withdraw (after sync): 187s
 
-#### Testnet
+### Testnet
 
 - broadcastTransaction (before sync): 256s
 - broadcastTransaction (after sync): 52s

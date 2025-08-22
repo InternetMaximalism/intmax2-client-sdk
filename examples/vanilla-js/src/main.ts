@@ -191,6 +191,12 @@ const createLoginButton = () => {
   button.onclick = async () => {
     await client.login();
     button.remove();
+    const data = await Promise.allSettled([
+      client.fetchDeposits(),
+      client.fetchTransfers(),
+      client.fetchTransactions(),
+    ]);
+    console.log(data);
     createLogoutButton();
     tokenFetchingButton();
     showPrivateKeyButton();

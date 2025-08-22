@@ -76,16 +76,6 @@ import {
 import * as mainnetWasm from './mainnet';
 // @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
 import * as testnetWasm from './testnet';
-import {
-  JsFeeQuote,
-  JsMetaData,
-  JsTransferFeeQuote,
-  JsTxRequestMemo,
-  JsTxResult,
-  JsUserData,
-  JsWithdrawalTransfers,
-  TokenBalance as WasmTokenBalance,
-} from '../wasm/node/testnet';
 
 interface IFunctions {
   await_tx_sendable: typeof mainnetWasm.await_tx_sendable | typeof testnetWasm.await_tx_sendable;
@@ -365,7 +355,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       throw Error('Not logged in');
     }
 
-    let wasm_balances: WasmTokenBalance[] = [];
+    let wasm_balances: mainnetWasm.TokenBalance[] | testnetWasm.TokenBalance[] = [];
     wasm_balances = await this.#functions.get_balances_without_sync(this.#config, this.#viewKey);
 
     if (!wasm_balances.length) {
@@ -480,7 +470,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       throw Error('No private key found');
     }
 
-    let memo: JsTxRequestMemo;
+    let memo: mainnetWasm.JsTxRequestMemo | testnetWasm.JsTxRequestMemo;
     try {
       const fee = await this.#getTransferFee();
 
@@ -489,7 +479,7 @@ export class IntMaxNodeClient implements INTMAXClient {
         throw new Error('Failed to quote transfer fee');
       }
 
-      let withdrawalTransfers: JsWithdrawalTransfers | undefined;
+      let withdrawalTransfers: testnetWasm.JsWithdrawalTransfers | mainnetWasm.JsWithdrawalTransfers | undefined;
 
       if (isWithdrawal) {
         withdrawalTransfers = await this.#functions.generate_withdrawal_transfers(this.#config, transfers[0], 0, true);
@@ -529,7 +519,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       throw new Error('Failed to send tx request');
     }
 
-    let tx: JsTxResult | undefined;
+    let tx: mainnetWasm.JsTxResult | testnetWasm.JsTxResult | undefined;
     try {
       tx = await this.#functions.query_and_finalize(
         this.#config,
@@ -564,9 +554,11 @@ export class IntMaxNodeClient implements INTMAXClient {
     this.#broadcastInProgress = false;
 
     return {
-      // @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
+      // eslint-disable-next-line
+      // @ts-ignore
       txTreeRoot: tx.tx_tree_root,
-      // @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
+      // eslint-disable-next-line
+      // @ts-ignore
       transferDigests: tx.tx_data.transfer_digests,
     };
   }
@@ -674,7 +666,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       this.#config,
       this.#viewKey,
       new (this.#environment === 'mainnet' ? mainnetWasm.JsMetaDataCursor : testnetWasm.JsMetaDataCursor)(
-        cursor as JsMetaData,
+        cursor as testnetWasm.JsMetaData | mainnetWasm.JsMetaData,
         'desc',
         limit,
       ),
@@ -973,7 +965,9 @@ export class IntMaxNodeClient implements INTMAXClient {
   }
 
   async getWithdrawalFee(token: Token): Promise<FeeResponse> {
-    const withdrawalFee = (await this.#functions.quote_withdrawal_fee(this.#config, token.tokenIndex, 0)) as JsFeeQuote;
+    const withdrawalFee = (await this.#functions.quote_withdrawal_fee(this.#config, token.tokenIndex, 0)) as
+      | testnetWasm.JsFeeQuote
+      | mainnetWasm.JsFeeQuote;
     return {
       beneficiary: withdrawalFee.beneficiary,
       fee: withdrawalFee.fee,
@@ -1194,13 +1188,13 @@ export class IntMaxNodeClient implements INTMAXClient {
     this.#logger.info('user_data_sync done');
   }
 
-  async #fetchUserData(): Promise<JsUserData> {
+  async #fetchUserData(): Promise<mainnetWasm.JsUserData | testnetWasm.JsUserData> {
     const prevFetchData = this.#cacheMap.get('user_data_fetch');
     const prevFetchDateObj = prevFetchData?.find(
       (data: { fetchDate: number; address: string }) => data?.address?.toLowerCase() === this.address.toLowerCase(),
     );
 
-    let userdata: JsUserData;
+    let userdata: mainnetWasm.JsUserData | testnetWasm.JsUserData;
     if (prevFetchDateObj && prevFetchDateObj.address.toLowerCase() === this.address.toLowerCase()) {
       const prevFetchDate = prevFetchDateObj.fetchDate;
       const currentDate = new Date().getTime();
@@ -1527,8 +1521,8 @@ export class IntMaxNodeClient implements INTMAXClient {
     };
   }
 
-  async #getTransferFee(): Promise<JsTransferFeeQuote | undefined> {
-    let fee: JsTransferFeeQuote | undefined;
+  async #getTransferFee(): Promise<mainnetWasm.JsTransferFeeQuote | testnetWasm.JsTransferFeeQuote | undefined> {
+    let fee: mainnetWasm.JsTransferFeeQuote | testnetWasm.JsTransferFeeQuote | undefined;
     let attempts = 0;
     const maxAttempts = 3;
     let urlBlockBuilderUrl = await this.#indexerFetcher.getBlockBuilderUrl();
@@ -1602,7 +1596,12 @@ export class IntMaxNodeClient implements INTMAXClient {
 
     this.#userDataWorker.on(
       'message',
-      async (data: { data: JsUserData; type: 'user_data' | 'error'; shouldSaveTime: boolean; viewPair: string }) => {
+      async (data: {
+        data: mainnetWasm.JsUserData | testnetWasm.JsUserData;
+        type: 'user_data' | 'error';
+        shouldSaveTime: boolean;
+        viewPair: string;
+      }) => {
         this.#logger.info('Worker message execution received:', data);
 
         switch (data.type) {

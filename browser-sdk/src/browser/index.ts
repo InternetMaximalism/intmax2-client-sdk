@@ -73,15 +73,6 @@ import {
 } from '../shared';
 import { generateEncryptionKey } from '../shared/shared/generate-encryption-key';
 import * as mainnetWasm from '../wasm/browser/mainnet';
-import {
-  JsFeeQuote,
-  JsFlatG2,
-  JsMetaData,
-  JsMetaDataCursor,
-  JsTransferFeeQuote,
-  JsTxResult,
-  JsUserData,
-} from '../wasm/browser/mainnet';
 import wasmBytesMain from '../wasm/browser/mainnet/intmax2_wasm_lib_bg.wasm?url';
 import * as testnetWasm from '../wasm/browser/testnet';
 import wasmBytes from '../wasm/browser/testnet/intmax2_wasm_lib_bg.wasm?url';
@@ -692,7 +683,7 @@ export class IntMaxClient implements INTMAXClient {
       throw new Error('Failed to send tx request');
     }
 
-    let tx: JsTxResult | undefined;
+    let tx: mainnetWasm.JsTxResult | testnetWasm.JsTxResult | undefined;
     try {
       tx = await this.#functions.query_and_finalize(
         this.#config,
@@ -742,11 +733,12 @@ export class IntMaxClient implements INTMAXClient {
       throw new Error('Limit cannot be greater than 256');
     }
 
-    const data = await this.#functions.fetch_tx_history(
-      this.#config,
-      this.#viewKey,
-      new JsMetaDataCursor(cursor, 'desc', limit),
-    );
+    const cursorMeta =
+      this.#environment === 'mainnet'
+        ? new mainnetWasm.JsMetaDataCursor(cursor, 'desc', limit)
+        : new testnetWasm.JsMetaDataCursor(cursor, 'desc', limit);
+
+    const data = await this.#functions.fetch_tx_history(this.#config, this.#viewKey, cursorMeta);
 
     return {
       pagination: {
@@ -782,11 +774,12 @@ export class IntMaxClient implements INTMAXClient {
       throw new Error('Limit cannot be greater than 256');
     }
 
-    const data = await this.#functions.fetch_transfer_history(
-      this.#config,
-      this.#viewKey,
-      new JsMetaDataCursor(cursor, 'desc', limit),
-    );
+    const cursorMeta =
+      this.#environment === 'mainnet'
+        ? new mainnetWasm.JsMetaDataCursor(cursor, 'desc', limit)
+        : new testnetWasm.JsMetaDataCursor(cursor, 'desc', limit);
+
+    const data = await this.#functions.fetch_transfer_history(this.#config, this.#viewKey, cursorMeta);
 
     return {
       pagination: {
@@ -822,11 +815,12 @@ export class IntMaxClient implements INTMAXClient {
       throw new Error('Limit cannot be greater than 256');
     }
 
-    const data = await this.#functions.fetch_deposit_history(
-      this.#config,
-      this.#viewKey,
-      new JsMetaDataCursor(cursor as JsMetaData, 'desc', limit),
-    );
+    const cursorMeta =
+      this.#environment === 'mainnet'
+        ? new mainnetWasm.JsMetaDataCursor(cursor, 'desc', limit)
+        : new testnetWasm.JsMetaDataCursor(cursor, 'desc', limit);
+
+    const data = await this.#functions.fetch_deposit_history(this.#config, this.#viewKey, cursorMeta);
 
     return {
       pagination: {
@@ -1075,7 +1069,8 @@ export class IntMaxClient implements INTMAXClient {
       data = message;
     }
 
-    const newSignature = new JsFlatG2(signature);
+    const newSignature =
+      this.#environment === 'mainnet' ? new mainnetWasm.JsFlatG2(signature) : new testnetWasm.JsFlatG2(signature);
     return await this.#functions.verify_signature(newSignature, this.#spendPub, data);
   }
 
@@ -1109,7 +1104,9 @@ export class IntMaxClient implements INTMAXClient {
   }
 
   async getWithdrawalFee(token: Token): Promise<FeeResponse> {
-    const withdrawalFee = (await this.#functions.quote_withdrawal_fee(this.#config, token.tokenIndex, 0)) as JsFeeQuote;
+    const withdrawalFee = (await this.#functions.quote_withdrawal_fee(this.#config, token.tokenIndex, 0)) as
+      | mainnetWasm.JsFeeQuote
+      | testnetWasm.JsFeeQuote;
     return {
       beneficiary: withdrawalFee.beneficiary,
       fee: withdrawalFee.fee,
@@ -1200,7 +1197,7 @@ export class IntMaxClient implements INTMAXClient {
   }
 
   async #getTransferFee() {
-    let fee: JsTransferFeeQuote | undefined;
+    let fee: mainnetWasm.JsTransferFeeQuote | testnetWasm.JsTransferFeeQuote | undefined;
     let attempts = 0;
     const maxAttempts = 3;
     let urlBlockBuilderUrl = await this.#indexerFetcher.getBlockBuilderUrl();
@@ -1327,7 +1324,7 @@ export class IntMaxClient implements INTMAXClient {
   async #userDataWorkerMessageHandler(
     event: MessageEvent<{
       target: 'intamax_sdk';
-      data: JsUserData;
+      data: mainnetWasm.JsUserData | testnetWasm.JsUserData;
       type: 'user_data' | 'error';
       shouldSaveTime: boolean;
       viewPair: string;
@@ -1439,7 +1436,7 @@ export class IntMaxClient implements INTMAXClient {
     });
   }
 
-  async #fetchUserData(): Promise<JsUserData> {
+  async #fetchUserData(): Promise<mainnetWasm.JsUserData | testnetWasm.JsUserData> {
     const prevFetchData = localStorageManager.getItem<
       {
         fetchDate: number;
@@ -1448,7 +1445,7 @@ export class IntMaxClient implements INTMAXClient {
     >('user_data_fetch');
     const prevFetchDateObj = prevFetchData?.find((data) => data.address.toLowerCase() === this.address.toLowerCase());
 
-    let userdata: JsUserData;
+    let userdata: mainnetWasm.JsUserData | testnetWasm.JsUserData;
     if (prevFetchDateObj && prevFetchDateObj.address.toLowerCase() === this.address.toLowerCase()) {
       const prevFetchDate = prevFetchDateObj.fetchDate;
       const currentDate = new Date().getTime();

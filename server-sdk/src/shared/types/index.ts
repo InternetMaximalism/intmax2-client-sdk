@@ -205,7 +205,7 @@ export interface ConstructorNodeParams extends ConstructorParams {
   eth_private_key: `0x${string}`;
   l1_rpc_url?: string;
   urls?: UrlConfig;
-  showLogs?: boolean;
+  loggerLevel?: 'error' | 'warn' | 'info' | 'none';
 }
 
 export interface INTMAXClient {

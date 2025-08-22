@@ -1,4 +1,5 @@
 import { AxiosInstance } from 'axios';
+import { ConsolaInstance } from 'consola';
 import { encodeAbiParameters, encodeFunctionData } from 'viem';
 
 import { MAINNET_ENV, TESTNET_ENV } from '../constants';
@@ -87,13 +88,12 @@ const depositERC1155Abi = {
 
 export class PredicateFetcher {
   readonly #httpClient: AxiosInstance;
+  readonly #logger: ConsolaInstance;
 
-  constructor(environment: IntMaxEnvironment) {
+  constructor(environment: IntMaxEnvironment, logger: ConsolaInstance) {
+    this.#logger = logger;
     this.#httpClient = axiosClientInit({
-      baseURL:
-        environment === 'mainnet'
-          ? MAINNET_ENV.predicate_url
-          : TESTNET_ENV.predicate_url,
+      baseURL: environment === 'mainnet' ? MAINNET_ENV.predicate_url : TESTNET_ENV.predicate_url,
     });
   }
 

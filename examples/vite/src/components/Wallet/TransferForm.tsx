@@ -131,6 +131,10 @@ export const TransferForm: React.FC<TransferFormProps> = ({ client }) => {
       
       // Reset form and refresh balances
       setFormData({ recipient: '', amount: '', tokenIndex: '' })
+
+      const transferConfirmation = await client.waitForTransactionConfirmation(transferResult);
+      console.log('Transfer confirmation result:', JSON.stringify(transferConfirmation, null, 2));
+
       await fetchBalances()
       
     } catch (err) {

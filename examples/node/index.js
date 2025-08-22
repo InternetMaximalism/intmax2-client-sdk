@@ -24,6 +24,7 @@ const main = async () => {
           use_private_zkp_server: false,
         }
       : undefined,
+    showLogs: true,
   });
 
   // Login
@@ -114,10 +115,12 @@ const main = async () => {
     },
   ];
 
-  let transferResult;
   while (true) {
     try {
-      transferResult = await client.broadcastTransaction(transfers);
+      const transferResult = await client.broadcastTransaction(transfers);
+      console.log('Transfer result:', JSON.stringify(transferResult, null, 2));
+      const transferConfirmation = await client.waitForTransactionConfirmation(transferResult);
+      console.log('Transfer confirmation result:', JSON.stringify(transferConfirmation, null, 2));
       break;
     } catch (error) {
       console.warn('Transfer error:', error);
@@ -133,10 +136,6 @@ const main = async () => {
       }
     }
   }
-
-  console.log('Transfer result:', JSON.stringify(transferResult, null, 2));
-  const result = await client.waitForTransactionConfirmation(transferResult.txTreeRoot);
-  console.log('Transfer confirmation result:', JSON.stringify(result, null, 2));
 
   // The user needs to pay `withdrawalFeeAmount` of tokens corresponding to the `withdrawalFeeToken`.
   const withdrawalFee = await client.getWithdrawalFee(token);

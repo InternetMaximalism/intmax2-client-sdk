@@ -314,6 +314,70 @@ console.log('Deposit result:', depositResult);
 console.log('Transaction Hash:', depositResult.txHash);
 ```
 
+### The `sync` Function
+
+```ts
+await intMaxClient.sync();
+```
+
+The `sync` function keeps your balance information up to date with the INTMAX network.
+
+* **Without calling `sync`:**
+  Your balance will still be updated automatically before the next transfer or withdrawal, but this automatic update may take extra time.
+
+* **By calling `sync` in advance:**
+  Your balance is already updated, so transfers and withdrawals can start faster.
+
+* **After a transfer:**
+  Running `sync` ensures your balance reflects the completed transaction, making your next transfer smoother.
+
+**Important:**
+
+* ⚠️ Always run `sync` **before and after** transfers or withdrawals for the best experience.
+* ⚠️ Do not run multiple `sync` calls at the same time — one of them will fail.
+
+### Wait for Transaction Confirmation
+
+```ts
+const transferConfirmation = await intMaxClient.waitForTransactionConfirmation({ txTreeRoot });
+```
+
+The `waitForTransactionConfirmation` function is used to verify whether a transfer has been fully finalized after execution.
+On the INTMAX network, transactions are submitted to nodes using the `broadcastTransaction` function (described below) and then processed.
+
+The success response of `broadcastTransaction` alone does not guarantee on-chain finalization.
+Therefore, the `waitForTransactionConfirmation` function provides a reliable way to track the transaction until its status becomes either `success` or `failed`.
+
+**Important:**
+
+* ⚠️ It is important to call `waitForTransactionConfirmation` after executing a transfer transaction.
+
+**NOTE**: This function can also be used with the `txTreeRoot` of the `withdraw` function. However, since the transaction is already reflected on-chain once the `withdraw` function has finished executing, there is no need to use this function to wait any further.
+
+### Transfer (Broadcast Transaction)
+
+```ts
+await intMaxClient.sync(); // synchronize balance
+
+// You can change filtration by tokenIndex or tokenAddress
+const token = balances.find((b) => b.token.tokenIndex === 0).token;
+
+const transferResult = await intMaxClient.broadcastTransaction([
+  {
+    address: "T6ubiG36LmNce6uzcJU3h5JR5FWa72jBBLUGmEPx5VXcFtvXnBB3bqice6uzcJU3h5JR5FWa72jBBLUGmEPx5VXcB3prnCZ", // Your INTMAX address
+    token,
+    amount: 0.000001, // 0.000001 ETH
+  }
+]);
+console.log("Transfer result:", transferResult);
+
+// Wait for transfer confirmation
+const transferConfirmation = await intMaxClient.waitForTransactionConfirmation(transferResult);
+console.log('Transfer confirmation result:', transferConfirmation);
+
+await intMaxClient.sync(); // synchronize balance
+```
+
 ### Withdraw
 
 ```ts
@@ -329,6 +393,8 @@ const withdrawalResult = await intMaxClient.withdraw({
   amount: 0.000001, // Amount of the token, for erc721 should be 1, for erc1155 can be more than 1
 });
 console.log('Withdrawal result:', withdrawalResult);
+
+await intMaxClient.sync(); // synchronize balance
 ```
 
 It is recommended to run the sync function before executing a transfer or withdrawal.

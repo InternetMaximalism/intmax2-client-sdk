@@ -2,12 +2,11 @@ import { parentPort } from 'worker_threads';
 
 import { ConsolaInstance, createConsola } from 'consola';
 
-import { formatError } from '../shared';
-
 // @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
 import * as mainnetWasm from './mainnet';
 // @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
 import * as testnetWasm from './testnet';
+import { formatError } from '../shared';
 
 let logger: ConsolaInstance;
 

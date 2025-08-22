@@ -34,12 +34,12 @@ const main = async () => {
   console.log('Address:', client.address);
 
   // Fetch and display balances
-  // console.log('\nFetching balances...');
-  // const { balances } = await client.fetchTokenBalances();
-  // console.log('Balances:');
-  // balances.forEach((balance) => {
-  //   console.log(JSON.stringify(balance, (_, v) => (typeof v === 'bigint' ? v.toString() : v), 2));
-  // });
+  console.log('\nFetching balances...');
+  const { balances } = await client.fetchTokenBalances();
+  console.log('Balances:');
+  balances.forEach((balance) => {
+    console.log(JSON.stringify(balance, (_, v) => (typeof v === 'bigint' ? v.toString() : v), 2));
+  });
 
   // Verify message signature
   const message = 'Hello, World!';
@@ -53,25 +53,25 @@ const main = async () => {
   console.log('Available tokens:', JSON.stringify(tokens, null, 2));
 
   // Fetch transaction history
-  // console.log('\nFetching transaction history...');
-  // const [deposits, receiveTransfers, sendTxs] = await Promise.all([
-  //   client.fetchDeposits({
-  //     limit: 1,
-  //     cursor: null,
-  //   }),
-  //   client.fetchTransfers({
-  //     limit: 1,
-  //     cursor: null,
-  //   }),
-  //   client.fetchTransactions({
-  //     limit: 1,
-  //     cursor: null,
-  //   }),
-  // ]);
-  // console.log('\nTransaction History:');
-  // console.log('Latest deposits:', deposits.items[0]);
-  // console.log('Latest received transfers:', receiveTransfers.items[0]);
-  // console.log('Latest sent transfers:', sendTxs.items[0]);
+  console.log('\nFetching transaction history...');
+  const [deposits, receiveTransfers, sendTxs] = await Promise.all([
+    client.fetchDeposits({
+      limit: 1,
+      cursor: null,
+    }),
+    client.fetchTransfers({
+      limit: 1,
+      cursor: null,
+    }),
+    client.fetchTransactions({
+      limit: 1,
+      cursor: null,
+    }),
+  ]);
+  console.log('\nTransaction History:');
+  console.log('Latest deposits:', deposits.items[0]);
+  console.log('Latest received transfers:', receiveTransfers.items[0]);
+  console.log('Latest sent transfers:', sendTxs.items[0]);
 
   const token = {
     tokenType: TokenType.NATIVE,
@@ -82,22 +82,22 @@ const main = async () => {
 
   // Example deposit
   console.log('\nPreparing deposit...');
-  // const depositParams = {
-  //   amount: 0.000001, // 0.000001 ETH
-  //   token,
-  //   // Your public key of the IntMax wallet or any other IntMax wallet public key
-  //   address: client.address,
-  // };
-  //
-  // // Check gas estimation to verify if the transaction can be executed
-  // const gas = await client.estimateDepositGas({
-  //   ...depositParams,
-  //   isGasEstimation: true,
-  // });
-  // console.log('Estimated gas for deposit:', gas);
-  //
-  // const depositResult = await client.deposit(depositParams);
-  // console.log('Deposit result:', JSON.stringify(depositResult, null, 2));
+  const depositParams = {
+    amount: 0.000001, // 0.000001 ETH
+    token,
+    // Your public key of the IntMax wallet or any other IntMax wallet public key
+    address: client.address,
+  };
+
+  // Check gas estimation to verify if the transaction can be executed
+  const gas = await client.estimateDepositGas({
+    ...depositParams,
+    isGasEstimation: true,
+  });
+  console.log('Estimated gas for deposit:', gas);
+
+  const depositResult = await client.deposit(depositParams);
+  console.log('Deposit result:', JSON.stringify(depositResult, null, 2));
 
   // The user needs to pay `transferFeeAmount` of tokens corresponding to the `transferFeeToken`.
   const transferFee = await client.getTransferFee();
@@ -119,7 +119,8 @@ const main = async () => {
     try {
       const transferResult = await client.broadcastTransaction(transfers);
       console.log('Transfer result:', JSON.stringify(transferResult, null, 2));
-      await client.sync();
+      // uncomment if you want to reproduce "Pending tx error"
+      // await client.sync();
       const transferConfirmation = await client.waitForTransactionConfirmation(transferResult);
       console.log('Transfer confirmation result:', JSON.stringify(transferConfirmation, null, 2));
       break;

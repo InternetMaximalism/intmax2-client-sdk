@@ -1,5 +1,6 @@
 import { ConsolaInstance, createConsola } from 'consola';
 
+import { formatError } from '../shared';
 import { JsUserData } from '../wasm/browser/testnet';
 
 function convertUserDataToPlainObject(userData: JsUserData) {
@@ -97,13 +98,15 @@ async function start({
     try {
       await sync(config, viewPair);
     } catch (error) {
-      logger.error('Error during sync from worker:', error);
+      const errMsg = formatError(error);
+      logger.error('Error during sync from worker:', errMsg);
 
       if (error instanceof Error && error.message.includes('unreachable')) {
         try {
           await resync(config, viewPair, false);
         } catch (error) {
-          logger.error('Error during resync from worker:', error);
+          const errMsg = formatError(error);
+          logger.error('Error during resync from worker:', errMsg);
         }
       }
     }
@@ -111,7 +114,8 @@ async function start({
     try {
       await sync_withdrawals(config, viewPair, 0);
     } catch (error) {
-      logger.error('Error during withdrawals sync from worker:', error);
+      const errMsg = formatError(error);
+      logger.error('Error during withdrawals sync from worker:', errMsg);
     }
   }
 
@@ -125,7 +129,8 @@ async function start({
       viewPair,
     });
   } catch (error) {
-    logger.error('Error getting user data from worker:', error);
+    const errMsg = formatError(error);
+    logger.error('Error getting user data from worker:', errMsg);
   }
   logger.info('%cWasm worker finished sync', 'color: #4CAF50; font-weight: bold;');
 }

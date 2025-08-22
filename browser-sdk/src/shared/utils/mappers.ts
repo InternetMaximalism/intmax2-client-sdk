@@ -151,3 +151,23 @@ export const wasmTxToTx = (
 
   return null;
 };
+
+export const formatError = (error: unknown): Error | unknown => {
+  if (error instanceof Error) {
+    if (error.message.includes('prev_digest mismatch with stored digest')) {
+      return new Error('The balance synchronization encountered a conflict. Please wait a moment and try again');
+    }
+    if (error.message.includes('Pending tx error: pending tx')) {
+      return new Error(
+        'The previous transfer is still being processed, so you cannot initiate a new one yet. Please wait a while and try again.',
+      );
+    }
+    if (error.message.includes(`failed with status:502 Bad Gateway, error:<html>`)) {
+      return new Error(
+        'Unable to connect to the Validity Prover server (502 Bad Gateway). The server may be temporarily unresponsive.',
+      );
+    }
+  }
+
+  return error;
+};

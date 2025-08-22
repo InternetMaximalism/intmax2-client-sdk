@@ -3,7 +3,7 @@ import { ConsolaInstance } from 'consola';
 
 import { MAINNET_ENV, TESTNET_ENV } from '../constants';
 import { BlockBuilderResponse, Fee, IntMaxEnvironment } from '../types';
-import { axiosClientInit } from '../utils';
+import { axiosClientInit, formatError } from '../utils';
 
 export const REGISTRATION_FEE_THRESHOLD: bigint = 2500000000000n; // 2,500 Gwei
 export const NON_REGISTRATION_FEE_THRESHOLD: bigint = 2500000000000n; // 2,500 Gwei
@@ -74,7 +74,8 @@ export class IndexerFetcher {
       new URL(url);
       this.#url = url;
     } catch (error) {
-      this.#logger.error('Invalid Block Builder URL format:', error);
+      const errMsg = formatError(error);
+      this.#logger.error('Invalid Block Builder URL format:', errMsg);
       throw new Error('Invalid Block Builder URL format');
     }
   }

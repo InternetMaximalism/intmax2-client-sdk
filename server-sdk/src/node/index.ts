@@ -34,6 +34,7 @@ import {
   FetchTransactionsResponse,
   FetchWithdrawalsRequest,
   FetchWithdrawalsResponse,
+  formatError,
   generateEncryptionKey,
   generateEntropy,
   getPkFromEntropy,
@@ -504,7 +505,8 @@ export class IntMaxNodeClient implements INTMAXClient {
       try {
         await this.#functions.await_tx_sendable(this.#config, viewPair, transfers, fee);
       } catch (e) {
-        this.#logger.error(e);
+        const errMsg = formatError(e);
+        this.#logger.error(errMsg);
       }
 
       // send the tx request
@@ -528,7 +530,8 @@ export class IntMaxNodeClient implements INTMAXClient {
 
       memo.tx();
     } catch (e) {
-      this.#logger.error(e);
+      const errMsg = formatError(e);
+      this.#logger.error(errMsg);
       this.#broadcastInProgress = false;
       throw new Error('Failed to send tx request');
     }
@@ -543,7 +546,8 @@ export class IntMaxNodeClient implements INTMAXClient {
       );
       await this.#indexerFetcher.fetchBlockBuilderUrl();
     } catch (e) {
-      this.#logger.error(e);
+      const errMsg = formatError(e);
+      this.#logger.error(errMsg);
       this.#broadcastInProgress = false;
       throw new Error('Failed to finalize tx');
     }
@@ -554,7 +558,8 @@ export class IntMaxNodeClient implements INTMAXClient {
         try {
           await this.#functions.sync_claims(this.#config, viewPair, rawTransfers[0].claim_beneficiary, 0);
         } catch (e) {
-          this.#logger.error(e);
+          const errMsg = formatError(e);
+          this.#logger.error(errMsg);
           this.#broadcastInProgress = false;
           throw e;
         }
@@ -939,6 +944,9 @@ export class IntMaxNodeClient implements INTMAXClient {
             status = tx.status === 'success' ? TransactionStatus.Completed : TransactionStatus.Rejected;
           }
         } catch (e) {
+          if (e instanceof Error && e.message.includes('Transaction receipt with hash')) {
+            continue;
+          }
           this.#logger.error(e);
         }
       }
@@ -951,8 +959,9 @@ export class IntMaxNodeClient implements INTMAXClient {
         txHash,
       };
     } catch (e) {
-      this.#logger.error(e);
-      throw e;
+      const errMsg = formatError(e);
+      this.#logger.error(errMsg);
+      throw errMsg;
     }
   }
 
@@ -1006,7 +1015,8 @@ export class IntMaxNodeClient implements INTMAXClient {
           txTreeRoot,
         )) as WaitForTransactionConfirmationResponse['status'];
       } catch (e) {
-        this.#logger.error('Error while fetching transaction status:', e);
+        const errMsg = formatError(e);
+        this.#logger.error('Error while fetching transaction status:', errMsg);
         return {
           status: 'not_found',
         };
@@ -1163,7 +1173,8 @@ export class IntMaxNodeClient implements INTMAXClient {
       );
       this.#logger.info('Synced withdrawals');
     } catch (e) {
-      this.#logger.info('Failed to sync account balance proof', e);
+      const errMsg = formatError(e);
+      this.#logger.error('Failed to sync account balance proof', errMsg);
     }
 
     this.#userData = await this.#functions.get_user_data(this.#config, this.#viewKey);
@@ -1535,8 +1546,9 @@ export class IntMaxNodeClient implements INTMAXClient {
           break;
         }
         fee = undefined;
-      } catch (error) {
-        this.#logger.error(`Attempt ${attempts + 1} failed:`, error);
+      } catch (e) {
+        const errMsg = formatError(e);
+        this.#logger.error(`Attempt ${attempts + 1} failed:`, errMsg);
       }
 
       attempts++;
@@ -1671,8 +1683,9 @@ export class IntMaxNodeClient implements INTMAXClient {
       this.#logger.warn('Worker not available, falling back to sync operation');
       try {
         await this.#syncUserData();
-      } catch (error) {
-        this.#logger.error('Sync operation failed:', error);
+      } catch (e) {
+        const errMsg = formatError(e);
+        this.#logger.error('Sync operation failed:', errMsg);
         this.#isSyncInProgress = false;
       }
       return;

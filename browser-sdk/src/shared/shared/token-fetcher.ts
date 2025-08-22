@@ -180,7 +180,7 @@ export class TokenFetcher {
     }
     this.#intervalId = setInterval(async () => {
       await this.fetchTokens();
-      console.info('Tokens updated');
+      this.#logger.info('Tokens updated');
     }, interval);
   }
 

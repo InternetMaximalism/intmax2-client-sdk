@@ -150,16 +150,9 @@ export class IntMaxNodeClient implements INTMAXClient {
 
   constructor(params: ConstructorNodeParams) {
     this.validateConstructorParams(params);
-    const { environment, eth_private_key, l1_rpc_url } = params;
+    const { environment, eth_private_key, l1_rpc_url, loggerLevel = 'none' } = params;
     this.#logger = createConsola({
-      level:
-        params.loggerLevel === 'none'
-          ? -999
-          : params.loggerLevel === 'error'
-            ? 0
-            : params.loggerLevel === 'warn'
-              ? 1
-              : 3,
+      level: loggerLevel === 'none' ? -999 : loggerLevel === 'error' ? 0 : loggerLevel === 'warn' ? 1 : 3,
       fancy: true,
     });
 

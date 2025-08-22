@@ -159,7 +159,7 @@ export const formatError = (error: unknown): Error | unknown => {
     }
     if (error.message.includes('Pending tx error: pending tx')) {
       return new Error(
-        'The previous transfer is still being processed, so you cannot initiate a new one yet. Please wait a while and try again.',
+        'The previous transfer is still being processed, so you cannot initiate a new one yet. Please use `waitForTransactionConfirmation` to wait for the previous transaction to complete.',
       );
     }
     if (error.message.includes(`failed with status:502 Bad Gateway, error:<html>`)) {

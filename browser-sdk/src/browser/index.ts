@@ -1137,9 +1137,17 @@ export class IntMaxClient implements INTMAXClient {
       this.#isSyncInProgress = false;
       throw Error('Not logged in yet.');
     }
-    return await this.#functions.sync(this.#config, this.#viewKey).finally(() => {
+    try {
+      await this.#functions.sync(this.#config, this.#viewKey).finally(() => {
+        this.#isSyncInProgress = false;
+      });
+    } catch (e) {
+      const errMsg = formatError(e);
+      this.#logger.error('Failed to sync account balance proof', errMsg);
+      throw errMsg;
+    } finally {
       this.#isSyncInProgress = false;
-    });
+    }
   }
 
   updatePublicClientRpc(url: string): void {

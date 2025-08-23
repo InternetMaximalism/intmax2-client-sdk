@@ -102,7 +102,7 @@ To use the private ZKP server hosted at `http://localhost:9001`, you can use the
 import { IntMaxClient } from 'intmax2-client-sdk';
 
 const intMaxClient = IntMaxClient.init({
-  environment: 'mainnet',
+  environment: 'testnet',
   urls: {
     balance_prover_url: 'http://localhost:9001',
     use_private_zkp_server: false, // When using the balance prover locally on localhost, set `use_private_zkp_server` to false.
@@ -111,6 +111,24 @@ const intMaxClient = IntMaxClient.init({
 ```
 
 To set up a local Balance Prover instance, please see [Tips: How to Run a Local Balance Prover](../README.md#tips-how-to-run-a-local-balance-prover)
+
+The SDK includes a built-in logging system that helps developers monitor and debug client behavior.
+You can configure the verbosity of logs using the `loggerLevel` option when initializing `IntMaxNodeClient`.
+
+```ts
+const intMaxClient = new IntMaxNodeClient({
+  environment: "testnet",
+  eth_private_key: process.env.ETH_PRIVATE_KEY,
+  l1_rpc_url: process.env.L1_RPC_URL,
+  loggerLevel: "warn", // Set the desired log level here
+});
+```
+
+Available `loggerLevel` options:
+- `none` (default): No logs will be output.
+- `error`: Only error logs will be output.
+- `warn`: Error and warning logs will be output.
+- `info`: All logs will be output.
 
 ### Login to INTMAX Network
 

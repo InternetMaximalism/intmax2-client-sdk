@@ -31,16 +31,16 @@ async function start({
   configArgs,
   viewPair,
   shouldSync,
-  loggerLevel = 'none',
+  loggerLevel = -999,
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   configArgs: any; // just for testing
   viewPair: string;
   shouldSync: boolean;
-  loggerLevel?: 'error' | 'warn' | 'info' | 'none';
+  loggerLevel?: number;
 }) {
   logger = createConsola({
-    level: loggerLevel === 'none' ? -999 : loggerLevel === 'error' ? 0 : loggerLevel === 'warn' ? 1 : 3,
+    level: loggerLevel,
     fancy: true,
   });
   const {
@@ -137,9 +137,9 @@ async function start({
 
 ctx.addEventListener('message', (evt) => {
   if (evt.data.type && evt.data.target === 'intamax_sdk_worker') {
-    const { loggerLevel = 'none' } = evt.data;
+    const { loggerLevel = -999 } = evt.data.data;
     logger = createConsola({
-      level: loggerLevel === 'none' ? -999 : loggerLevel === 'error' ? 0 : loggerLevel === 'warn' ? 1 : 3,
+      level: loggerLevel,
       fancy: true,
     });
 

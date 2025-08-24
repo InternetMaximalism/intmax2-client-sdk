@@ -360,13 +360,13 @@ export class IntMaxClient implements INTMAXClient {
     this.#startPeriodicUserDataUpdate(30_000);
   }
 
-  static async init({ environment, urls }: ConstructorParams): Promise<IntMaxClient> {
+  static async init({ environment, urls, loggerLevel }: ConstructorParams): Promise<IntMaxClient> {
     try {
       const bytes = await fetch(environment === 'mainnet' ? wasmBytesMain : wasmBytes).then((response) => {
         return response.arrayBuffer();
       });
 
-      return new IntMaxClient({ async_params: bytes, environment, urls });
+      return new IntMaxClient({ async_params: bytes, environment, urls, loggerLevel });
     } catch (e) {
       console.error(e);
       throw new Error('Failed to load wasm');

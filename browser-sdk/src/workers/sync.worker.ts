@@ -1,3 +1,6 @@
+import { ConsolaInstance, createConsola } from 'consola';
+
+import { formatError } from '../shared';
 import { JsUserData } from '../wasm/browser/testnet';
 
 function convertUserDataToPlainObject(userData: JsUserData) {
@@ -22,17 +25,24 @@ function convertUserDataToPlainObject(userData: JsUserData) {
 }
 
 const ctx: Worker = self as unknown as Worker;
+let logger: ConsolaInstance;
 
 async function start({
   configArgs,
   viewPair,
   shouldSync,
+  loggerLevel = -999,
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   configArgs: any; // just for testing
   viewPair: string;
   shouldSync: boolean;
+  loggerLevel?: number;
 }) {
+  logger = createConsola({
+    level: loggerLevel,
+    fancy: true,
+  });
   const {
     default: init,
     get_user_data,
@@ -46,7 +56,7 @@ async function start({
   try {
     await init();
   } catch (error) {
-    console.error('Error initializing Wasm module in Worker:', error);
+    logger.error('Error initializing Wasm module in Worker:', error);
     return;
   }
 
@@ -76,25 +86,27 @@ async function start({
       configArgs.private_zkp_server_max_retires,
       configArgs.private_zkp_server_retry_interval,
     );
-    console.info('%cConfig initialized', 'color: #4CAF50; font-weight: bold;');
+    logger.info('%cConfig initialized', 'color: #4CAF50; font-weight: bold;');
   } catch (error) {
-    console.error('Config creation failed:', error);
+    logger.error('Config creation failed:', error);
     return;
   }
 
-  console.info('%cWasm worker started...', 'color: #4CAF50; font-weight: bold;');
+  logger.info('%cWasm worker started...', 'color: #4CAF50; font-weight: bold;');
 
   if (shouldSync) {
     try {
       await sync(config, viewPair);
     } catch (error) {
-      console.error('Error during sync from worker:', error);
+      const errMsg = formatError(error);
+      logger.error('Error during sync from worker:', errMsg);
 
       if (error instanceof Error && error.message.includes('unreachable')) {
         try {
           await resync(config, viewPair, false);
         } catch (error) {
-          console.error('Error during resync from worker:', error);
+          const errMsg = formatError(error);
+          logger.error('Error during resync from worker:', errMsg);
         }
       }
     }
@@ -102,7 +114,8 @@ async function start({
     try {
       await sync_withdrawals(config, viewPair, 0);
     } catch (error) {
-      console.error('Error during withdrawals sync from worker:', error);
+      const errMsg = formatError(error);
+      logger.error('Error during withdrawals sync from worker:', errMsg);
     }
   }
 
@@ -116,22 +129,29 @@ async function start({
       viewPair,
     });
   } catch (error) {
-    console.error('Error getting user data from worker:', error);
+    const errMsg = formatError(error);
+    logger.error('Error getting user data from worker:', errMsg);
   }
-  console.info('%cWasm worker finished sync', 'color: #4CAF50; font-weight: bold;');
+  logger.info('%cWasm worker finished sync', 'color: #4CAF50; font-weight: bold;');
 }
 
 ctx.addEventListener('message', (evt) => {
   if (evt.data.type && evt.data.target === 'intamax_sdk_worker') {
-    console.info(`%cWasm worker received message:`, 'color: #4CAF50; font-weight: bold;');
-    console.info(evt.data);
+    const { loggerLevel = -999 } = evt.data.data;
+    logger = createConsola({
+      level: loggerLevel,
+      fancy: true,
+    });
+
+    logger.info(`%cWasm worker received message:`, 'color: #4CAF50; font-weight: bold;');
+    logger.info(evt.data);
   } else {
     return;
   }
 
   switch (evt.data.type) {
     case 'start_sync':
-      console.info(`%cWasm worker received start message`, 'color: #4CAF50; font-weight: bold;');
+      logger.info(`%cWasm worker received start message`, 'color: #4CAF50; font-weight: bold;');
       start(evt.data.data);
       return;
   }

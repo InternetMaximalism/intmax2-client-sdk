@@ -1,8 +1,9 @@
 import { AxiosInstance } from 'axios';
+import { ConsolaInstance } from 'consola';
 
 import { MAINNET_ENV, TESTNET_ENV } from '../constants';
 import { BlockBuilderResponse, Fee, IntMaxEnvironment } from '../types';
-import { axiosClientInit } from '../utils';
+import { axiosClientInit, formatError } from '../utils';
 
 export const REGISTRATION_FEE_THRESHOLD: bigint = 2500000000000n; // 2,500 Gwei
 export const NON_REGISTRATION_FEE_THRESHOLD: bigint = 2500000000000n; // 2,500 Gwei
@@ -27,13 +28,12 @@ export class IndexerFetcher {
   #url: string = '';
 
   readonly #httpClient: AxiosInstance;
+  readonly #logger: ConsolaInstance;
 
-  constructor(environment: IntMaxEnvironment) {
+  constructor(environment: IntMaxEnvironment, logger: ConsolaInstance) {
+    this.#logger = logger;
     this.#httpClient = axiosClientInit({
-      baseURL:
-        environment === 'mainnet'
-          ? MAINNET_ENV.indexer_url
-          : TESTNET_ENV.indexer_url,
+      baseURL: environment === 'mainnet' ? MAINNET_ENV.indexer_url : TESTNET_ENV.indexer_url,
     });
   }
 
@@ -74,7 +74,8 @@ export class IndexerFetcher {
       new URL(url);
       this.#url = url;
     } catch (error) {
-      console.error('Invalid Block Builder URL format:', error);
+      const errMsg = formatError(error);
+      this.#logger.error('Invalid Block Builder URL format:', errMsg);
       throw new Error('Invalid Block Builder URL format');
     }
   }

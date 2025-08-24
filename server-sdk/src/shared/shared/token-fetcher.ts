@@ -1,4 +1,5 @@
 import { AxiosInstance } from 'axios';
+import { ConsolaInstance } from 'consola';
 import { Abi, createPublicClient, erc20Abi, http, PublicClient, zeroAddress } from 'viem';
 import { mainnet, sepolia } from 'viem/chains';
 
@@ -14,8 +15,10 @@ export class TokenFetcher {
   readonly #httpClient: AxiosInstance;
   readonly #liquidityContractAddress: string;
   readonly #publicClient: PublicClient;
+  readonly #logger: ConsolaInstance;
 
-  constructor(environment: IntMaxEnvironment) {
+  constructor(environment: IntMaxEnvironment, logger: ConsolaInstance) {
+    this.#logger = logger;
     this.#liquidityContractAddress =
       environment === 'mainnet' ? MAINNET_ENV.liquidity_contract : TESTNET_ENV.liquidity_contract;
 
@@ -176,7 +179,7 @@ export class TokenFetcher {
     }
     this.#intervalId = setInterval(async () => {
       await this.fetchTokens();
-      console.info('Tokens updated');
+      this.#logger.info('Tokens updated');
     }, interval);
   }
 

@@ -21,6 +21,7 @@ export const useIntMaxClient = () => {
           balance_prover_url: import.meta.env.VITE_BALANCE_PROVER_URL,
           use_private_zkp_server: false,
         } : undefined,
+        loggerLevel: "info",
       })
 
       setClient(newClient)

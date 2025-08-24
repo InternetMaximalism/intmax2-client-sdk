@@ -1,6 +1,7 @@
 import { Worker } from 'worker_threads';
 
 import { AxiosInstance } from 'axios';
+import { ConsolaInstance, createConsola } from 'consola';
 import {
   Abi,
   createPublicClient,
@@ -33,6 +34,7 @@ import {
   FetchTransactionsResponse,
   FetchWithdrawalsRequest,
   FetchWithdrawalsResponse,
+  formatError,
   generateEncryptionKey,
   generateEntropy,
   getPkFromEntropy,
@@ -74,16 +76,6 @@ import {
 import * as mainnetWasm from './mainnet';
 // @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
 import * as testnetWasm from './testnet';
-import {
-  JsFeeQuote,
-  JsMetaData,
-  JsTransferFeeQuote,
-  JsTxRequestMemo,
-  JsTxResult,
-  JsUserData,
-  JsWithdrawalTransfers,
-  TokenBalance as WasmTokenBalance,
-} from '../wasm/node/testnet';
 
 interface IFunctions {
   await_tx_sendable: typeof mainnetWasm.await_tx_sendable | typeof testnetWasm.await_tx_sendable;
@@ -140,7 +132,7 @@ export class IntMaxNodeClient implements INTMAXClient {
   #broadcastInProgress: boolean = false;
   #userDataWorker: Worker | undefined;
   #functions: IFunctions;
-  #showLogs: boolean = true;
+  #logger: ConsolaInstance;
 
   isLoggedIn: boolean = false;
   address: string = '';
@@ -148,13 +140,11 @@ export class IntMaxNodeClient implements INTMAXClient {
 
   constructor(params: ConstructorNodeParams) {
     this.validateConstructorParams(params);
-    const { environment, eth_private_key, l1_rpc_url } = params;
-
-    if (!params.showLogs) {
-      this.#showLogs = false;
-      console.info = () => {};
-      console.warn = () => {};
-    }
+    const { environment, eth_private_key, l1_rpc_url, loggerLevel = 'none' } = params;
+    this.#logger = createConsola({
+      level: loggerLevel === 'none' ? -999 : loggerLevel === 'error' ? 0 : loggerLevel === 'warn' ? 1 : 3,
+      fancy: true,
+    });
 
     this.#cacheMap.set('user_data_fetch', []);
     this.#ethAccount = privateKeyToAccount(eth_private_key);
@@ -227,10 +217,10 @@ export class IntMaxNodeClient implements INTMAXClient {
     }
 
     this.#config = this.#generateConfig(environment);
-    this.#txFetcher = new TransactionFetcher(environment);
-    this.#tokenFetcher = new TokenFetcher(environment);
-    this.#indexerFetcher = new IndexerFetcher(environment);
-    this.#predicateFetcher = new PredicateFetcher(environment);
+    this.#txFetcher = new TransactionFetcher(environment, this.#logger);
+    this.#tokenFetcher = new TokenFetcher(environment, this.#logger);
+    this.#indexerFetcher = new IndexerFetcher(environment, this.#logger);
+    this.#predicateFetcher = new PredicateFetcher(environment, this.#logger);
 
     //run sync job
     this.#startPeriodicUserDataUpdate(30_000);
@@ -354,7 +344,7 @@ export class IntMaxNodeClient implements INTMAXClient {
         return this.#privateKey;
       }
     } catch (e) {
-      console.error(e);
+      this.#logger.error(e);
     }
 
     throw Error('Signature is wrong');
@@ -365,7 +355,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       throw Error('Not logged in');
     }
 
-    let wasm_balances: WasmTokenBalance[] = [];
+    let wasm_balances: mainnetWasm.TokenBalance[] | testnetWasm.TokenBalance[] = [];
     wasm_balances = await this.#functions.get_balances_without_sync(this.#config, this.#viewKey);
 
     if (!wasm_balances.length) {
@@ -476,11 +466,11 @@ export class IntMaxNodeClient implements INTMAXClient {
       viewPair = this.#viewKey;
     } catch (e) {
       this.#broadcastInProgress = false;
-      console.error(e);
+      this.#logger.error(e);
       throw Error('No private key found');
     }
 
-    let memo: JsTxRequestMemo;
+    let memo: mainnetWasm.JsTxRequestMemo | testnetWasm.JsTxRequestMemo;
     try {
       const fee = await this.#getTransferFee();
 
@@ -489,7 +479,7 @@ export class IntMaxNodeClient implements INTMAXClient {
         throw new Error('Failed to quote transfer fee');
       }
 
-      let withdrawalTransfers: JsWithdrawalTransfers | undefined;
+      let withdrawalTransfers: testnetWasm.JsWithdrawalTransfers | mainnetWasm.JsWithdrawalTransfers | undefined;
 
       if (isWithdrawal) {
         withdrawalTransfers = await this.#functions.generate_withdrawal_transfers(this.#config, transfers[0], 0, true);
@@ -498,7 +488,8 @@ export class IntMaxNodeClient implements INTMAXClient {
       try {
         await this.#functions.await_tx_sendable(this.#config, viewPair, transfers, fee);
       } catch (e) {
-        console.error(e);
+        const errMsg = formatError(e);
+        this.#logger.error(errMsg);
       }
 
       // send the tx request
@@ -522,21 +513,13 @@ export class IntMaxNodeClient implements INTMAXClient {
 
       memo.tx();
     } catch (e) {
-      if (
-        e instanceof Error &&
-        e.message.includes(
-          'save-snapshot failed with status:500 Internal Server Error, error:Lock error: prev_digest mismatch with stored digest',
-        )
-      ) {
-        if (this.#showLogs) console.error(e);
-      } else {
-        console.error(e);
-      }
+      const errMsg = formatError(e);
+      this.#logger.error(errMsg);
       this.#broadcastInProgress = false;
       throw new Error('Failed to send tx request');
     }
 
-    let tx: JsTxResult | undefined;
+    let tx: mainnetWasm.JsTxResult | testnetWasm.JsTxResult | undefined;
     try {
       tx = await this.#functions.query_and_finalize(
         this.#config,
@@ -546,7 +529,8 @@ export class IntMaxNodeClient implements INTMAXClient {
       );
       await this.#indexerFetcher.fetchBlockBuilderUrl();
     } catch (e) {
-      console.error(e);
+      const errMsg = formatError(e);
+      this.#logger.error(errMsg);
       this.#broadcastInProgress = false;
       throw new Error('Failed to finalize tx');
     }
@@ -557,16 +541,8 @@ export class IntMaxNodeClient implements INTMAXClient {
         try {
           await this.#functions.sync_claims(this.#config, viewPair, rawTransfers[0].claim_beneficiary, 0);
         } catch (e) {
-          if (
-            e instanceof Error &&
-            e.message.includes(
-              'save-snapshot failed with status:500 Internal Server Error, error:Lock error: prev_digest mismatch with stored digest',
-            )
-          ) {
-            if (this.#showLogs) console.error(e);
-          } else {
-            console.error(e);
-          }
+          const errMsg = formatError(e);
+          this.#logger.error(errMsg);
           this.#broadcastInProgress = false;
           throw e;
         }
@@ -578,9 +554,11 @@ export class IntMaxNodeClient implements INTMAXClient {
     this.#broadcastInProgress = false;
 
     return {
-      // @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
+      // eslint-disable-next-line
+      // @ts-ignore
       txTreeRoot: tx.tx_tree_root,
-      // @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
+      // eslint-disable-next-line
+      // @ts-ignore
       transferDigests: tx.tx_data.transfer_digests,
     };
   }
@@ -594,15 +572,20 @@ export class IntMaxNodeClient implements INTMAXClient {
       throw new Error('Limit cannot be greater than 256');
     }
 
-    const data = await this.#functions.fetch_tx_history(
-      this.#config,
-      this.#viewKey,
-      new (this.#environment === 'mainnet' ? mainnetWasm.JsMetaDataCursor : testnetWasm.JsMetaDataCursor)(
-        cursor,
-        'desc',
-        limit,
-      ),
-    );
+    let data;
+    try {
+      data = await this.#functions.fetch_tx_history(
+        this.#config,
+        this.#viewKey,
+        new (this.#environment === 'mainnet' ? mainnetWasm.JsMetaDataCursor : testnetWasm.JsMetaDataCursor)(
+          cursor,
+          'desc',
+          limit,
+        ),
+      );
+    } catch (error) {
+      throw formatError(error);
+    }
 
     return {
       pagination: {
@@ -639,15 +622,20 @@ export class IntMaxNodeClient implements INTMAXClient {
       throw new Error('Limit cannot be greater than 256');
     }
 
-    const data = await this.#functions.fetch_transfer_history(
-      this.#config,
-      this.#viewKey,
-      new (this.#environment === 'mainnet' ? mainnetWasm.JsMetaDataCursor : testnetWasm.JsMetaDataCursor)(
-        cursor,
-        'desc',
-        limit,
-      ),
-    );
+    let data;
+    try {
+      data = await this.#functions.fetch_transfer_history(
+        this.#config,
+        this.#viewKey,
+        new (this.#environment === 'mainnet' ? mainnetWasm.JsMetaDataCursor : testnetWasm.JsMetaDataCursor)(
+          cursor,
+          'desc',
+          limit,
+        ),
+      );
+    } catch (error) {
+      throw formatError(error);
+    }
 
     return {
       pagination: {
@@ -684,15 +672,20 @@ export class IntMaxNodeClient implements INTMAXClient {
       throw new Error('Limit cannot be greater than 256');
     }
 
-    const data = await this.#functions.fetch_deposit_history(
-      this.#config,
-      this.#viewKey,
-      new (this.#environment === 'mainnet' ? mainnetWasm.JsMetaDataCursor : testnetWasm.JsMetaDataCursor)(
-        cursor as JsMetaData,
-        'desc',
-        limit,
-      ),
-    );
+    let data;
+    try {
+      data = await this.#functions.fetch_deposit_history(
+        this.#config,
+        this.#viewKey,
+        new (this.#environment === 'mainnet' ? mainnetWasm.JsMetaDataCursor : testnetWasm.JsMetaDataCursor)(
+          cursor as testnetWasm.JsMetaData | mainnetWasm.JsMetaData,
+          'desc',
+          limit,
+        ),
+      );
+    } catch (error) {
+      throw formatError(error);
+    }
 
     return {
       pagination: {
@@ -839,7 +832,7 @@ export class IntMaxNodeClient implements INTMAXClient {
         if (e instanceof Error && e.message.includes('Transaction receipt with hash')) {
           continue;
         }
-        console.error(e);
+        this.#logger.error(e);
       }
     }
 
@@ -951,7 +944,10 @@ export class IntMaxNodeClient implements INTMAXClient {
             status = tx.status === 'success' ? TransactionStatus.Completed : TransactionStatus.Rejected;
           }
         } catch (e) {
-          console.error(e);
+          if (e instanceof Error && e.message.includes('Transaction receipt with hash')) {
+            continue;
+          }
+          this.#logger.error(e);
         }
       }
       if (status === TransactionStatus.Rejected) {
@@ -963,8 +959,9 @@ export class IntMaxNodeClient implements INTMAXClient {
         txHash,
       };
     } catch (e) {
-      console.error(e);
-      throw e;
+      const errMsg = formatError(e);
+      this.#logger.error(errMsg);
+      throw errMsg;
     }
   }
 
@@ -983,7 +980,9 @@ export class IntMaxNodeClient implements INTMAXClient {
   }
 
   async getWithdrawalFee(token: Token): Promise<FeeResponse> {
-    const withdrawalFee = (await this.#functions.quote_withdrawal_fee(this.#config, token.tokenIndex, 0)) as JsFeeQuote;
+    const withdrawalFee = (await this.#functions.quote_withdrawal_fee(this.#config, token.tokenIndex, 0)) as
+      | testnetWasm.JsFeeQuote
+      | mainnetWasm.JsFeeQuote;
     return {
       beneficiary: withdrawalFee.beneficiary,
       fee: withdrawalFee.fee,
@@ -1018,9 +1017,8 @@ export class IntMaxNodeClient implements INTMAXClient {
           txTreeRoot,
         )) as WaitForTransactionConfirmationResponse['status'];
       } catch (e) {
-        if (this.#showLogs) {
-          console.error('Error while fetching transaction status:', e);
-        }
+        const errMsg = formatError(e);
+        this.#logger.error('Error while fetching transaction status:', errMsg);
         return {
           status: 'not_found',
         };
@@ -1043,9 +1041,18 @@ export class IntMaxNodeClient implements INTMAXClient {
       this.#isSyncInProgress = false;
       throw Error('Not logged in yet.');
     }
-    return await this.#functions.sync(this.#config, this.#viewKey).finally(() => {
+
+    try {
+      await this.#functions.sync(this.#config, this.#viewKey).finally(() => {
+        this.#isSyncInProgress = false;
+      });
+    } catch (e) {
+      const errMsg = formatError(e);
+      this.#logger.error('Failed to sync account balance proof', errMsg);
+      throw errMsg;
+    } finally {
       this.#isSyncInProgress = false;
-    });
+    }
   }
 
   updatePublicClientRpc(url: string): void {
@@ -1136,7 +1143,7 @@ export class IntMaxNodeClient implements INTMAXClient {
     if (this.#isSyncInProgress) {
       return;
     }
-    console.info('user_data_sync start');
+    this.#logger.info('user_data_sync start');
     this.#isSyncInProgress = true;
 
     const prevFetchData = this.#cacheMap.get('user_data_fetch');
@@ -1150,7 +1157,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       const diff = currentDate - prevFetchDate;
       if (diff < 180_000) {
         this.#isSyncInProgress = false;
-        console.info('user_data_sync done');
+        this.#logger.info('user_data_sync done');
         return;
       }
     }
@@ -1164,10 +1171,10 @@ export class IntMaxNodeClient implements INTMAXClient {
         10000,
         5,
       );
-      console.info('Synced account balance proof');
+      this.#logger.info('Synced account balance proof');
 
       // sync withdrawals
-      console.info('Start sync withdrawals');
+      this.#logger.info('Start sync withdrawals');
       await retryWithAttempts(
         () => {
           return this.#functions.sync_withdrawals(this.#config, this.#viewKey, 0);
@@ -1175,9 +1182,10 @@ export class IntMaxNodeClient implements INTMAXClient {
         10000,
         5,
       );
-      console.info('Synced withdrawals');
+      this.#logger.info('Synced withdrawals');
     } catch (e) {
-      console.info('Failed to sync account balance proof', e);
+      const errMsg = formatError(e);
+      this.#logger.error('Failed to sync account balance proof', errMsg);
     }
 
     this.#userData = await this.#functions.get_user_data(this.#config, this.#viewKey);
@@ -1192,25 +1200,25 @@ export class IntMaxNodeClient implements INTMAXClient {
     });
     this.#cacheMap.set('user_data_fetch', prevFetchDataArr);
     this.#isSyncInProgress = false;
-    console.info('user_data_sync done');
+    this.#logger.info('user_data_sync done');
   }
 
-  async #fetchUserData(): Promise<JsUserData> {
+  async #fetchUserData(): Promise<mainnetWasm.JsUserData | testnetWasm.JsUserData> {
     const prevFetchData = this.#cacheMap.get('user_data_fetch');
     const prevFetchDateObj = prevFetchData?.find(
       (data: { fetchDate: number; address: string }) => data?.address?.toLowerCase() === this.address.toLowerCase(),
     );
 
-    let userdata: JsUserData;
+    let userdata: mainnetWasm.JsUserData | testnetWasm.JsUserData;
     if (prevFetchDateObj && prevFetchDateObj.address.toLowerCase() === this.address.toLowerCase()) {
       const prevFetchDate = prevFetchDateObj.fetchDate;
       const currentDate = new Date().getTime();
       const diff = currentDate - prevFetchDate;
       if (diff < 180_000 && this.#userData) {
-        console.info('Skipping user data fetch');
+        this.#logger.info('Skipping user data fetch');
         return this.#userData;
       } else if (diff < 180_000) {
-        console.info('Fetching user data without sync');
+        this.#logger.info('Fetching user data without sync');
         userdata = await this.#functions.get_user_data(this.#config, this.#viewKey);
         this.#userData = userdata;
 
@@ -1383,7 +1391,7 @@ export class IntMaxNodeClient implements INTMAXClient {
         });
       }
     } catch (e) {
-      console.error(e);
+      this.#logger.error(e);
       throw e;
     }
 
@@ -1439,7 +1447,7 @@ export class IntMaxNodeClient implements INTMAXClient {
           hash: approveTx,
         });
       } catch (approveError) {
-        console.error('Approval failed', approveError);
+        this.#logger.error('Approval failed', approveError);
         throw approveError;
       }
     }
@@ -1495,7 +1503,7 @@ export class IntMaxNodeClient implements INTMAXClient {
           hash: approveTx,
         });
       } catch (approveError) {
-        console.error('Approval failed', approveError);
+        this.#logger.error('Approval failed', approveError);
         throw approveError;
       }
     }
@@ -1528,8 +1536,8 @@ export class IntMaxNodeClient implements INTMAXClient {
     };
   }
 
-  async #getTransferFee(): Promise<JsTransferFeeQuote | undefined> {
-    let fee: JsTransferFeeQuote | undefined;
+  async #getTransferFee(): Promise<mainnetWasm.JsTransferFeeQuote | testnetWasm.JsTransferFeeQuote | undefined> {
+    let fee: mainnetWasm.JsTransferFeeQuote | testnetWasm.JsTransferFeeQuote | undefined;
     let attempts = 0;
     const maxAttempts = 3;
     let urlBlockBuilderUrl = await this.#indexerFetcher.getBlockBuilderUrl();
@@ -1549,8 +1557,9 @@ export class IntMaxNodeClient implements INTMAXClient {
           break;
         }
         fee = undefined;
-      } catch (error) {
-        console.error(`Attempt ${attempts + 1} failed:`, error);
+      } catch (e) {
+        const errMsg = formatError(e);
+        this.#logger.error(`Attempt ${attempts + 1} failed:`, errMsg);
       }
 
       attempts++;
@@ -1569,7 +1578,7 @@ export class IntMaxNodeClient implements INTMAXClient {
 
   #terminateSyncUserData() {
     if (this.#userDataWorker) {
-      console.info('Terminating worker...');
+      this.#logger.info('Terminating worker...');
       this.#userDataWorker.terminate();
       this.#userDataWorker = undefined;
       this.#isSyncInProgress = false;
@@ -1578,7 +1587,7 @@ export class IntMaxNodeClient implements INTMAXClient {
 
   async #restartSyncUserData() {
     return;
-    console.info('Restarting worker...');
+    this.#logger.info('Restarting worker...');
     this.#terminateSyncUserData();
 
     setTimeout(() => {
@@ -1590,7 +1599,7 @@ export class IntMaxNodeClient implements INTMAXClient {
     try {
       this.#userDataWorker = new Worker(require.resolve('./sync.worker.js'));
     } catch (error) {
-      console.error('Failed to create worker:', error);
+      this.#logger.error('Failed to create worker:', error);
       // Fallback to sync operation
       this.#userDataWorker = undefined;
       return;
@@ -1602,8 +1611,13 @@ export class IntMaxNodeClient implements INTMAXClient {
 
     this.#userDataWorker.on(
       'message',
-      async (data: { data: JsUserData; type: 'user_data' | 'error'; shouldSaveTime: boolean; viewPair: string }) => {
-        console.info('Worker message execution received:', data);
+      async (data: {
+        data: mainnetWasm.JsUserData | testnetWasm.JsUserData;
+        type: 'user_data' | 'error';
+        shouldSaveTime: boolean;
+        viewPair: string;
+      }) => {
+        this.#logger.info('Worker message execution received:', data);
 
         switch (data.type) {
           case 'user_data':
@@ -1640,12 +1654,12 @@ export class IntMaxNodeClient implements INTMAXClient {
     );
 
     this.#userDataWorker.on('error', (error) => {
-      console.error('Worker error:', error);
+      this.#logger.error('Worker error:', error);
       this.#isSyncInProgress = false;
     });
 
     this.#userDataWorker.on('messageerror', (error) => {
-      console.error('Worker message error:', error);
+      this.#logger.error('Worker message error:', error);
     });
   }
 
@@ -1653,7 +1667,7 @@ export class IntMaxNodeClient implements INTMAXClient {
     if (this.#isSyncInProgress) {
       return;
     }
-    console.info('user_data_sync start');
+    this.#logger.info('user_data_sync start');
     this.#isSyncInProgress = true;
     const shouldSync = true;
 
@@ -1682,11 +1696,12 @@ export class IntMaxNodeClient implements INTMAXClient {
 
     // If worker creation failed, fallback to sync operation
     if (!this.#userDataWorker) {
-      console.warn('Worker not available, falling back to sync operation');
+      this.#logger.warn('Worker not available, falling back to sync operation');
       try {
         await this.#syncUserData();
-      } catch (error) {
-        console.error('Sync operation failed:', error);
+      } catch (e) {
+        const errMsg = formatError(e);
+        this.#logger.error('Sync operation failed:', errMsg);
         this.#isSyncInProgress = false;
       }
       return;
@@ -1697,6 +1712,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       data: {
         viewPair: this.#viewKey,
         shouldSync,
+        loggerLevel: this.#logger.level,
         configArgs: {
           network: this.#config.network.toLowerCase(),
           store_vault_server_url: this.#config.store_vault_server_url,

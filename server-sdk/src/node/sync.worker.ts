@@ -1,9 +1,14 @@
 import { parentPort } from 'worker_threads';
 
+import { ConsolaInstance, createConsola } from 'consola';
+
 // @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
 import * as mainnetWasm from './mainnet';
 // @ts-expect-error A type error is occurring, but this is a measure to resolve the build error
 import * as testnetWasm from './testnet';
+import { formatError } from '../shared';
+
+let logger: ConsolaInstance;
 
 function convertUserDataToPlainObject(userData: mainnetWasm.JsUserData | testnetWasm.JsUserData) {
   return {
@@ -31,12 +36,18 @@ async function start({
   configArgs,
   viewPair,
   shouldSync,
+  loggerLevel = 'none',
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   configArgs: any; // just for testing
   viewPair: string;
   shouldSync: boolean;
+  loggerLevel?: 'error' | 'warn' | 'info' | 'none';
 }) {
+  logger = createConsola({
+    level: loggerLevel === 'none' ? -999 : loggerLevel === 'error' ? 0 : loggerLevel === 'warn' ? 1 : 3,
+    fancy: true,
+  });
   let config: mainnetWasm.Config | testnetWasm.Config;
   const isMainnet = configArgs.network === 'mainnet';
 
@@ -92,13 +103,13 @@ async function start({
         configArgs.private_zkp_server_retry_interval,
       );
     }
-    console.info('%cConfig initialized', 'color: #4CAF50; font-weight: bold;');
+    logger.info('%cConfig initialized', 'color: #4CAF50; font-weight: bold;');
   } catch (error) {
-    console.error('Config creation failed:', error);
+    logger.error('Config creation failed:', error);
     return;
   }
 
-  console.info('%cWasm worker started...', 'color: #4CAF50; font-weight: bold;');
+  logger.info('%cWasm worker started...', 'color: #4CAF50; font-weight: bold;');
 
   if (shouldSync) {
     try {
@@ -108,7 +119,8 @@ async function start({
         await testnetWasm.sync(config, viewPair);
       }
     } catch (error) {
-      console.error('Error during sync from worker:', error);
+      const errMsg = formatError(error);
+      logger.error('Error during sync from worker:', errMsg);
 
       if (error instanceof Error && error.message.includes('unreachable')) {
         try {
@@ -118,7 +130,8 @@ async function start({
             await testnetWasm.resync(config, viewPair, false);
           }
         } catch (error) {
-          console.error('Error during resync from worker:', error);
+          const errMsg = formatError(error);
+          logger.error('Error during resync from worker:', errMsg);
         }
       }
     }
@@ -130,7 +143,8 @@ async function start({
         await testnetWasm.sync_withdrawals(config, viewPair, 0);
       }
     } catch (error) {
-      console.error('Error during withdrawals sync from worker:', error);
+      const errMsg = formatError(error);
+      logger.error('Error during withdrawals sync from worker:', errMsg);
     }
   }
 
@@ -145,18 +159,25 @@ async function start({
       viewPair,
     });
   } catch (error) {
-    console.error('Error getting user data from worker:', error);
+    const errMsg = formatError(error);
+    logger.error('Error getting user data from worker:', errMsg);
   }
-  console.info('%cWasm worker finished sync', 'color: #4CAF50; font-weight: bold;');
+  logger.info('%cWasm worker finished sync', 'color: #4CAF50; font-weight: bold;');
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 parentPort?.on('message', (data: any) => {
-  console.info(`%cWasm worker received message:`, 'color: #4CAF50; font-weight: bold;');
-  console.info(data);
+  const loggerLevel = data.data.loggerLevel || 'none';
+  logger = createConsola({
+    level: loggerLevel === 'none' ? -999 : loggerLevel === 'error' ? 0 : loggerLevel === 'warn' ? 1 : 3,
+    fancy: true,
+  });
+
+  logger.info(`%cWasm worker received message:`, 'color: #4CAF50; font-weight: bold;');
+  logger.info(data);
   switch (data.type) {
     case 'start_sync':
-      console.info(`%cWasm worker received start message`, 'color: #4CAF50; font-weight: bold;');
+      logger.info(`%cWasm worker received start message`, 'color: #4CAF50; font-weight: bold;');
       start(data.data);
       return;
   }

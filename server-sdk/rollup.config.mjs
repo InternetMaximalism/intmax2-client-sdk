@@ -1,4 +1,5 @@
 import commonjs from '@rollup/plugin-commonjs';
+import json from '@rollup/plugin-json';
 import resolve from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
 import typescript from '@rollup/plugin-typescript';
@@ -43,6 +44,7 @@ export default [
         preferBuiltins: false
       }), 
       commonjs(), 
+      json(),
       typescript({ tsconfig: './tsconfig.json', compilerOptions: { skipLibCheck: true } }), 
       fixWasmPaths(), 
       terser()
@@ -65,7 +67,7 @@ export default [
       format: 'cjs',
       sourcemap: true,
     },
-    plugins: [resolve(), commonjs(), typescript({ tsconfig: './tsconfig.json', declaration: false }), terser()],
+    plugins: [resolve(), commonjs(), json(), typescript({ tsconfig: './tsconfig.json', declaration: false }), terser()],
     external: ['fs', 'path', 'worker_threads', './mainnet', './testnet'],
   },
 ];

@@ -1,3 +1,4 @@
+import { ConsolaInstance } from 'consola';
 import { Abi, createPublicClient, http, PublicClient } from 'viem';
 import { mainnet, sepolia } from 'viem/chains';
 
@@ -18,13 +19,13 @@ export class TransactionFetcher {
   readonly #publicClient: PublicClient;
   readonly #liquidityContractAddress: string;
   readonly #get_withdrawal_info: typeof wasmMainnet.get_withdrawal_info | typeof wasmTestnet.get_withdrawal_info;
+  readonly #logger: ConsolaInstance;
 
-  constructor(environment: IntMaxEnvironment) {
+  constructor(environment: IntMaxEnvironment, logger: ConsolaInstance) {
     this.#environment = environment;
+    this.#logger = logger;
     this.#liquidityContractAddress =
-      environment === 'mainnet'
-        ? MAINNET_ENV.liquidity_contract
-        : TESTNET_ENV.liquidity_contract;
+      environment === 'mainnet' ? MAINNET_ENV.liquidity_contract : TESTNET_ENV.liquidity_contract;
 
     this.#publicClient = createPublicClient({
       chain: environment === 'mainnet' ? mainnet : sepolia,
@@ -68,7 +69,7 @@ export class TransactionFetcher {
         total_count: resp.cursor_response.total_count,
       };
     } catch (e) {
-      console.error(e);
+      this.#logger.error(e);
       throw new Error('Failed to fetch withdrawal info');
     }
 

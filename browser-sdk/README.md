@@ -102,7 +102,7 @@ To use the private ZKP server hosted at `http://localhost:9001`, you can use the
 import { IntMaxClient } from 'intmax2-client-sdk';
 
 const intMaxClient = IntMaxClient.init({
-  environment: 'mainnet',
+  environment: 'testnet',
   urls: {
     balance_prover_url: 'http://localhost:9001',
     use_private_zkp_server: false, // When using the balance prover locally on localhost, set `use_private_zkp_server` to false.
@@ -111,6 +111,24 @@ const intMaxClient = IntMaxClient.init({
 ```
 
 To set up a local Balance Prover instance, please see [Tips: How to Run a Local Balance Prover](../README.md#tips-how-to-run-a-local-balance-prover)
+
+The SDK includes a built-in logging system that helps developers monitor and debug client behavior.
+You can configure the verbosity of logs using the `loggerLevel` option when initializing `IntMaxNodeClient`.
+
+```ts
+const intMaxClient = new IntMaxNodeClient({
+  environment: "testnet",
+  eth_private_key: process.env.ETH_PRIVATE_KEY,
+  l1_rpc_url: process.env.L1_RPC_URL,
+  loggerLevel: "warn", // Set the desired log level here
+});
+```
+
+Available `loggerLevel` options:
+- `none` (default): No logs will be output.
+- `error`: Only error logs will be output.
+- `warn`: Error and warning logs will be output.
+- `info`: All logs will be output.
 
 ### Login to INTMAX Network
 
@@ -132,15 +150,6 @@ This example retrieves the address and private key of the generated INTMAX accou
 ```ts
 const address = intMaxClient.address; // Your INTMAX address
 const privateKey = intMaxClient.getPrivateKey(); // INTMAX private key. Here you should sign message.
-```
-
-### Update L1 RPC URL
-
-You can customize the RPC URL of the Ethereum (Sepolia) network used when executing a deposit transaction.
-
-```ts
-const newL1RpcUrl = "https://new-rpc-url.com";
-intMaxClient.updateL1RpcUrl(newL1RpcUrl);
 ```
 
 ### Sign & Verify signature
@@ -296,65 +305,11 @@ console.log('Deposit result:', depositResult);
 console.log('Transaction Hash:', depositResult.txHash);
 ```
 
-### The `sync` Function
-
-```ts
-await intMaxClient.sync();
-```
-
-The `sync` function updates the user’s balance to the latest state.
-On the INTMAX network, a user’s balance must be refreshed before transfers or withdrawals.
-
-However, this function should not be called manually in normal use.
-When an instance of `IntMaxClient` is created, the `sync` function is automatically executed in the background at regular intervals.
-
-**Important:**
-
-* ⚠️ The `sync` function should not be called manually in normal use.
-* ⚠️ Be aware that multiple `sync` calls cannot run concurrently — if called at the same time, one of them will fail.
-
-
-### Wait for Transaction Confirmation
-
-```ts
-const transferConfirmation = await intMaxClient.waitForTransactionConfirmation({ txTreeRoot });
-```
-
-The `waitForTransactionConfirmation` function is used to verify whether a transfer has been fully finalized after execution.
-On the INTMAX network, transactions are submitted to nodes using the `broadcastTransaction` function (described below) and then processed.
-
-The success response of `broadcastTransaction` alone does not guarantee on-chain finalization.
-Therefore, the `waitForTransactionConfirmation` function provides a reliable way to track the transaction until its status becomes either `success` or `failed`.
-
-**Important:**
-
-* ⚠️ It is important to call `waitForTransactionConfirmation` after executing a transfer transaction.
-
-**NOTE**: This function can also be used with the `txTreeRoot` of the `withdraw` function. However, since the transaction is already reflected on-chain once the `withdraw` function has finished executing, there is no need to use this function to wait any further.
-
-### Transfer (Broadcast Transaction)
-
-```ts
-// You can change filtration by tokenIndex or tokenAddress
-const token = balances.find((b) => b.token.tokenIndex === 0).token;
-
-const transferResult = await intMaxClient.broadcastTransaction([
-  {
-    address: "T6ubiG36LmNce6uzcJU3h5JR5FWa72jBBLUGmEPx5VXcFtvXnBB3bqice6uzcJU3h5JR5FWa72jBBLUGmEPx5VXcB3prnCZ", // Your INTMAX address
-    token,
-    amount: 0.000001, // 0.000001 ETH
-  }
-]);
-console.log("Transfer result:", transferResult);
-
-// Wait for transfer confirmation
-const transferConfirmation = await intMaxClient.waitForTransactionConfirmation(transferResult);
-console.log('Transfer confirmation result:', transferConfirmation);
-```
-
 ### Withdraw
 
 ```ts
+await intMaxClient.sync(); // synchronize balance
+
 // You can change filtration by tokenIndex or tokenAddress
 const token = balances.find((b) => b.token.tokenIndex === 0).token;
 
@@ -366,6 +321,11 @@ const withdrawalResult = await intMaxClient.withdraw({
 });
 console.log('Withdrawal result:', withdrawalResult);
 ```
+
+It is recommended to run the sync function before executing a transfer or withdrawal.
+This is because synchronizing your balance with the latest state may take some time.
+
+By running the sync function after completing a transfer, you ensure that your balance is up to date, making subsequent transfers smoother and more reliable.
 
 ### Claim withdrawals
 

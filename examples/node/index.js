@@ -20,11 +20,11 @@ const main = async () => {
     l1_rpc_url: process.env.L1_RPC_URL,
     urls: process.env.BALANCE_PROVER_URL
       ? {
-          balance_prover_url: process.env.BALANCE_PROVER_URL,
-          use_private_zkp_server: false,
-        }
+        balance_prover_url: process.env.BALANCE_PROVER_URL,
+        use_private_zkp_server: false,
+      }
       : undefined,
-    showLogs: true,
+    loggerLevel: 'info',
   });
 
   // Login
@@ -119,6 +119,8 @@ const main = async () => {
     try {
       const transferResult = await client.broadcastTransaction(transfers);
       console.log('Transfer result:', JSON.stringify(transferResult, null, 2));
+      // uncomment if you want to reproduce "Pending tx error"
+      // await client.sync();
       const transferConfirmation = await client.waitForTransactionConfirmation(transferResult);
       console.log('Transfer confirmation result:', JSON.stringify(transferConfirmation, null, 2));
       break;

@@ -1,6 +1,6 @@
 {
   "name": "intmax2-server-sdk",
-  "version": "1.4.7",
+  "version": "1.5.0",
   "description": "Server SDK for INTMAX2",
   "type": "commonjs",
   "main": "dist/index.js",
@@ -39,10 +39,12 @@
     "@scure/bip32": "^1.7.0",
     "@scure/bip39": "^1.6.0",
     "axios": "^1.11.0",
+    "consola": "^3.4.2",
     "viem": "^2.31.3"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.5",
+    "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.2",

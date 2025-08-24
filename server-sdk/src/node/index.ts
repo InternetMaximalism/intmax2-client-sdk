@@ -572,15 +572,20 @@ export class IntMaxNodeClient implements INTMAXClient {
       throw new Error('Limit cannot be greater than 256');
     }
 
-    const data = await this.#functions.fetch_tx_history(
-      this.#config,
-      this.#viewKey,
-      new (this.#environment === 'mainnet' ? mainnetWasm.JsMetaDataCursor : testnetWasm.JsMetaDataCursor)(
-        cursor,
-        'desc',
-        limit,
-      ),
-    );
+    let data;
+    try {
+      data = await this.#functions.fetch_tx_history(
+        this.#config,
+        this.#viewKey,
+        new (this.#environment === 'mainnet' ? mainnetWasm.JsMetaDataCursor : testnetWasm.JsMetaDataCursor)(
+          cursor,
+          'desc',
+          limit,
+        ),
+      );
+    } catch (error) {
+      throw formatError(error);
+    }
 
     return {
       pagination: {
@@ -617,15 +622,20 @@ export class IntMaxNodeClient implements INTMAXClient {
       throw new Error('Limit cannot be greater than 256');
     }
 
-    const data = await this.#functions.fetch_transfer_history(
-      this.#config,
-      this.#viewKey,
-      new (this.#environment === 'mainnet' ? mainnetWasm.JsMetaDataCursor : testnetWasm.JsMetaDataCursor)(
-        cursor,
-        'desc',
-        limit,
-      ),
-    );
+    let data;
+    try {
+      data = await this.#functions.fetch_transfer_history(
+        this.#config,
+        this.#viewKey,
+        new (this.#environment === 'mainnet' ? mainnetWasm.JsMetaDataCursor : testnetWasm.JsMetaDataCursor)(
+          cursor,
+          'desc',
+          limit,
+        ),
+      );
+    } catch (error) {
+      throw formatError(error);
+    }
 
     return {
       pagination: {
@@ -662,15 +672,20 @@ export class IntMaxNodeClient implements INTMAXClient {
       throw new Error('Limit cannot be greater than 256');
     }
 
-    const data = await this.#functions.fetch_deposit_history(
-      this.#config,
-      this.#viewKey,
-      new (this.#environment === 'mainnet' ? mainnetWasm.JsMetaDataCursor : testnetWasm.JsMetaDataCursor)(
-        cursor as testnetWasm.JsMetaData | mainnetWasm.JsMetaData,
-        'desc',
-        limit,
-      ),
-    );
+    let data;
+    try {
+      data = await this.#functions.fetch_deposit_history(
+        this.#config,
+        this.#viewKey,
+        new (this.#environment === 'mainnet' ? mainnetWasm.JsMetaDataCursor : testnetWasm.JsMetaDataCursor)(
+          cursor as testnetWasm.JsMetaData | mainnetWasm.JsMetaData,
+          'desc',
+          limit,
+        ),
+      );
+    } catch (error) {
+      throw formatError(error);
+    }
 
     return {
       pagination: {

@@ -24,7 +24,7 @@ const main = async () => {
         use_private_zkp_server: false,
       }
       : undefined,
-    showLogs: true,
+    loggerLevel: 'info',
   });
 
   // Login

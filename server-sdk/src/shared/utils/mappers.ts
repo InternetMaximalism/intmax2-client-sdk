@@ -162,9 +162,14 @@ export const formatError = (error: unknown): Error | unknown => {
         'The previous transfer is still being processed, so you cannot initiate a new one yet. Please use `waitForTransactionConfirmation` to wait for the previous transaction to complete.',
       );
     }
-    if (error.message.includes(`failed with status:502 Bad Gateway, error:<html>`)) {
+    if (error.message.includes(`Bad Gateway`) && error.message.includes(`validity-prover/`)) {
       return new Error(
         'Unable to connect to the Validity Prover server (502 Bad Gateway). The server may be temporarily unresponsive.',
+      );
+    }
+    if (error.message.includes(`Bad Gateway`) && error.message.includes(`store-vault-server/`)) {
+      return new Error(
+        'Unable to connect to the Store Vault server (502 Bad Gateway). The server may be temporarily unresponsive.',
       );
     }
   }

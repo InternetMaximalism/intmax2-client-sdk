@@ -738,7 +738,12 @@ export class IntMaxClient implements INTMAXClient {
         ? new mainnetWasm.JsMetaDataCursor(cursor, 'desc', limit)
         : new testnetWasm.JsMetaDataCursor(cursor, 'desc', limit);
 
-    const data = await this.#functions.fetch_tx_history(this.#config, this.#viewKey, cursorMeta);
+    let data;
+    try {
+      data = await this.#functions.fetch_tx_history(this.#config, this.#viewKey, cursorMeta);
+    } catch (e) {
+      throw formatError(e);
+    }
 
     return {
       pagination: {
@@ -779,7 +784,12 @@ export class IntMaxClient implements INTMAXClient {
         ? new mainnetWasm.JsMetaDataCursor(cursor, 'desc', limit)
         : new testnetWasm.JsMetaDataCursor(cursor, 'desc', limit);
 
-    const data = await this.#functions.fetch_transfer_history(this.#config, this.#viewKey, cursorMeta);
+    let data;
+    try {
+      data = await this.#functions.fetch_transfer_history(this.#config, this.#viewKey, cursorMeta);
+    } catch (e) {
+      throw formatError(e);
+    }
 
     return {
       pagination: {
@@ -820,7 +830,12 @@ export class IntMaxClient implements INTMAXClient {
         ? new mainnetWasm.JsMetaDataCursor(cursor, 'desc', limit)
         : new testnetWasm.JsMetaDataCursor(cursor, 'desc', limit);
 
-    const data = await this.#functions.fetch_deposit_history(this.#config, this.#viewKey, cursorMeta);
+    let data;
+    try {
+      data = await this.#functions.fetch_deposit_history(this.#config, this.#viewKey, cursorMeta);
+    } catch (e) {
+      throw formatError(e);
+    }
 
     return {
       pagination: {

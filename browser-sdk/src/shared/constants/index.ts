@@ -44,7 +44,7 @@ export const TESTNET_ENV: SDKUrls = {
   liquidity_contract: '0x81f3843aF1FBaB046B771f0d440C04EBB2b7513F',
   rollup_contract: '0xcEC03800074d0ac0854bF1f34153cc4c8bAEeB1E',
   withdrawal_contract_address: '0x914aBB5c7ea6352B618eb5FF61F42b96AD0325e7',
-  predicate_contract_address: '0x4D9B3CF9Cb04B27C5D221c82B428D9dE990D3e3a',
+  predicate_contract_address: '0x447ec9373d600C144C9bf9A9d4413BD59a7763AB',
   //
   rpc_url_l1: 'https://sepolia.gateway.tenderly.co',
   rpc_url_l2: 'https://sepolia-rpc.scroll.io',

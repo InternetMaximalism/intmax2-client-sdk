@@ -1266,6 +1266,7 @@ export class IntMaxNodeClient implements INTMAXClient {
       from: this.#ethAccount.address as `0x${string}`,
       to: this.#urls.predicate_contract_address as `0x${string}`,
       msg_value: token.tokenType === TokenType.NATIVE ? amountInDecimals.toString() : '0',
+      chain_id: this.#environment === 'mainnet' ? 1 : 11155111,
     });
 
     if (!predicateMessage.is_compliant) {

@@ -351,6 +351,7 @@ export interface PredicateSignatureRequest {
   to: `0x${string}`;
   data: string;
   msg_value: string;
+  chain_id?: number;
 }
 
 export interface PredicateSignatureResponse {

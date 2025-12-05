@@ -197,6 +197,10 @@ interface IFunctions {
   get_tx_status: typeof mainnetWasm.get_tx_status | typeof testnetWasm.get_tx_status;
 }
 
+const MAX_TRANSACTION_BATCH_SIZE = 32;
+const MAX_TRANSFER_BATCH_SIZE = 32;
+const MAX_DEPOSIT_BATCH_SIZE = 32;
+
 export class IntMaxClient implements INTMAXClient {
   readonly #environment: IntMaxEnvironment;
   readonly #logger: ConsolaInstance;
@@ -726,17 +730,21 @@ export class IntMaxClient implements INTMAXClient {
 
   // Send/Withdrawals
   async fetchTransactions(
-    { cursor, limit }: FetchTransactionsRequest = { cursor: null, limit: 256 },
+    { cursor, limit }: FetchTransactionsRequest = { cursor: null },
   ): Promise<FetchTransactionsResponse> {
     this.#checkAllowanceToExecuteMethod();
-    if (limit && limit > 256) {
-      throw new Error('Limit cannot be greater than 256');
+    let actualLimit = limit;
+    if (!actualLimit) {
+      actualLimit = MAX_TRANSACTION_BATCH_SIZE;
+    }
+    if (actualLimit > MAX_TRANSACTION_BATCH_SIZE) {
+      throw new Error(`Limit cannot be greater than ${MAX_TRANSACTION_BATCH_SIZE}`);
     }
 
     const cursorMeta =
       this.#environment === 'mainnet'
-        ? new mainnetWasm.JsMetaDataCursor(cursor, 'desc', limit)
-        : new testnetWasm.JsMetaDataCursor(cursor, 'desc', limit);
+        ? new mainnetWasm.JsMetaDataCursor(cursor, 'desc', actualLimit)
+        : new testnetWasm.JsMetaDataCursor(cursor, 'desc', actualLimit);
 
     let data;
     try {
@@ -772,17 +780,21 @@ export class IntMaxClient implements INTMAXClient {
 
   // Receive
   async fetchTransfers(
-    { cursor, limit }: FetchTransactionsRequest = { cursor: null, limit: 256 },
+    { cursor, limit }: FetchTransactionsRequest = { cursor: null },
   ): Promise<FetchTransactionsResponse> {
     this.#checkAllowanceToExecuteMethod();
-    if (limit && limit > 256) {
-      throw new Error('Limit cannot be greater than 256');
+    let actualLimit = limit;
+    if (!actualLimit) {
+      actualLimit = MAX_TRANSFER_BATCH_SIZE;
+    }
+    if (actualLimit > MAX_TRANSFER_BATCH_SIZE) {
+      throw new Error(`Limit cannot be greater than ${MAX_TRANSFER_BATCH_SIZE}`);
     }
 
     const cursorMeta =
       this.#environment === 'mainnet'
-        ? new mainnetWasm.JsMetaDataCursor(cursor, 'desc', limit)
-        : new testnetWasm.JsMetaDataCursor(cursor, 'desc', limit);
+        ? new mainnetWasm.JsMetaDataCursor(cursor, 'desc', actualLimit)
+        : new testnetWasm.JsMetaDataCursor(cursor, 'desc', actualLimit);
 
     let data;
     try {
@@ -818,17 +830,21 @@ export class IntMaxClient implements INTMAXClient {
 
   // Deposit
   async fetchDeposits(
-    { cursor, limit }: FetchTransactionsRequest = { cursor: null, limit: 256 },
+    { cursor, limit }: FetchTransactionsRequest = { cursor: null },
   ): Promise<FetchTransactionsResponse> {
     this.#checkAllowanceToExecuteMethod();
-    if (limit && limit > 256) {
-      throw new Error('Limit cannot be greater than 256');
+    let actualLimit = limit;
+    if (!actualLimit) {
+      actualLimit = MAX_DEPOSIT_BATCH_SIZE;
+    }
+    if (actualLimit > MAX_DEPOSIT_BATCH_SIZE) {
+      throw new Error(`Limit cannot be greater than ${MAX_DEPOSIT_BATCH_SIZE}`);
     }
 
     const cursorMeta =
       this.#environment === 'mainnet'
-        ? new mainnetWasm.JsMetaDataCursor(cursor, 'desc', limit)
-        : new testnetWasm.JsMetaDataCursor(cursor, 'desc', limit);
+        ? new mainnetWasm.JsMetaDataCursor(cursor, 'desc', actualLimit)
+        : new testnetWasm.JsMetaDataCursor(cursor, 'desc', actualLimit);
 
     let data;
     try {

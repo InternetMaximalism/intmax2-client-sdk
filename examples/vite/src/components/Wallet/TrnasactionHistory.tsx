@@ -27,8 +27,8 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ client }
 
       const [depositsData,transfersData, txData] = await Promise.allSettled([
         client.fetchDeposits(),
-        client.fetchTransfers(),
-        client.fetchTransactions(),
+        client.fetchTransfers({ cursor: null }),
+        client.fetchTransactions({ cursor: null, limit: 1 }),
       ]);
 
       const deposits = depositsData.status === 'fulfilled' ? depositsData.value.items : []

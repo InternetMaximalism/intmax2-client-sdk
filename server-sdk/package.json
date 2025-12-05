@@ -38,7 +38,7 @@
   "dependencies": {
     "@scure/bip32": "^1.7.0",
     "@scure/bip39": "^1.6.0",
-    "axios": "^1.11.0",
+    "axios": "^1.13.2",
     "consola": "^3.4.2",
     "viem": "^2.31.3"
   },
@@ -69,5 +69,15 @@
   "engines": {
     "node": ">=18"
   },
-  "packageManager": "pnpm@9.9.0+sha1.3edbe440f4e570aa8f049adbd06b9483d55cc2d2"
+  "packageManager": "pnpm@9.9.0+sha1.3edbe440f4e570aa8f049adbd06b9483d55cc2d2",
+  "pnpm": {
+    "overrides": {
+      "brace-expansion@>=1.0.0 <=1.1.11": ">=1.1.12",
+      "brace-expansion@>=2.0.0 <=2.0.1": ">=2.0.2",
+      "vite@>=6.0.0 <=6.3.5": ">=6.3.6",
+      "vite@>=6.0.0 <=6.4.0": ">=6.4.1",
+      "js-yaml@>=4.0.0 <4.1.1": ">=4.1.1",
+      "glob@>=11.0.0 <11.1.0": ">=11.1.0"
+    }
+  }
 }

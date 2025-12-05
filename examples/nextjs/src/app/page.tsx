@@ -151,8 +151,8 @@ export default function Home() {
     try {
       const [deposits, receiveTxs, send] = await Promise.all([
         client.fetchDeposits(),
-        client.fetchTransfers(),
-        client.fetchTransactions(),
+        client.fetchTransfers({ cursor: null }),
+        client.fetchTransactions({ cursor: null, limit: 1 }),
       ]);
 
       setHistory({

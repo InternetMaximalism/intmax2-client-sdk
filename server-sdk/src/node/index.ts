@@ -109,6 +109,10 @@ interface IFunctions {
   get_tx_status: typeof mainnetWasm.get_tx_status | typeof testnetWasm.get_tx_status;
 }
 
+const MAX_TRANSFER_BATCH_SIZE = 32;
+const MAX_TRANSACTION_BATCH_SIZE = 32;
+const MAX_DEPOSIT_BATCH_SIZE = 32;
+
 export class IntMaxNodeClient implements INTMAXClient {
   #intervalId: number | null | NodeJS.Timeout = null;
   #isSyncInProgress: boolean = false;
@@ -565,11 +569,15 @@ export class IntMaxNodeClient implements INTMAXClient {
 
   // Send/Withdrawals
   async fetchTransactions(
-    { cursor, limit }: FetchTransactionsRequest = { cursor: null, limit: 256 },
+    { cursor, limit }: FetchTransactionsRequest = { cursor: null },
   ): Promise<FetchTransactionsResponse> {
     this.#checkAllowanceToExecuteMethod();
-    if (limit && limit > 256) {
-      throw new Error('Limit cannot be greater than 256');
+    let actualLimit = limit;
+    if (!actualLimit) {
+      actualLimit = MAX_TRANSACTION_BATCH_SIZE;
+    }
+    if (actualLimit > MAX_TRANSACTION_BATCH_SIZE) {
+      throw new Error(`Limit cannot be greater than ${MAX_TRANSACTION_BATCH_SIZE}`);
     }
 
     let data;
@@ -580,7 +588,7 @@ export class IntMaxNodeClient implements INTMAXClient {
         new (this.#environment === 'mainnet' ? mainnetWasm.JsMetaDataCursor : testnetWasm.JsMetaDataCursor)(
           cursor,
           'desc',
-          limit,
+          actualLimit,
         ),
       );
     } catch (error) {
@@ -615,11 +623,15 @@ export class IntMaxNodeClient implements INTMAXClient {
 
   // Receive
   async fetchTransfers(
-    { cursor, limit }: FetchTransactionsRequest = { cursor: null, limit: 256 },
+    { cursor, limit }: FetchTransactionsRequest = { cursor: null },
   ): Promise<FetchTransactionsResponse> {
     this.#checkAllowanceToExecuteMethod();
-    if (limit && limit > 256) {
-      throw new Error('Limit cannot be greater than 256');
+    let actualLimit = limit;
+    if (!actualLimit) {
+      actualLimit = MAX_TRANSFER_BATCH_SIZE;
+    }
+    if (actualLimit > MAX_TRANSFER_BATCH_SIZE) {
+      throw new Error(`Limit cannot be greater than ${MAX_TRANSFER_BATCH_SIZE}`);
     }
 
     let data;
@@ -630,7 +642,7 @@ export class IntMaxNodeClient implements INTMAXClient {
         new (this.#environment === 'mainnet' ? mainnetWasm.JsMetaDataCursor : testnetWasm.JsMetaDataCursor)(
           cursor,
           'desc',
-          limit,
+          actualLimit,
         ),
       );
     } catch (error) {
@@ -665,11 +677,15 @@ export class IntMaxNodeClient implements INTMAXClient {
 
   // Deposit
   async fetchDeposits(
-    { cursor, limit }: FetchTransactionsRequest = { cursor: null, limit: 256 },
+    { cursor, limit }: FetchTransactionsRequest = { cursor: null },
   ): Promise<FetchTransactionsResponse> {
     this.#checkAllowanceToExecuteMethod();
-    if (limit && limit > 256) {
-      throw new Error('Limit cannot be greater than 256');
+    let actualLimit = limit;
+    if (!actualLimit) {
+      actualLimit = MAX_DEPOSIT_BATCH_SIZE;
+    }
+    if (actualLimit > MAX_DEPOSIT_BATCH_SIZE) {
+      throw new Error(`Limit cannot be greater than ${MAX_DEPOSIT_BATCH_SIZE}`);
     }
 
     let data;
@@ -680,7 +696,7 @@ export class IntMaxNodeClient implements INTMAXClient {
         new (this.#environment === 'mainnet' ? mainnetWasm.JsMetaDataCursor : testnetWasm.JsMetaDataCursor)(
           cursor as testnetWasm.JsMetaData | mainnetWasm.JsMetaData,
           'desc',
-          limit,
+          actualLimit,
         ),
       );
     } catch (error) {

@@ -55,17 +55,11 @@ const main = async () => {
   // Fetch transaction history
   console.log('\nFetching transaction history...');
   const [deposits, receiveTransfers, sendTxs] = await Promise.all([
-    client.fetchDeposits({
-      limit: 1,
-      cursor: null,
-    }),
-    client.fetchTransfers({
-      limit: 1,
-      cursor: null,
-    }),
+    client.fetchDeposits(),
+    client.fetchTransfers({ cursor: null }),
     client.fetchTransactions({
-      limit: 1,
       cursor: null,
+      limit: 1,
     }),
   ]);
   console.log('\nTransaction History:');

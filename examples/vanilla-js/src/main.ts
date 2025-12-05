@@ -407,7 +407,11 @@ const fetchHistoryButton = () => {
     button.innerHTML = 'Fetching...';
 
     try {
-      const promises = [client.fetchDeposits(), client.fetchTransfers(), client.fetchTransactions()];
+      const promises = [
+        client.fetchDeposits(),
+        client.fetchTransfers({ cursor: null }),
+        client.fetchTransactions({ cursor: null, limit: 1 }),
+      ];
       const [deposits, receiveTxs, send] = await Promise.all(promises);
 
       const history = {

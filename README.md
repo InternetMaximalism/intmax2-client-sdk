@@ -295,6 +295,12 @@ Retrieves deposits, transfers, transactions, withdrawals in parallel:
 
 All returned data is sorted in descending chronological order (newest first).
 
+**Note on Batch Size Limits:**
+
+When fetching transaction history, the SDK internally uses pagination with a maximum batch size limit of **64 items per request**. The SDK automatically handles pagination to retrieve all available records, so you don't need to worry about this limit when using the high-level APIs like `fetchDeposits()`, `fetchTransfers()`, or `fetchTransactions()`.
+
+Specifying a value greater than 64 will result in an error: `Limit exceeds max batch size`.
+
 ```ts
 const [receivedDeposits, receivedTransfers, sentTxs, requestedWithdrawals] =
   await Promise.all([
